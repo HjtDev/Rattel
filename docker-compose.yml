@@ -1,0 +1,117 @@
+services:
+  db:
+    image: postgres:18.1-alpine
+    container_name: rattel_db
+    environment:
+      POSTGRES_DB: rattel_db
+      POSTGRES_USER: rattel_user
+      POSTGRES_PASSWORD: rattel_password
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rattel_user -d rattel_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8.4-alpine
+    container_name: rattel_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./RattelBackend/
+    container_name: rattel_backend
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./RattelBackend/:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./RattelBackend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./rattel-frontend
+      dockerfile: Dockerfile
+    container_name: rattel_frontend
+    volumes:
+      - ./rattel-frontend:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    command: ["npm", "run", "dev"]
+
+  celery:
+    build: ./RattelBackend/
+    container_name: rattel_celery
+    command: celery -A RattelBackend worker -l info
+    volumes:
+      - ./RattelBackend:/app
+    env_file:
+      - ./RattelBackend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+  celery-beat:
+    build: ./RattelBackend/
+    container_name: rattel_celery_beat
+    command: celery -A RattelBackend beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./RattelBackend:/app
+    env_file:
+      - ./RattelBackend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+
+  flower:
+    build: ./RattelBackend/
+    container_name: rattel_flower
+    command: celery -A RattelBackend flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - ./RattelBackend/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      celery:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
