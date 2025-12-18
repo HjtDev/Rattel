@@ -99,14 +99,13 @@ DATABASES = {
 
 # Cache
 
-REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+REDIS_URL = config('REDIS_URL', default='redis://redis:6379/0')
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'PARSER_CLASS': 'redis.connection.HiredisParser',
         },
         'KEY_PREFIX': 'rattel',
         'TIMEOUT': 300,
@@ -240,3 +239,9 @@ LOGGING = {
     },
 }
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
+# Health Check
+
+HEALTH_CHECK = {
+    'ALLOWED_HOSTS': ['127.0.0.1', 'localhost']
+}
