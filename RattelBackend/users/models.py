@@ -111,7 +111,7 @@ class Profile(models.Model):
         return f"{self.user.username}'s Profile"
     
     
-class Setting(models.Model):
+class UserSettings(models.Model):
     class Meta:
         verbose_name = 'Setting'
         verbose_name_plural = 'Settings'
