@@ -45,6 +45,7 @@ class GetDataMixin:
     # Compiled regex patterns for performance
     EMAIL_REGEX = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
     USERNAME_REGEX = re.compile(r'^[a-zA-Z][a-zA-Z0-9_.]{2,29}$')
+    PHONE_REGEX = re.compile(r'^09\d{9}$')
     FILTER_REGEX = re.compile(
         r'^'
         r'(?:'
@@ -75,6 +76,13 @@ class GetDataMixin:
         if not isinstance(email, str):
             return False
         return bool(GetDataMixin.EMAIL_REGEX.match(email))
+    
+    @staticmethod
+    def validate_phone(phone: str) -> bool:
+        """Validate phone format using regex."""
+        if not isinstance(phone, str):
+            return False
+        return bool(GetDataMixin.PHONE_REGEX.match(phone))
     
     @staticmethod
     def validate_password(password: str, password2: str = None) -> tuple[bool, list[str]]:
