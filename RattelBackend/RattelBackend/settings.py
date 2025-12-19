@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users.apps.UsersConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -208,6 +209,7 @@ JAZZMIN_SETTINGS = {
 
 # Logging
 
+os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -238,7 +240,6 @@ LOGGING = {
         'level': 'INFO',
     },
 }
-os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
 # Health Check
 
