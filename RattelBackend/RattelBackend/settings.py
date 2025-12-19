@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users.apps.UsersConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -208,6 +209,7 @@ JAZZMIN_SETTINGS = {
 
 # Logging
 
+os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -238,10 +240,23 @@ LOGGING = {
         'level': 'INFO',
     },
 }
-os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
 # Health Check
 
 HEALTH_CHECK = {
     'ALLOWED_HOSTS': ['127.0.0.1', 'localhost']
 }
+
+# Django Resized
+
+DJANGORESIZED_DEFAULT_SIZE = [200, 200]
+# DJANGORESIZED_DEFAULT_SCALE = 0.5
+DJANGORESIZED_DEFAULT_QUALITY = 100
+DJANGORESIZED_DEFAULT_KEEP_META = True
+# DJANGORESIZED_DEFAULT_FORCE_FORMAT = 'JPEG'
+DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP': '.webp'}
+# DJANGORESIZED_DEFAULT_NORMALIZE_ROTATION = False
+
+# User Mode
+
+AUTH_USER_MODEL = 'users.User'
