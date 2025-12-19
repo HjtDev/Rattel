@@ -80,3 +80,48 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.name
     
+
+class Profile(models.Model):
+    class Meta:
+        verbose_name = 'Profile'
+        verbose_name_plural = 'Profiles'
+    
+    class RoleChoices(models.TextChoices):
+        STUDENT = 'Student', 'Student'
+        TEACHER = 'Teacher', 'Teacher'
+        
+    class GenderChoices(models.TextChoices):
+        MALE = 'Male', 'Male'
+        FEMALE = 'Female', 'Female'
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name='User')
+    
+    role = models.CharField(max_length=10, choices=RoleChoices.choices, default=RoleChoices.STUDENT, verbose_name='Role')
+    gender = models.CharField(max_length=10, choices=GenderChoices.choices, blank=True, null=True, verbose_name='Gender')
+    
+    biography = models.TextField(max_length=500, blank=True, null=True, verbose_name='Biography')
+    education = models.TextField(max_length=150, blank=True, null=True, verbose_name='Education')
+    extra_info = models.TextField(max_length=300, blank=True, null=True, verbose_name='Extra Information')
+    
+    telegram_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Telegram ID')
+    eitaa_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Eitaa ID')
+    instagram_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Instagram ID')
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+    
+    
+class Setting(models.Model):
+    class Meta:
+        verbose_name = 'Setting'
+        verbose_name_plural = 'Settings'
+        
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings', verbose_name='User')
+    
+    profile_visible = models.BooleanField(default=True, verbose_name='Profile visible')
+    email_on_login = models.BooleanField(default=False, verbose_name='Email on login')
+    email_on_payment = models.BooleanField(default=False, verbose_name='Email on payment')
+    sms_on_payment = models.BooleanField(default=True, verbose_name='SMS on payment')
+    
+    def __str__(self):
+        return f"{self.user.username}'s Settings"
