@@ -260,3 +260,17 @@ DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP'
 # User Mode
 
 AUTH_USER_MODEL = 'users.User'
+
+# Email Settings
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+
+# SMS Settings
+
+SMS_API_KEY = config('SMS_API_KEY')
