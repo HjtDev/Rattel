@@ -36,13 +36,16 @@ services:
       dockerfile: Dockerfile
     image: rattel_backend:latest
     container_name: rattel_backend
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+#    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: ["/app/entrypoint.sh"]
     volumes:
       - ./RattelBackend/:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
       - "8000:8000"
+    environment:
+      RUN_TESTS: "1"
     env_file:
       - ./RattelBackend/.env
     depends_on:

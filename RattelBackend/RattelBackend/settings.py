@@ -219,7 +219,7 @@ LOGGING = {
             'format': '%(log_color)s%(levelname)-8s%(reset)s %(message)s',
         },
         'json': {
-            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            '()': 'pythonjsonlogger.json.JsonFormatter',
         },
     },
     'handlers': {
