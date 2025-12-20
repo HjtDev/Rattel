@@ -5,7 +5,19 @@ from notifications.providers.base import BaseEmailProvider
 
 
 class SMTPEmailProvider(BaseEmailProvider):
-    """SMTP-based email provider using Django's email backend"""
+    """
+    SMTP-based email provider using Django's email backend.
+
+    Requires the following Django settings to be configured in settings.py:
+    - EMAIL_BACKEND
+    - EMAIL_HOST
+    - EMAIL_HOST_USER
+    - EMAIL_HOST_PASSWORD
+    - EMAIL_PORT
+    - EMAIL_USE_SSL
+    - EMAIL_USE_TLS
+    - DEFAULT_FROM_EMAIL
+    """
     
     REQUIRES_API_KEY = False
     
