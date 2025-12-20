@@ -1,4 +1,5 @@
 import pytest
+from django.conf import settings
 
 
 class DummyRequest:
@@ -20,3 +21,9 @@ def get_request():
     def _factory(query_params):
         return DummyRequest(method="GET", query_params=query_params)
     return _factory
+
+
+@pytest.fixture(autouse=True)
+def email_backend_setup():
+    """Configure email backend for testing."""
+    settings.EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
