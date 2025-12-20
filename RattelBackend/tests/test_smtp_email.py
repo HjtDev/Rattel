@@ -152,7 +152,7 @@ class TestEmailHandler:
     
     def test_handler_initialization(self):
         """Test handler initializes correctly."""
-        handler = EmailHandler(SMTPEmailProvider)
+        handler = EmailHandler(SMTPEmailProvider, api_key=None, use_celery=False)
         assert handler.provider is not None
         assert isinstance(handler.provider, SMTPEmailProvider)
     
@@ -198,3 +198,37 @@ class TestEmailHandler:
         # Should work with API key
         handler = EmailHandler(APIProvider, api_key='test-key')
         assert handler.provider.api_key == 'test-key'
+        
+        
+class TestCeleryMode:
+    """Test email sending with Celery enabled."""
+    
+    @pytest.mark.django_db
+    def test_send_email_with_celery(self, smtp_provider_async):
+        """Test sending email with Celery (runs sync due to EAGER mode)."""
+        result = smtp_provider_async.send_mail(
+            to='recipient@example.com',
+            subject='Celery Test',
+            body='Test with Celery',
+            html=False
+        )
+        
+        assert result is True
+        # Email should still be in outbox due to EAGER mode
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].subject == 'Celery Test'
+    
+    @pytest.mark.django_db
+    def test_send_emails_with_celery(self, smtp_provider_async):
+        """Test sending multiple emails with Celery."""
+        recipients = ['user1@example.com', 'user2@example.com']
+        
+        result = smtp_provider_async.send_mails(
+            to=recipients,
+            subject='Bulk Celery Test',
+            body='Test bulk with Celery',
+            html=False
+        )
+        
+        assert result is True
+        assert len(mail.outbox) == 2
