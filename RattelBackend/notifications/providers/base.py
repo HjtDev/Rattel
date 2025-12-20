@@ -28,6 +28,9 @@ class BaseEmailProvider(ABC):
         if not isinstance(recipients, list):
             return False
         
+        if len(recipients) == 0:
+            return False
+        
         # Validate each email
         return all(isinstance(r, str) and bool(self.EMAIL_REGEX.match(r)) for r in recipients)
     

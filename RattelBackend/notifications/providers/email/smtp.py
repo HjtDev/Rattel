@@ -99,13 +99,15 @@ class SMTPEmailProvider(BaseEmailProvider):
                 result = msg.send(fail_silently=fail_silently)
             else:
                 # Send plain text email to multiple recipients
-                result = send_mail(
-                    subject=subject,
-                    message=body,
-                    from_email=self.email_from,
-                    recipient_list=to,
-                    fail_silently=fail_silently
-                )
+                result = 0
+                for recipient in to:
+                    result += send_mail(
+                        subject=subject,
+                        message=body,
+                        from_email=self.email_from,
+                        recipient_list=[recipient],
+                        fail_silently=fail_silently
+                    )
             
             return result == len(to)
         except Exception as e:
