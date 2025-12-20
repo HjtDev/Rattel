@@ -1,3 +1,4 @@
+from celery import shared_task
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
@@ -21,8 +22,8 @@ class SMTPEmailProvider(BaseEmailProvider):
     
     REQUIRES_API_KEY = False
     
-    def __init__(self, api_key=None, email_from: str = None):
-        super().__init__(api_key)
+    def __init__(self, api_key=None, use_celery: bool = False, email_from: str = None):
+        super().__init__(api_key, use_celery)
         
         # Use provided email or fall back to Django settings
         self.email_from = email_from or settings.DEFAULT_FROM_EMAIL
@@ -48,7 +49,22 @@ class SMTPEmailProvider(BaseEmailProvider):
         if not isinstance(fail_silently, bool):
             raise TypeError("'fail_silently' must be a boolean value")
         
-        # Send email
+        # Send with celery task
+        if self.use_celery:
+            from notifications.tasks import send_email_task
+            
+            send_email_task.delay(
+                to=to,
+                subject=subject,
+                body=body,
+                from_email=self.email_from,
+                html=html,
+                fail_silently=fail_silently
+            )
+            
+            return True
+        
+        # Send email the normal way
         try:
             if html:
                 # Send HTML email
@@ -97,7 +113,22 @@ class SMTPEmailProvider(BaseEmailProvider):
         if not isinstance(fail_silently, bool):
             raise TypeError("'fail_silently' must be a boolean value")
         
-        # Send emails
+        # Send emails using celery
+        if self.use_celery:
+            from notifications.tasks import send_emails_task
+            
+            send_emails_task.delay(
+                to=to,
+                subject=subject,
+                body=body,
+                from_email=self.email_from,
+                html=html,
+                fail_silently=fail_silently
+            )
+            
+            return True
+        
+        # Send emails the normal way
         try:
             if html:
                 # Send HTML email to multiple recipients

@@ -9,9 +9,10 @@ class BaseEmailProvider(ABC):
     REQUIRES_API_KEY = False
     EMAIL_REGEX = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
     
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, use_celery: bool = False, **kwargs):
         self.api_key = api_key
         self.validate_credentials()
+        self.use_celery = use_celery
     
     def validate_credentials(self):
         """Validate that required credentials are provided"""

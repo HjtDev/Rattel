@@ -15,7 +15,7 @@ def smtp_provider():
 @pytest.fixture
 def email_handler():
     """Create an email handler with SMTP provider."""
-    return EmailHandler(SMTPEmailProvider)
+    return EmailHandler(SMTPEmailProvider, api_key=None, use_celery=False)
 
 
 class TestBaseEmailProvider:
