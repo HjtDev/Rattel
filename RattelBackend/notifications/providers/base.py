@@ -44,3 +44,58 @@ class BaseEmailProvider(ABC):
     def send_mails(self, to: list[str], subject: str, body: str, html: bool = False, fail_silently: bool = False) -> bool:
         """Send an email to a list of recipients. Must be implemented by subclasses."""
         pass
+
+
+class BaseSMSProvider(ABC):
+    """Base SMS Provider class for implementing different SMS providers"""
+    
+    REQUIRES_API_KEY = True
+    PHONE_REGEX = re.compile(r'^09\d{9}$')  # Iranian phone format: 11 digits starting with 09
+    
+    def __init__(self, api_key: str = None, **kwargs):
+        """Initialize the SMS provider with credentials."""
+        self.api_key = api_key
+        self.validate_credentials()
+    
+    def validate_credentials(self):
+        """Validate that required credentials are provided"""
+        if self.REQUIRES_API_KEY and not self.api_key:
+            raise ValueError(f'{self.__class__.__name__} requires an API key')
+    
+    def validate_contacts(self, contacts: str | list[str]) -> bool:
+        """
+        Validate contact(s) phone number(s).
+        
+        Args:
+            contacts: Single phone number or list of phone numbers
+            
+        Returns:
+            True if all contacts are valid, False otherwise
+        """
+        if isinstance(contacts, str):
+            contacts = [contacts]
+        
+        if not isinstance(contacts, list):
+            return False
+        
+        if len(contacts) == 0:
+            return False
+        
+        return all(isinstance(c, str) and bool(self.PHONE_REGEX.match(c)) for c in contacts)
+    
+    @abstractmethod
+    def send(self, to: str, message: str) -> bool:
+        """
+        Send a simple direct SMS.
+        
+        Args:
+            to: Recipient phone number
+            message: Message to send
+            
+        Returns:
+            True if sent successfully
+            
+        Must be implemented by subclasses.
+        """
+        pass
+    
