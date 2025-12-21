@@ -67,3 +67,29 @@ def email_handler_async():
     from notifications.handlers.email import EmailHandler
     from notifications.providers.email.smtp import SMTPEmailProvider
     return EmailHandler(SMTPEmailProvider, use_celery=True, email_from='test@gmail.com')
+
+@pytest.fixture
+def captured_output():
+    """Capture SMS output for testing."""
+    messages = []
+    
+    def capture(msg):
+        messages.append(msg)
+    
+    capture.messages = messages
+    return capture
+
+
+@pytest.fixture
+def local_sms_provider(captured_output):
+    """Create a local SMS provider for testing."""
+    from notifications.providers.sms.local import LocalSMSProvider
+    return LocalSMSProvider(api_key=None, sender='TestSender', output=captured_output)
+
+
+@pytest.fixture
+def local_sms_handler(captured_output):
+    """Create an SMS handler for testing."""
+    from notifications.handlers.sms import SMSHandler
+    from notifications.providers.sms.local import LocalSMSProvider
+    return SMSHandler(LocalSMSProvider, api_key=None, sender='TestSender', output=captured_output)
