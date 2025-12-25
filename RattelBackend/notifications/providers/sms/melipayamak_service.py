@@ -2,6 +2,7 @@ from notifications.providers.sms.melipayamak.sms import Rest, Soap, RestAsync, S
 from notifications.providers.sms.melipayamak import Api
 from notifications.providers.base import BaseSMSProvider
 from django.core.cache import cache
+from notifications.tasks.melipayamak import send_sms_task, send_sms_with_template_task
 import logging, os
 
 
@@ -18,11 +19,22 @@ class MelipayamakProvider(BaseSMSProvider):
             sender: str = None,
             use_soap: bool = False,
             use_async: bool = False,
+            use_celery: bool = False,
             admin: str = None,
             warn_on_low_credit: bool = False,
             cache_prefix: str = 'melipayamak'
     ):
-        """Initializes melipayamak provider using its official module"""
+        """
+            Initializes Melipayamak provider using its official module.
+         
+            If you use_celery=True:
+            - SMS sending is delegated to a Celery worker (fire-and-forget).
+            - The provider will NOT store last message data in cache.
+            - Delivery status and recID are NOT available synchronously.
+            - You must retrieve message information using:
+                self.sms.get_messages(2, 0, 1, self.sender) ==> Retrieves the last sent message in provider's inbox
+            Use Celery ONLY for background sending where immediate results are not required.
+        """
         super().__init__(api_key)
         
         # Basic sanitization
@@ -45,6 +57,10 @@ class MelipayamakProvider(BaseSMSProvider):
         # Setting the main configuration based on the melipayamak docs
         self.method = 'soap' if use_soap else 'rest'
         self.type = 'async' if use_async else 'sync'
+        
+        if self.type == 'async' and use_celery:
+            raise ValueError('Celery does not support async type.')
+        self.use_celery = use_celery
         
         self.api: Api = Api(self.username, self.password)
         
@@ -513,6 +529,9 @@ class MelipayamakProvider(BaseSMSProvider):
             raise ValueError('is_flash must be a boolean')
         
         # Fetches the sms.send endpoint.
+        if self.use_celery:
+            send_sms_task.delay(to, self.sender, message, is_flash, username=self.username, password=self.password, _method=self.method, _type=self.type)
+            return True  # Queued but not sent. At least not yet
         res = self.sms.send(to, self.sender, message, is_flash)
         
         # Tries to check if the message was sent successfully
@@ -655,6 +674,10 @@ class MelipayamakProvider(BaseSMSProvider):
             raise ValueError('You have to send at least one template variable.')
         
         args_str = ';'.join(str(arg) for arg in args)
+        
+        if self.use_celery:
+            send_sms_with_template_task.delay(text=args_str, to=to, body_id=body_id, username=self.username, password=self.password, _method=self.method, _type=self.type)
+            return True  # Queued but not sent. At least not yet
         response = self.sms.send_by_base_number(args_str, to, body_id)
         
         if not isinstance(response, dict) or not response.get('RetStatus', False) or response.get('StrRetStatus', None) != 'Ok':

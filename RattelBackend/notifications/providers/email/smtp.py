@@ -1,4 +1,3 @@
-from celery import shared_task
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
@@ -51,7 +50,7 @@ class SMTPEmailProvider(BaseEmailProvider):
         
         # Send with celery task
         if self.use_celery:
-            from notifications.tasks import send_email_task
+            from notifications.tasks.smtp import send_email_task
             
             send_email_task.delay(
                 to=to,
@@ -115,7 +114,7 @@ class SMTPEmailProvider(BaseEmailProvider):
         
         # Send emails using celery
         if self.use_celery:
-            from notifications.tasks import send_emails_task
+            from notifications.tasks.smtp import send_emails_task
             
             send_emails_task.delay(
                 to=to,
