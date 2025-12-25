@@ -50,13 +50,11 @@ class MelipayamakProvider(BaseSMSProvider):
         
         self.sms: Rest | RestAsync | Soap | SoapAsync = self.api.sms(_method=self.method, _type=self.type)
         
-        # With Calling the credit we can make sure the connection is established
-        # also we can check if user doesn't have enough credit we can interrupt the initialization
-        # If we don't do this check all the next API calls would be invalid, and we may hit the throttle_rate
-        self.credit = self.get_credit()  # Can't use async in __init__
-        if self.credit == 0:
-            raise Exception('There is connection problems or you do not have any credit left to use.')
-            
+        # To prevent creating a new one each time we want to get the list of numbers with SOAP
+        self.fallback_rest_client: Rest = self.api.sms(_method='rest', _type=self.type)
+        
+        self._credit = None
+        
         # We can set a celery task to check the credit if admin is set and warning is enabled to check the credit and warn the admin before it's to late
         if admin:
             self.admin = admin
@@ -83,8 +81,18 @@ class MelipayamakProvider(BaseSMSProvider):
         if not isinstance(cache_prefix, str):
             raise ValueError('cache_prefix must be a string')
         self.cache_prefix = cache_prefix
+        self._cache_key = f'{cache_prefix}_last_data'
         
-    def get_credit(self) -> int:
+    @property
+    def credit(self):
+        """
+            Get the number remaining messages we can send. Lazy fetched on creation
+        """
+        if self._credit is None:
+            return self.refresh_credit()
+        return self._credit
+    
+    def refresh_credit(self) -> int:
         """
             Retrieves the credit from melipayamak API.
             
@@ -95,8 +103,8 @@ class MelipayamakProvider(BaseSMSProvider):
         
         # In soap the credit is returned directly
         if self.method == 'soap':
-            self.credit = int(res)
-            return self.credit
+            self._credit = int(res)
+            return self._credit
         
         if res.get('RetStatus', 0) != 1 or res.get('StrRetStatus') != 'Ok':
             logger.error('Failed to fetch credit endpoint.')
@@ -115,8 +123,8 @@ class MelipayamakProvider(BaseSMSProvider):
             raise PermissionError('Your IP has been blacklisted.')
         else:
             # If there is no error then the credit is valid and can be saved
-            self.credit = credit
-            return self.credit
+            self._credit = credit
+            return self._credit
     
     async def get_credit_async(self) -> int:
         """
@@ -186,7 +194,7 @@ class MelipayamakProvider(BaseSMSProvider):
             # Temporary uses a rest API endpoint to get the numbers list.
             logger.warning('Getting the list of sender numbers is not supported in SOAP method.')
             logger.warning('Temporary fallback to REST method')
-            res = Api(self.username, self.password).sms(_method='rest', _type='sync').get_numbers()
+            res = self.fallback_rest_client.get_numbers()
         
         # Tries to check if all the required data is present
         status = res.get('MyBase', None)
@@ -211,7 +219,7 @@ class MelipayamakProvider(BaseSMSProvider):
         if self.method == 'rest':
             res = await self.sms.get_numbers()
         else:
-            res = await Api(self.username, self.password).sms(_method='rest', _type='async').get_numbers()
+            res = await self.fallback_rest_client.get_numbers()
         
         status = res.get('MyBase', None)
         if not status:
@@ -270,7 +278,7 @@ class MelipayamakProvider(BaseSMSProvider):
             Returns:
                 None
         """
-        last_data = cache.get(f'{self.cache_prefix}_last_data', dict())
+        last_data = cache.get(self._cache_key, dict())
         
         if last_sender:
             last_data['last_sender'] = last_sender
@@ -281,16 +289,16 @@ class MelipayamakProvider(BaseSMSProvider):
         if last_message_id:
             last_data['last_message_id'] = last_message_id
             
-        cache.set(f'{self.cache_prefix}_last_data', last_data)
+        cache.set(self._cache_key, last_data)
         
-    def get_last_message(self):
+    def get_last_message(self) -> dict[str, str] | None:
         """
             Loads the last message data from the cache
             
             Returns:
                 Returns the last message data if it exists(if not returns None)
         """
-        last_data = cache.get(f'{self.cache_prefix}_last_data', dict())
+        last_data = cache.get(self._cache_key, dict())
         if last_data:
             return last_data
         logger.warning('No last SMS data found.')
@@ -493,7 +501,7 @@ class MelipayamakProvider(BaseSMSProvider):
         """
         
         # Validates the recipient phone number
-        if not to.strip() or not self.validate_contacts(to):
+        if not self.validate_contacts(to):
             raise ValueError(f'Invalid phone number: {to}')
         
         # Only non-empty messages can be sent
@@ -646,7 +654,8 @@ class MelipayamakProvider(BaseSMSProvider):
         if not args:
             raise ValueError('You have to send at least one template variable.')
         
-        response = self.sms.send_by_base_number(';'.join([str(arg) for arg in args]), to, body_id)
+        args_str = ';'.join(str(arg) for arg in args)
+        response = self.sms.send_by_base_number(args_str, to, body_id)
         
         if not isinstance(response, dict) or not response.get('RetStatus', False) or response.get('StrRetStatus', None) != 'Ok':
             logger.error(f'There was a problem sending this message. {response}')
@@ -681,7 +690,8 @@ class MelipayamakProvider(BaseSMSProvider):
         if not args:
             raise ValueError('You have to send at least one template variable.')
         
-        response = await self.sms.send_by_base_number(';'.join([str(arg) for arg in args]), to, body_id)
+        args_str = ';'.join(str(arg) for arg in args)
+        response = await self.sms.send_by_base_number(args_str, to, body_id)
         
         if not isinstance(response, dict) or not response.get('RetStatus', False) or response.get('StrRetStatus', None) != 'Ok':
             logger.error(f'There was a problem sending this message. {response}')
@@ -696,16 +706,3 @@ class MelipayamakProvider(BaseSMSProvider):
         else:
             logger.error('There was a problem sending this message.')
             return False
-
-
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'RattelBackend.settings')
-# sms = MelipayamakProvider(api_key=None, username='09191766438', password='5aebf10c-2a38-41f4-9e61-89e53211264e', sender='50004001766438', use_soap=False, use_async=False, admin=None, warn_on_low_credit=False)
-# res = sms.send('09392201571', 'send test')
-# print(res)
-# print(sms.is_delivered())
-# print(sms.get_last_message())
-
-# res = sms.send_with_template(331396, '09385965775', '1234')
-# print('template response:', res)
-# print('is delivered: ', sms.is_delivered())
-# print(sms.get_last_message())
