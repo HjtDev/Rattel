@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from notifications.providers.sms.melipayamak.sms import Rest, Soap, RestAsync, SoapAsync
 from notifications.providers.sms.melipayamak import Api
 from notifications.providers.base import BaseSMSProvider
@@ -21,7 +23,6 @@ class MelipayamakProvider(BaseSMSProvider):
             use_async: bool = False,
             use_celery: bool = False,
             admin: str = None,
-            warn_on_low_credit: bool = False,
             cache_prefix: str = 'melipayamak'
     ):
         """
@@ -79,7 +80,7 @@ class MelipayamakProvider(BaseSMSProvider):
             if not self.PHONE_REGEX.match(self.admin):
                 raise ValueError('Invalid phone number.')
             
-        self.warn_on_low_credit = warn_on_low_credit
+        self.warn_on_low_credit = settings.SMS_API_WARN_ON_LOW_CREDIT
         
         # Should set the admin phone number if the warning is enabled
         if self.warn_on_low_credit and not admin:
@@ -97,7 +98,8 @@ class MelipayamakProvider(BaseSMSProvider):
         if not isinstance(cache_prefix, str):
             raise ValueError('cache_prefix must be a string')
         self.cache_prefix = cache_prefix
-        self._cache_key = f'{cache_prefix}_last_data'
+        self._cache_key_data = f'{cache_prefix}_last_data'
+        self._cache_key_warn = f'{cache_prefix}_warn'
         
     @property
     def credit(self):
@@ -294,7 +296,7 @@ class MelipayamakProvider(BaseSMSProvider):
             Returns:
                 None
         """
-        last_data = cache.get(self._cache_key, dict())
+        last_data = cache.get(self._cache_key_data, dict())
         
         if last_sender:
             last_data['last_sender'] = last_sender
@@ -305,7 +307,7 @@ class MelipayamakProvider(BaseSMSProvider):
         if last_message_id:
             last_data['last_message_id'] = last_message_id
             
-        cache.set(self._cache_key, last_data)
+        cache.set(self._cache_key_data, last_data)
         
     def get_last_message(self) -> dict[str, str] | None:
         """
@@ -314,7 +316,7 @@ class MelipayamakProvider(BaseSMSProvider):
             Returns:
                 Returns the last message data if it exists(if not returns None)
         """
-        last_data = cache.get(self._cache_key, dict())
+        last_data = cache.get(self._cache_key_data, dict())
         if last_data:
             return last_data
         logger.warning('No last SMS data found.')
@@ -725,3 +727,27 @@ class MelipayamakProvider(BaseSMSProvider):
         else:
             logger.error('There was a problem sending this message.')
             return False
+        
+    def warn_admin(self):
+        """
+            Checks the credit, and if warn_on_low_credit is set to true, sends warning on low credit.
+        """
+        
+        # The option is disabled
+        if not self.warn_on_low_credit or not self.admin:
+            return False
+        
+        # Not critical yet
+        if self.credit > 20:
+            cache.set(self._cache_key_warn, False)  # Resets the cache if
+            return False
+        
+        # Checking cache to see if we warned the admin before
+        if cache.get(self._cache_key_warn):
+            # Already warned
+            return False
+        
+        # Updates cache to warned
+        cache.set(self._cache_key_warn, True)
+        
+        return True
