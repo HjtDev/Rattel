@@ -1,3 +1,10 @@
+x-build-args: &build-args
+  BUILDKIT_INLINE_CACHE: 1
+
+networks:
+  rattel_network:
+    driver: bridge
+
 services:
   db:
     image: postgres:18.1-alpine
@@ -6,37 +13,49 @@ services:
       POSTGRES_DB: rattel_db
       POSTGRES_USER: rattel_user
       POSTGRES_PASSWORD: rattel_password
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - rattel_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rattel_user -d rattel_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     shm_size: 256mb
+    restart: unless-stopped
 
   redis:
     image: redis:8.4-alpine
     container_name: rattel_redis
+    command: redis-server --appendonly yes --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - rattel_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   backend:
     build:
       context: ./RattelBackend/
       dockerfile: Dockerfile
+      cache_from:
+        - rattel_backend:latest
+      args:
+        <<: *build-args
     image: rattel_backend:latest
     container_name: rattel_backend
-#    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     command: ["/app/entrypoint.sh"]
     volumes:
       - ./RattelBackend/:/app
@@ -44,6 +63,8 @@ services:
       - media_volume:/app/media
     ports:
       - "8000:8000"
+    networks:
+      - rattel_network
     environment:
       RUN_TESTS: "1"
     env_file:
@@ -59,34 +80,44 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./rattel-frontend
       dockerfile: Dockerfile
+      cache_from:
+        - rattel_frontend:latest
+      args:
+        <<: *build-args
     image: rattel_frontend:latest
     container_name: rattel_frontend
     volumes:
       - ./rattel-frontend:/app
       - /app/node_modules
+      - /app/.next
     ports:
       - "3000:3000"
+    networks:
+      - rattel_network
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - WATCHPACK_POLLING=true
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     command: ["npm", "run", "dev"]
+    restart: unless-stopped
 
   celery:
-    build:
-      context: ./RattelBackend/
-      dockerfile: Dockerfile
     image: rattel_backend:latest
     container_name: rattel_celery
-    command: celery -A RattelBackend worker -l info
+    command: celery -A RattelBackend worker -l info --concurrency=6 --max-tasks-per-child=1000
     volumes:
       - ./RattelBackend:/app
+    networks:
+      - rattel_network
     env_file:
       - ./RattelBackend/.env
     depends_on:
@@ -96,16 +127,16 @@ services:
         condition: service_healthy
       backend:
         condition: service_started
+    restart: unless-stopped
 
   celery-beat:
-    build:
-      context: ./RattelBackend/
-      dockerfile: Dockerfile
     image: rattel_backend:latest
     container_name: rattel_celery_beat
     command: celery -A RattelBackend beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - ./RattelBackend:/app
+    networks:
+      - rattel_network
     env_file:
       - ./RattelBackend/.env
     depends_on:
@@ -115,17 +146,16 @@ services:
         condition: service_healthy
       backend:
         condition: service_started
-
+    restart: unless-stopped
 
   flower:
-    build:
-      context: ./RattelBackend/
-      dockerfile: Dockerfile
     image: rattel_backend:latest
     container_name: rattel_flower
-    command: celery -A RattelBackend flower --port=5555
+    command: celery -A RattelBackend flower --port=5555 --max_tasks=10000
     ports:
       - "5555:5555"
+    networks:
+      - rattel_network
     env_file:
       - ./RattelBackend/.env
     depends_on:
@@ -135,6 +165,7 @@ services:
         condition: service_healthy
       celery:
         condition: service_started
+    restart: unless-stopped
 
 volumes:
   postgres_data:
