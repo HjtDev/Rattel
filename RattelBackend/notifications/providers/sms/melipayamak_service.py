@@ -404,16 +404,13 @@ class MelipayamakProvider(BaseSMSProvider):
         res = self.sms.is_delivered(message_id)
         
         # Tries to extract the message delivery code
-        if isinstance(res, dict) and res.get('Value', False):
+        delivery_status = res
+        if self.method == 'rest' and isinstance(res, dict) and res.get('Value', False):
             delivery_status = res.get('Value')
             
-            # Passes the delivery code to _delivery_status to convert it to a boolean status.
-            # Also logs any error or issue
-            return self._delivery_status(delivery_status)
-        else:
-            # Couldn't fetch the API
-            logger.error(f'There is a problem with API. {res}')
-            return False
+        # Passes the delivery code to _delivery_status to convert it to a boolean status.
+        # Also logs any error or issue
+        return self._delivery_status(delivery_status)
     
     async def is_delivered_async(self, rec_id: str = None) -> bool:
         """
@@ -535,22 +532,19 @@ class MelipayamakProvider(BaseSMSProvider):
         res = self.sms.send(to, self.sender, message, is_flash)
         
         # Tries to check if the message was sent successfully
-        if isinstance(res, dict) and res.get('RetStatus', 0) and res.get('StrRetStatus', None) == 'Ok':
+        value = res
+        if self.method == 'rest' and isinstance(res, dict) and res.get('RetStatus', 0) and res.get('StrRetStatus', None) == 'Ok':
             value = res.get('Value', '11')
-            
-            # Passes the message status value to validate it.
-            status = self._send_status(value)
-            if status:  # Message was sent successfully
-                # Updates the last sent message
-                self._update_cache(self.sender, to, message, value)
-                return True
-            else:
-                # The endpoint output has been changed and the logic requires an update
-                logger.error('There was a problem sending this message.')
-                return False
+        
+        # Passes the message status value to validate it.
+        status = self._send_status(value)
+        if status:  # Message was sent successfully
+            # Updates the last sent message
+            self._update_cache(self.sender, to, message, value)
+            return True
         else:
-            # Failed to fetch the sms.send endpoint.
-            logger.error(f'Failed to send message: {res}')
+            # The endpoint output has been changed and the logic requires an update
+            logger.error('There was a problem sending this message.')
             return False
     
     async def send_async(self, to: str, message: str, is_flash: bool = False):
@@ -576,17 +570,19 @@ class MelipayamakProvider(BaseSMSProvider):
         
         res = await self.sms.send(to, self.sender, message, is_flash)
         
-        if isinstance(res, dict) and res.get('RetStatus', 0) and res.get('StrRetStatus', None) == 'Ok':
+        value = res
+        if self.method == 'rest' and isinstance(res, dict) and res.get('RetStatus', 0) and res.get('StrRetStatus', None) == 'Ok':
             value = res.get('Value', '11')
-            status = self._send_status(value)
-            if status:
-                self._update_cache(self.sender, to, message, value)
-                return True
-            else:
-                logger.error('There was a problem sending this message.')
-                return False
+        
+        # Passes the message status value to validate it.
+        status = self._send_status(value)
+        if status:  # Message was sent successfully
+            # Updates the last sent message
+            self._update_cache(self.sender, to, message, value)
+            return True
         else:
-            logger.error(f'Failed to send message: {res}')
+            # The endpoint output has been changed and the logic requires an update
+            logger.error('There was a problem sending this message.')
             return False
         
     def _send_with_template_status(self, value: str) -> bool:
@@ -680,11 +676,11 @@ class MelipayamakProvider(BaseSMSProvider):
             return True  # Queued but not sent. At least not yet
         response = self.sms.send_by_base_number(args_str, to, body_id)
         
-        if not isinstance(response, dict) or not response.get('RetStatus', False) or response.get('StrRetStatus', None) != 'Ok':
+        if self.method == 'rest' and (not isinstance(response, dict) or not response.get('RetStatus', False) or response.get('StrRetStatus', None) != 'Ok'):
             logger.error(f'There was a problem sending this message. {response}')
             return False
         
-        value = response.get('Value', '11')
+        value = response.get('Value', '11') if self.method == 'rest' else response
         status = self._send_with_template_status(value)
         
         if status:
@@ -716,11 +712,11 @@ class MelipayamakProvider(BaseSMSProvider):
         args_str = ';'.join(str(arg) for arg in args)
         response = await self.sms.send_by_base_number(args_str, to, body_id)
         
-        if not isinstance(response, dict) or not response.get('RetStatus', False) or response.get('StrRetStatus', None) != 'Ok':
+        if self.method == 'rest' and (not isinstance(response, dict) or not response.get('RetStatus', False) or response.get('StrRetStatus', None) != 'Ok'):
             logger.error(f'There was a problem sending this message. {response}')
             return False
         
-        value = response.get('Value', '11')
+        value = response.get('Value', '11') if self.method == 'rest' else response
         status = self._send_with_template_status(value)
         
         if status:
