@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
+    'notifications.apps.NotificationsConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -260,3 +261,21 @@ DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP'
 # User Mode
 
 AUTH_USER_MODEL = 'users.User'
+
+# Email Settings
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+# SMS Settings
+
+SMS_API_KEY = config('SMS_API_KEY')
+SMS_API_USERNAME = config('SMS_API_USERNAME')
+SMS_API_PASSWORD = config('SMS_API_PASSWORD')
+SMS_API_WARN_ON_LOW_CREDIT = config('SMS_API_WARN_ON_LOW_CREDIT')
