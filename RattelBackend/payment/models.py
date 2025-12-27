@@ -10,7 +10,7 @@ class Transaction(models.Model):
         verbose_name_plural = 'Transactions'
         indexes = [
             models.Index(fields=['user', 'created_at']),
-            models.Index(fields=['status']),
+            models.Index(fields=['transaction_status']),
             models.Index(fields=['tracking_id']),
         ]
         

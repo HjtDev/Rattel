@@ -206,7 +206,9 @@ JAZZMIN_SETTINGS = {
     'site_title': 'Rattel',
     'site_header': 'Rattel',
     'site_brand': 'Rattel',
-    'welcome_sign': 'Welcome to Rattel'
+    'welcome_sign': 'Welcome to Rattel',
+    'show_ui_builder': True,
+    'changeform_format': 'tabs',
 }
 
 # Logging
