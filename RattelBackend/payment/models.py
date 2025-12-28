@@ -56,6 +56,8 @@ class Transaction(models.Model):
     
     description = models.TextField(max_length=300, blank=True, null=True, verbose_name='Description', help_text='Any thing about the transaction like failure reason.')
     
+    locked_in = models.BooleanField(default=False, verbose_name='Locked in')
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created at')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated at')
     

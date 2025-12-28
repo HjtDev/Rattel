@@ -15,6 +15,7 @@ class TransactionAdmin(admin.ModelAdmin):
         'transaction_status_badge',
         'provider',
         'tracking_id',
+        'locked_in',
         'created_at',
     )
     
@@ -24,6 +25,7 @@ class TransactionAdmin(admin.ModelAdmin):
         'transaction_reason',
         'currency',
         'provider',
+        'locked_in',
         'created_at',
     )
     
@@ -48,7 +50,8 @@ class TransactionAdmin(admin.ModelAdmin):
         'created_at',
         'updated_at',
         'provider',
-        'tracking_id'
+        'tracking_id',
+        'locked_in'
     )
     
     fieldsets = (
@@ -64,6 +67,7 @@ class TransactionAdmin(admin.ModelAdmin):
                     'transaction_type',
                     'transaction_reason',
                     'transaction_status',
+                    'locked_in'
                 ),
             },
         ),
