@@ -243,22 +243,27 @@ class TestBuildGatewayUrl:
 
 class TestValidateGatewayResponse:
     """Test validate_gateway_response method."""
-    
+
     @patch('payment.providers.zibal.ZibalGateway.verify_transaction')
     def test_validate_gateway_response_success(self, mock_verify, zibal_gateway, mock_user, db):
-        # Setup cache
+        # Setup cache with extra_info containing user_id
         cache.set('test_zibal-started-test_merchant-ORDER-123', {
             'track_id': 123456,
             'amount': 10000,
             'callback_url': 'https://example.com/callback',
-            'reason': Transaction.TransactionReason.PAYMENT
+            'reason': Transaction.TransactionReason.PAYMENT,
+            'extra_info': {
+                'user_id': mock_user.id,  # Added user_id in extra_info
+                'success_url': 'https://example.com/success',
+                'fail_url': 'https://example.com/fail'
+            }
         }, timeout=600)
         
-        # Mock verify response
+        # Mock verify response - status must be 1 for success
         mock_verify.return_value = (True, {
             'amount': 10000,
             'identifier': 'ORDER-123',
-            'status': 1,
+            'status': 1,  # Status 1 = Paid and verified
             'reference_number': 'REF123'
         })
         
@@ -269,9 +274,9 @@ class TestValidateGatewayResponse:
             'status': 1
         }
         
+        # No need to pass user anymore - it's retrieved from cache
         success, metadata = zibal_gateway.validate_gateway_response(
-            response_data,
-            user=mock_user
+            response_data
         )
         
         assert success is True
@@ -283,8 +288,17 @@ class TestValidateGatewayResponse:
         assert transaction.transaction_status == Transaction.TransactionStatus.SUCCESS
         assert transaction.amount == 10000
         assert transaction.user == mock_user
-    
+
     def test_validate_gateway_response_no_user(self, zibal_gateway):
+        # Setup cache WITHOUT user_id in extra_info
+        cache.set('test_zibal-started-test_merchant-ORDER-123', {
+            'track_id': 123456,
+            'amount': 10000,
+            'callback_url': 'https://example.com/callback',
+            'reason': Transaction.TransactionReason.PAYMENT,
+            'extra_info': {}  # No user_id
+        }, timeout=600)
+        
         response_data = {
             'success': '1',
             'trackId': 123456,
@@ -292,8 +306,11 @@ class TestValidateGatewayResponse:
             'status': 1
         }
         
-        with pytest.raises(RuntimeError, match='User must be set'):
-            zibal_gateway.validate_gateway_response(response_data)
+        # Should return False, not raise RuntimeError
+        success, metadata = zibal_gateway.validate_gateway_response(response_data)
+        
+        assert success is False
+        assert metadata is None
     
     def test_validate_gateway_response_payment_failed(self, zibal_gateway, mock_user):
         response_data = {
