@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import status
@@ -46,6 +48,7 @@ class GetDataMixin:
     EMAIL_REGEX = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
     USERNAME_REGEX = re.compile(r'^[a-zA-Z][a-zA-Z0-9_.]{2,29}$')
     PHONE_REGEX = re.compile(r'^09\d{9}$')
+    NATIONAL_CODE_REGEX = re.compile(r'^[0-9]{10}$')
     FILTER_REGEX = re.compile(
         r'^'
         r'(?:'
@@ -131,6 +134,11 @@ class GetDataMixin:
         if isinstance(data, bool):
             return data
         return False
+    
+    @staticmethod
+    def is_url(url: str) -> bool:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
     
     @staticmethod
     def get_data(request, *args) -> tuple[bool, dict[str, Any] | list[str]]:
