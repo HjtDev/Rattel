@@ -9,7 +9,14 @@ from django.conf import settings
 from rest_framework import status
 
 
-GATEWAY_PROVIDER = import_string(settings.GATEWAY_PROVIDER)
+_gateway_provider = None
+
+def get_gateway_provider():
+    global _gateway_provider
+    if _gateway_provider is None:
+        _gateway_provider = import_string(settings.GATEWAY_PROVIDER)
+    return _gateway_provider
+    
 
 class PaymentStartView(APIView, ResponseBuilderMixin, GetDataMixin):
     """
@@ -35,7 +42,8 @@ class PaymentStartView(APIView, ResponseBuilderMixin, GetDataMixin):
         success, result = self.get_data(
             request,
             ('amount', lambda a: isinstance(a, int) or (isinstance(a, str) and a.isdigit())),  # in IRR
-            ('final_url', self.is_url),  # Full url to where transaction_id and identifier would be sent
+            ('success_url', self.is_url),  # Full URL to where transaction_id and identifier would be sent on success
+            ('fail_url', self.is_url),  # Full URL to where transaction_id and identifier would be sent on fail
             'description',
             'identifier',
         )
@@ -53,11 +61,15 @@ class PaymentStartView(APIView, ResponseBuilderMixin, GetDataMixin):
             'allowed_cards': request.data.get('allowed_cards', None),
             'national_code': request.data.get('national_code', None),
             'check_mobile_with_cart': request.data.get('check_mobile_with_cart', None),
-            'extra_info': {'final_url': result['final_url']},
+            'extra_info': {
+                'success_url': result['success_url'],
+                'fail_url': result['fail_url'],
+                'user_id': request.user.id
+            },
         }
         extra_kwargs = {key: value for key, value in extra_kwargs.items() if value is not None}
         
-        gateway = GATEWAY_PROVIDER(settings.MERCHANT)  # Initializes the gateway provider
+        gateway = get_gateway_provider()(settings.MERCHANT)  # Initializes the gateway provider
         
         # Attempts to create a gateway with the required amount and options
         try:
@@ -77,7 +89,7 @@ class PaymentStartView(APIView, ResponseBuilderMixin, GetDataMixin):
                 return self.build_response(  # Failed to start a payment session.
                     success=success,
                     error=-2,
-                    messsage=result
+                    message=result
                 )
         
             return self.build_response(  # Success
@@ -100,12 +112,12 @@ class PaymentCallbackView(APIView, ResponseBuilderMixin, GetDataMixin):
     After processing the data and validating its integrity it tries to redirect user to their requested URL with transaction_id and identifier as query_params
     """
     
-    permission_classes = (IsAuthenticated,)  # Only authenticated users can access this endpoint.
+    permission_classes = (AllowAny,)  # Since this endpoint is called by the gateway we may not have the user available everytime
     throttle_rate = 'payment-callback'  # 600 calls per minute
     
     def get(self, request):
         """
-        Processes the callback data, and redirects user to final_url
+        Processes the callback data, and redirects user to success_url
         Expected query params: {
             success: int | bool  ==> Indicates payment succession,
             trackId: int | str ==> Gateway track id to find the payment session,
@@ -125,7 +137,7 @@ class PaymentCallbackView(APIView, ResponseBuilderMixin, GetDataMixin):
                 errors=-1
             )
         
-        gateway = GATEWAY_PROVIDER(settings.MERCHANT)  # Initializes the gateway provider
+        gateway = get_gateway_provider()(settings.MERCHANT)  # Initializes the gateway provider
         
         # Saves device metadata to store them with transaction
         device_metadata = {
@@ -140,30 +152,32 @@ class PaymentCallbackView(APIView, ResponseBuilderMixin, GetDataMixin):
         # metadata ==> transaction_id, extra_info, paid_at, masked_card_number, status, amount, reference_number, description, identifier, message(from gateway)
         payment_valid, metadata = gateway.validate_gateway_response(result, user=request.user, metadata=device_metadata)
         
-        if not payment_valid:  # it should redirect to a Payment failed or canceled page
-            return self.build_response(  # User canceled the payment, or it was invalidated by gateway provider.
-                status.HTTP_406_NOT_ACCEPTABLE,
-                success=payment_valid,
-                error=-2,
-                message=f'Could not validate the transaction. Transaction is saved in failed status.\nTransaction ID: {metadata.get('transaction')}\nIdentifier: {metadata.get('identifier')}'
-            )
+        if metadata is None:
+            metadata = dict()
         
-        # Extracts final_url
+        # Extracts success_url and fail_url
         extra_info: dict | None = metadata.get('extra_info', None)
-        final_url: str = extra_info.get('final_url', '').strip()
         
-        if not final_url:  # If there is no final_url even on successful payment we can't finalize the process, but the payment will be stored in success state unlocked
+        if not extra_info or extra_info.get('fail_url') is None or extra_info.get('success_url') is None:
             return self.build_response(
                 status.HTTP_404_NOT_FOUND,
-                success=False,  # True,
+                success=False,
                 error=-3,
-                message=f'Transaction was successful but we did not find any URL to redirect to. Please contact site administrators.\nTrack ID:{result['trackId']}\nIdentifier:{result['orderId']}'
+                message='Transaction failed. Failed to extract payment redirect URLs.'
             )
+        success_url: str = extra_info['success_url'].strip()
+        fail_url: str = extra_info['fail_url'].strip()
+        
+        if not payment_valid:  # it should redirect to a Payment failed or canceled page
+            if not fail_url.endswith('/'):
+                fail_url += '/'
+            return redirect(f'{fail_url}?identifier={metadata.get('identifier')}&transaction_id={metadata.get('transaction')}')
+        
         
         # Adding / to final url to prevent issues with older devices
-        if not final_url.endswith('/'):
-            final_url += '/'
+        if not success_url.endswith('/'):
+            success_url += '/'
         
-        # Redirecting user to final_url with transaction_id and identifier
-        return redirect(f'{final_url}?identifier={metadata.get('identifier')}&transaction_id={metadata.get('transaction')}')
+        # Redirecting user to success_url with transaction_id and identifier
+        return redirect(f'{success_url}?identifier={metadata.get('identifier')}&transaction_id={metadata.get('transaction')}')
     

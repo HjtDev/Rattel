@@ -1,3 +1,5 @@
+from django.contrib.auth import get_user_model
+
 from .base import BaseProvider, GatewayResult
 from urllib.parse import urlparse
 from warnings import warn
@@ -239,13 +241,8 @@ class ZibalGateway(BaseProvider):
         
         Args:
             response_data: Raw callback data from gateway (query params or POST data)
-            **kwargs: Additional provider-specific parameters. A user instance must be passed -> user: AUTH_USER_MODEL
+            **kwargs: Additional provider-specific parameters
         """
-        
-        # Tries to get user instance
-        user = kwargs.get('user')
-        if user is None:
-            raise RuntimeError('User must be set to create a transaction.')
         
         # Extracts all the required data from response body
         success = response_data.get('success')
@@ -279,7 +276,24 @@ class ZibalGateway(BaseProvider):
         
         # If there is no data cached it means that this request is either false or expired.
         if starter_data is None:
-            logger.warning(f'ZibalGateway: Did not find any matching gateway starter in cache.')
+            logger.warning('ZibalGateway: Did not find any matching gateway starter in cache.')
+            return False, None
+        
+        extra_info = starter_data.get('extra_info', None)
+        if extra_info is None or not isinstance(extra_info, dict):
+            logger.error('ZibalGateway: No extra info provided. No user to associate transaction with.')
+            return False, None
+        
+        user_id = extra_info.get('user_id')
+        if user_id is None:
+            logger.error('ZibalGateway: Stored user_id is missing')
+            return False, None
+        
+        user_model = get_user_model()
+        try:
+            user = user_model.objects.get(id=user_id)
+        except user_model.DoesNotExist:
+            logger.error(f'ZibalGateway: User {user_id} does not exist.')
             return False, None
         
         # Double-checking track_id with cache to make sure we are processing the right transaction
@@ -291,13 +305,22 @@ class ZibalGateway(BaseProvider):
         # Verifying the transaction and extracting metadata
         success, metadata = self.verify_transaction(int(track_id))
         
+        if metadata is None:
+            metadata = dict()
+        
         transaction: Transaction | None = None
         
         # Triple-Checking the data with identifier and status
         # We should have the same identifier from verify and callback
         # Status should be 1 before verification because we haven't fetched the verify endpoint yet, but after that the status must change to 2 unless it wasn't a successful transaction.
-        logger.info(f'Status was this {metadata['status']=}')
         if not success or str(metadata.get('identifier')) != str(identifier) or str(metadata.get('status')) != '1' or str(metadata.get('amount')) != str(starter_data.get('amount')):
+            logger.warning(
+                f'Transaction validation failed: '
+                f'success={success}, '
+                f'identifier_match={str(metadata.get('identifier')) == str(identifier)}, '
+                f'status={metadata.get('status')}, '
+                f'amount_match={str(metadata.get('amount')) == str(starter_data.get('amount'))}'
+            )
             # Creating a transaction model with failed status
             transaction = Transaction.objects.create(
                 user=user,
