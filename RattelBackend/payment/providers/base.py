@@ -30,7 +30,7 @@ class BaseProvider(ABC):
         pass
     
     @abstractmethod
-    def build_gateway_url(self, track_id: str, **kwargs) -> str:
+    def build_gateway_url(self, track_id: int, **kwargs) -> str:
         """
         Builds the redirect URL for the payment gateway.
         
@@ -55,7 +55,7 @@ class BaseProvider(ABC):
         pass
     
     @abstractmethod
-    def check_status(self, track_id: str, **kwargs):
+    def verify_transaction(self, track_id: str, **kwargs):
         """
         Queries the gateway provider to verify payment status.
         
