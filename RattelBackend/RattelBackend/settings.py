@@ -181,6 +181,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_RATES': {
+        'payment-start': '3/min',
+        'payment-callback': '600/min'
+    },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -282,3 +286,8 @@ SMS_API_KEY = config('SMS_API_KEY')
 SMS_API_USERNAME = config('SMS_API_USERNAME')
 SMS_API_PASSWORD = config('SMS_API_PASSWORD')
 SMS_API_WARN_ON_LOW_CREDIT = config('SMS_API_WARN_ON_LOW_CREDIT')
+
+# Gateway Settings
+
+MERCHANT = config('MERCHANT')
+GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'

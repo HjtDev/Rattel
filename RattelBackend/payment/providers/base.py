@@ -15,6 +15,17 @@ class BaseProvider(ABC):
     """
     
     @abstractmethod
+    def __init__(self, merchant: str = 'zibal', cache_prefix: str = 'zibal', **kwargs):
+        """
+        Initializes Gateway provider with merchant ID.
+        
+        Args:
+            merchant: merchant ID from your provider
+            cache_prefix: Optional - Custom cache prefix
+        """
+        pass
+    
+    @abstractmethod
     def start_payment(self, amount: int, callback_url: str, **kwargs) -> tuple[bool, str]:
         """
         Initiates payment with the gateway provider.

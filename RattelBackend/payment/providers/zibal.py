@@ -103,7 +103,8 @@ class ZibalGateway(BaseProvider):
             allowed_cards: list[str] = None,
             national_code: str = None,
             check_mobile_with_cart: bool = False,
-            reason: Transaction.TransactionReason = Transaction.TransactionReason.PAYMENT
+            reason: Transaction.TransactionReason = Transaction.TransactionReason.PAYMENT,
+            extra_info: dict = None,
     ) -> tuple[bool, str]:
         """
         Initiates payment with the Zibal gateway provider.
@@ -118,6 +119,7 @@ class ZibalGateway(BaseProvider):
             national_code: Optional - User national code. Matched the national code with the cart number they enter in gateway and prevents the user from completing the payment if the national code didn't match the cart number.
             check_mobile_with_cart: Optional - Matches the user phone number with the cart number's owner phone number. If it didn't match it'll prevent the payment from being completed.
             reason: Optional - Transaction reason.
+            extra_info: Optional - Additional information to store in cache. Will be visible in metadata
         Returns:
             tuple[bool, str]: (success status, track_id or error message)
         """
@@ -211,13 +213,14 @@ class ZibalGateway(BaseProvider):
             'message': data.get('message'),
             'amount': amount,
             'callback_url': data.get('callbackUrl'),
-            'reason': reason
+            'reason': reason,
+            'extra_info': extra_info,
         }, timeout=600)
         
         # True, track_id
         return success, track_id
     
-    def build_gateway_url(self, track_id: int, **kwargs) -> str:
+    def build_gateway_url(self, track_id: int | str, **kwargs) -> str:
         """
         Builds the Zibal gateway URL.
         
@@ -294,7 +297,7 @@ class ZibalGateway(BaseProvider):
         # We should have the same identifier from verify and callback
         # Status should be 1 before verification because we haven't fetched the verify endpoint yet, but after that the status must change to 2 unless it wasn't a successful transaction.
         logger.info(f'Status was this {metadata['status']=}')
-        if not success or str(metadata.get('identifier')) != str(identifier) or str(metadata.get('status')) != '1':
+        if not success or str(metadata.get('identifier')) != str(identifier) or str(metadata.get('status')) != '1' or str(metadata.get('amount')) != str(starter_data.get('amount')):
             # Creating a transaction model with failed status
             transaction = Transaction.objects.create(
                 user=user,
@@ -326,7 +329,7 @@ class ZibalGateway(BaseProvider):
             )
             
         # Adding transaction uuid4 to metadata
-        metadata.update({'transaction': transaction.id})
+        metadata.update({'transaction': transaction.id, 'extra_info': starter_data.get('extra_info')})
         return success, metadata
     
     def _validate_verify_result(self, result: int) -> bool:
