@@ -32,7 +32,8 @@ class PaymentStartView(APIView, ResponseBuilderMixin, GetDataMixin):
         Initiates the payment session.
         Expected payload: {
             amount: int ==> Bigger than 1000,
-            final_url: str ==> The final url where transaction_id and identifier would be sent,
+            success_url: str ==> The success_url is where transaction_id and identifier would be sent when the payment was successful.
+            fail_url: str ==> The fail_url is where transaction_id and identifier would be sent when transaction fails.
             description: str ==> Description of the transaction,
             identifier: str ==> Transaction identifier(order_id, wallet_charge_id, ...)
         }
@@ -150,8 +151,9 @@ class PaymentCallbackView(APIView, ResponseBuilderMixin, GetDataMixin):
         
         # Checks the integrity of payment
         # metadata ==> transaction_id, extra_info, paid_at, masked_card_number, status, amount, reference_number, description, identifier, message(from gateway)
-        payment_valid, metadata = gateway.validate_gateway_response(result, user=request.user, metadata=device_metadata)
+        payment_valid, metadata = gateway.validate_gateway_response(result, metadata=device_metadata)
         
+        # Safe fallback for metadata
         if metadata is None:
             metadata = dict()
         

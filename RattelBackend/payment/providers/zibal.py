@@ -305,6 +305,7 @@ class ZibalGateway(BaseProvider):
         # Verifying the transaction and extracting metadata
         success, metadata = self.verify_transaction(int(track_id))
         
+        # Safe fallback for metadata
         if metadata is None:
             metadata = dict()
         
@@ -314,6 +315,7 @@ class ZibalGateway(BaseProvider):
         # We should have the same identifier from verify and callback
         # Status should be 1 before verification because we haven't fetched the verify endpoint yet, but after that the status must change to 2 unless it wasn't a successful transaction.
         if not success or str(metadata.get('identifier')) != str(identifier) or str(metadata.get('status')) != '1' or str(metadata.get('amount')) != str(starter_data.get('amount')):
+            # Logger warning so we can see why the transaction failed
             logger.warning(
                 f'Transaction validation failed: '
                 f'success={success}, '
@@ -321,6 +323,11 @@ class ZibalGateway(BaseProvider):
                 f'status={metadata.get('status')}, '
                 f'amount_match={str(metadata.get('amount')) == str(starter_data.get('amount'))}'
             )
+            
+            # Attempting to attach identifier to transaction before saving it
+            if metadata.get('identifier', None) is None and identifier:
+                metadata['identifier'] = identifier
+                
             # Creating a transaction model with failed status
             transaction = Transaction.objects.create(
                 user=user,
@@ -330,7 +337,7 @@ class ZibalGateway(BaseProvider):
                 transaction_reason=starter_data.get('reason'),
                 transaction_status=Transaction.TransactionStatus.FAILED,
                 provider=self.__class__.__name__,
-                tracking_id=track_id or starter_data.get('track_id'),
+                tracking_id=track_id or starter_data.get('track_id'),  # We may not get the track_id on failed transactions
                 provider_payload=metadata,
                 metadata=kwargs.get('metadata', {}),
                 description=kwargs.get('description', None),
