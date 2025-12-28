@@ -35,7 +35,6 @@ class Transaction(models.Model):
         PENDING = 'pending', 'Pending'
         SUCCESS = 'success', 'Success'
         FAILED = 'failed', 'Failed'
-        CANCELED = 'canceled', 'Canceled'
         REFUNDED = 'refunded', 'Refunded'
         
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, blank=False, null=False, unique=True, verbose_name='Transaction ID')

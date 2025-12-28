@@ -110,7 +110,6 @@ class TransactionAdmin(admin.ModelAdmin):
             Transaction.TransactionStatus.SUCCESS: '#28a745',
             Transaction.TransactionStatus.PENDING: '#ffc107',
             Transaction.TransactionStatus.FAILED: '#dc3545',
-            Transaction.TransactionStatus.CANCELED: '#6c757d',
             Transaction.TransactionStatus.REFUNDED: '#17a2b8',
         }
         color = color_map.get(obj.transaction_status, '#343a40')
