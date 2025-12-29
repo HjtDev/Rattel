@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'notifications.apps.NotificationsConfig',
     'payment.apps.PaymentConfig',
+    'authentication.apps.AuthenticationConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
