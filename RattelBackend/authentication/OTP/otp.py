@@ -1,7 +1,7 @@
 from datetime import timedelta
 from django.conf import settings
 from django.core.cache import cache
-from typing import Dict, Any, AnyStr, Tuple
+from typing import Dict, Any, AnyStr, Tuple, Optional
 from secrets import randbelow
 from random import choice
 from string import ascii_uppercase, digits
@@ -38,25 +38,25 @@ class OTP:
         # Validating the indicator
         if not isinstance(indicator, str):
             raise TypeError('Indicator must be a string.')
-        if not indicator.strip():
-            raise ValueError('Indicator must not be empty or contain whitespace.')
+        if not indicator or not indicator.strip():
+            raise ValueError('Indicator must not be empty or contain only whitespace.')
         
         self.indicator = indicator
         
         # Validating cache_prefix
         if not isinstance(cache_prefix, str):
             raise TypeError('Cache prefix must be a string.')
-        if not cache_prefix.strip():
-            raise ValueError('Cache prefix must not be empty or contain whitespace.')
+        if not cache_prefix or not cache_prefix.strip():
+            raise ValueError('Cache prefix must not be empty or contain only whitespace.')
         
         self._cache_prefix = cache_prefix
         self.cache_key = f'{cache_prefix}-{self.indicator}'  # Creating a cache_key based on _cache_prefix and indicator
         
         # Extracting settings from provided configuration
-        self._timeout , self._attempts, self._token_type, self._token_length, self._encryptor = self._get_settings(config)
+        self._timeout, self._attempts, self._token_type, self._token_length, self._encryptor = self._get_settings(config)
         
         self._token_regex = self._get_token_regex()  # Compiling a token regex based on the settings
-        
+    
     def generate_otp_token(self) -> str:
         """
         Generates OTP token with the provided config.
@@ -72,12 +72,12 @@ class OTP:
         else:  # Uppercase + Digit token(alphanumeric)
             alphanumeric = ascii_uppercase + digits
             token = ''.join(choice(alphanumeric) for _ in range(self._token_length))
-            
+        
         if self._token_regex.match(token):  # Making sure the token is valid before returning it
             return token
         
         raise RuntimeError('Failed to generate a valid OTP token')  # Either the token regex or the generator is broken
-        
+    
     def start(self, token: str, encrypted: bool = True, override: bool = False, **kwargs) -> bool:
         """
         Starts an OTP session with the given token.
@@ -115,12 +115,12 @@ class OTP:
         
         if encrypted:  # Encrypting the raw token
             final_token = self._encrypt_token(token)
-            
+        
         # (raw / encrypted) token + all the extra keyword arguments to save with the token
         kwargs['token'] = final_token
         
         if self._attempts != -1:
-            kwargs['attempts'] = self._attempts
+            kwargs['attempts'] = 0  # Initialize attempts to 0
         
         # Storing token and extra info in cache with timeout
         cache.set(self.cache_key, kwargs, timeout=self._timeout)
@@ -128,12 +128,12 @@ class OTP:
         # OTP session started
         return True
     
-    def cancel(self) -> Tuple[bool, Dict[str, Any] | None]:
+    def cancel(self) -> Tuple[bool, Optional[Dict[str, Any]]]:
         """
         Tries to cancel/delete the active OTP session if it exists
         
         Returns:
-            Tuple[bool, Dict[str, Any] | None]: Whether the OTP was cancelled or not + If OTP session was found successfully it would return its data alongside
+            Tuple[bool, Optional[Dict[str, Any]]]: Whether the OTP was cancelled or not + If OTP session was found successfully it would return its data alongside it
         """
         
         # Tries to find an active OTP session in cache
@@ -145,12 +145,12 @@ class OTP:
         
         return cache.delete(self.cache_key), otp  # deleted_cache: bool, data: dict
     
-    def get_session_data(self) -> Dict[str, Any] | None:
+    def get_session_data(self) -> Optional[Dict[str, Any]]:
         """
         Extracts OTP session data from the cache.
         
         Returns:
-            Dict[str, Any]: OTP session data
+            Optional[Dict[str, Any]]: OTP session data
         """
         
         data = cache.get(self.cache_key)
@@ -161,7 +161,7 @@ class OTP:
         
         return data
     
-    def finish(self, token: str) -> Tuple[int, Dict[str, Any] | None]:
+    def finish(self, token: str) -> Tuple[int, Optional[Dict[str, Any]]]:
         """
         Validates the OTP token if there is an active OTP session.
         It decrypts the stored OTP token and compares it with the one provided if matched it returns 1, kwargs. error_code, None otherwise.
@@ -179,21 +179,21 @@ class OTP:
             token: OTP token to validate
             
         Returns:
-            Tuple[int, Dict[str, Any] | None]: code, OTP session data
+            Tuple[int, Optional[Dict[str, Any]]]: code, OTP session data
         """
         
         # First checks the token with token_regex, but if it didn't match we won't prevent it so we can also handle OTP tokens that was stored manually
         if not self._token_regex.match(token):
             logger.warning('The OTP token does not match OTP_SETTING.')
-            
+        
         otp = self.get_session_data()  # Restores token and kwargs
         
         # No OTP session
         if otp is None:
             logger.error('The OTP session was not found.')
             return -1, None
-            
-        otp_token = otp.get('token', None)  # Encrypted OTP token
+        
+        otp_token = otp.get('token')  # Encrypted OTP token
         
         # Checks if token exists
         if otp_token is None:
@@ -214,7 +214,7 @@ class OTP:
         attempts = kwargs.get('attempts', None)
         
         # If we don't have the number of attempts, but attempts are enabled, or attempts is not an integer
-        if (attempts is None and self._attempts != -1) or not isinstance(attempts, int):
+        if (attempts is None and self._attempts != -1) or (attempts is not None and not isinstance(attempts, int)):
             logger.error('Lost track of attempts.')
             return -4, None
         
@@ -225,24 +225,31 @@ class OTP:
             # If we have the number of attempts we increase it and compare it to maximum_attempts
             if attempts is not None:
                 attempts += 1
-                if attempts > self._attempts:  # Passed maximum attempts
+                if attempts >= self._attempts:
                     logger.warning('Too many attempts. Current OTP session is invalidated. Please start another OTP session.')
                     
                     # Clearing OTP session
                     self.cancel()
                     return -5, None
                 else:
-                    kwargs['attempts'] = attempts
-        
-            otp.update(kwargs)
-            redis_conn = get_redis_connection('default')
-            remaining_time = redis_conn.ttl(self.cache_key)
-            cache.set(self.cache_key, otp, timeout=remaining_time)
+                    otp['attempts'] = attempts
+                    
+                    # Update cache with new attempt count
+                    try:
+                        redis_conn = get_redis_connection('default')
+                        remaining_time = redis_conn.ttl(self.cache_key)
+                        cache.set(self.cache_key, otp, timeout=remaining_time)
+                    except Exception as e:
+                        logger.error(f'Failed to update attempts in cache: {e}')
+                        return -4, None
+            
             return 0, None
+        
+        kwargs.pop('attempts', None)
         
         self.cancel()
         return 1, kwargs
-        
+    
     def _get_settings(self, config: Dict[str, Any]):
         """
         Validates and extracts OTP configuration
@@ -262,7 +269,7 @@ class OTP:
         # Validating TIMEOUT
         timeout = config.get('TIMEOUT', None)
         if timeout is None:
-            raise KeyError('Timeout must be defined OTP_SETTING.')
+            raise KeyError('Timeout must be defined in OTP_SETTING.')
         
         # Checking if timeout is an instance of timedelta
         if not isinstance(timeout, timedelta):
@@ -272,12 +279,12 @@ class OTP:
         timeout = timeout.total_seconds()
         
         # timeout can't be less than 1 second
-        if timeout < 3:
-            raise ValueError('TIMEOUT must be greater than 1 seconds.')
+        if timeout < 1:
+            raise ValueError('TIMEOUT must be at least 1 second.')
         
         attempts = config.get('ATTEMPTS', None)
         if attempts is None:
-            raise KeyError('ATTEMPTS must be defined OTP_SETTING.')
+            raise KeyError('ATTEMPTS must be defined in OTP_SETTING.')
         if not isinstance(attempts, int):
             raise TypeError('ATTEMPTS must be an integer.')
         if attempts < 1 and attempts != -1:
@@ -286,7 +293,7 @@ class OTP:
         # Validating token_type
         token_type = config.get('TOKEN_TYPE', None)
         if token_type is None:
-            raise KeyError('TOKEN_TYPE must be defined OTP_SETTING.')
+            raise KeyError('TOKEN_TYPE must be defined in OTP_SETTING.')
         if not isinstance(token_type, str):
             raise TypeError('TOKEN_TYPE must be a string.')
         
@@ -298,20 +305,20 @@ class OTP:
         # Validating token_length
         token_length = config.get('TOKEN_LENGTH', None)
         if token_length is None:
-            raise KeyError('TOKEN_LENGTH must be defined OTP_SETTING.')
+            raise KeyError('TOKEN_LENGTH must be defined in OTP_SETTING.')
         if not isinstance(token_length, int) or token_length <= 0:
-            raise TypeError('TOKEN_LENGTH must be greater than 0.')
+            raise ValueError('TOKEN_LENGTH must be greater than 0.')
         
         # Validating encryptor
         encryptor = config.get('ENCRYPTOR', None)
         if encryptor is None:
-            raise KeyError('ENCRYPTOR must be defined OTP_SETTING.')
+            raise KeyError('ENCRYPTOR must be defined in OTP_SETTING.')
         
         # Checking if encryptor has callable encrypt and decrypt methods
         if not hasattr(encryptor, 'encrypt') or not callable(getattr(encryptor, 'encrypt')):
             raise AttributeError('ENCRYPTOR must have encrypt method.')
         if not hasattr(encryptor, 'decrypt') or not callable(getattr(encryptor, 'decrypt')):
-            raise AttributeError('DECRYPTOR must have decrypt method.')
+            raise AttributeError('ENCRYPTOR must have decrypt method.')
         
         # Returning the config in one pack
         return timeout, attempts, token_type, token_length, encryptor
@@ -334,8 +341,8 @@ class OTP:
             # Uppercase letters or digits, exact length
             return re.compile(rf'^[A-Z0-9]{{{self._token_length}}}$')
         else:
-            raise ValueError("Invalid type. Must be 'int', 'string', or 'alphanumeric'.")
-        
+            raise ValueError("Invalid type. Must be 'int', 'str', or 'alphanumeric'.")
+    
     def _encrypt_token(self, token: str) -> str:
         """
         Encrypts the given token with the self._encryptor.
@@ -354,7 +361,7 @@ class OTP:
         # Converting the token to Bytes before encryption. Returns the encrypted token.
         return self._encryptor.encrypt(token.encode())
     
-    def _decrypt_token(self, token: str | bytes):
+    def _decrypt_token(self, token: str | bytes) -> Optional[str]:
         """
         Tries to decrypt the given token with the self._encryptor.
         If the decrypted token didn't match the OTP configuration a warning is logged, but you still get the token.
@@ -363,7 +370,7 @@ class OTP:
             token: An encrypted OTP token. Must be encrypted with same encryptor.
             
         Returns:
-            str | None: Decrypted token if decryption was successful. None if decryption failed.
+            Optional[str]: Decrypted token if decryption was successful. None if decryption failed.
         """
         
         try:
@@ -374,11 +381,10 @@ class OTP:
             else:
                 raise TypeError('Token must be an instance of string or bytes to be decrypted.')
         except Exception as e:
-            logger.error('Failed to decrypt the token using decryptor. Be sure that the token is encrypted with the same encryptor.')
+            logger.error(f'Failed to decrypt the token using decryptor: {e}. Be sure that the token is encrypted with the same encryptor.')
             return None
-            
+        
         if not self._token_regex.match(decrypted_token):
             logger.warning(f'Token does not match OTP_SETTING. Please use OTP.start to start OTP sessions.')
-            
-        return decrypted_token
         
+        return decrypted_token
