@@ -121,6 +121,8 @@ class OTP:
         
         if self._attempts != -1:
             kwargs['attempts'] = 0  # Initialize attempts to 0
+            
+        kwargs['encrypted'] = encrypted
         
         # Storing token and extra info in cache with timeout
         cache.set(self.cache_key, kwargs, timeout=self._timeout)
@@ -174,6 +176,7 @@ class OTP:
             -3: Failed to decrypt OTP token.
             -4: Lost track of attempts.
             -5: Passed maximum attempts -> OTP session was expired.
+            -6: Could not determine whether OTP token is encrypted or not.
             
         Args:
             token: OTP token to validate
@@ -200,12 +203,19 @@ class OTP:
             logger.error('The OTP session is corrupted.')
             return -2, None
         
+        is_encrypted = otp.get('encrypted')
+        logger.info(f'{is_encrypted=} {otp=}')
+        
+        if is_encrypted is None:
+            logger.error('Could not determine whether the OTP token is encrypted or not.')
+            return -6, None
+        
         # Creates a copy from OTP data to keep the OTP data intact
         kwargs = deepcopy(otp)
         kwargs.pop('token')
         
         # Tries to decrypt and validates the decrypted token
-        decrypted_token = self._decrypt_token(otp_token)
+        decrypted_token = self._decrypt_token(otp_token) if is_encrypted else otp_token
         if decrypted_token is None:
             logger.error('Decryption failed.')
             return -3, None
