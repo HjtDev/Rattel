@@ -189,7 +189,11 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_RATES': {
         'payment-start': '3/min',
-        'payment-callback': '600/min'
+        'payment-callback': '600/min',
+        'register': '10/min',
+        'login': '10/min',
+        'verify': '10/min',
+        'refresh': '50/min',
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
