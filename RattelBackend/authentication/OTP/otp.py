@@ -204,7 +204,6 @@ class OTP:
             return -2, None
         
         is_encrypted = otp.get('encrypted')
-        logger.info(f'{is_encrypted=} {otp=}')
         
         if is_encrypted is None:
             logger.error('Could not determine whether the OTP token is encrypted or not.')
@@ -231,7 +230,6 @@ class OTP:
         # Given token doesn't match the decrypted token
         if decrypted_token != token:
             logger.error('Token is invalid.')
-            
             # If we have the number of attempts we increase it and compare it to maximum_attempts
             if attempts is not None:
                 attempts += 1
@@ -246,9 +244,10 @@ class OTP:
                     
                     # Update cache with new attempt count
                     try:
-                        redis_conn = get_redis_connection('default')
-                        remaining_time = redis_conn.ttl(self.cache_key)
-                        cache.set(self.cache_key, otp, timeout=remaining_time)
+                        redis_conn = get_redis_connection('default')  # Establishes a connection with redis database
+                        cache_key_in_redis = f'{settings.CACHES['default'].get('KEY_PREFIX')}:1:{self.cache_key}'  # Builds the actual key that is used in redis database
+                        remaining_time = redis_conn.ttl(cache_key_in_redis)  # Uses the cache_key_in_redis to gets the remaining time
+                        cache.set(self.cache_key, otp, timeout=remaining_time)  # Updates the cache with the remaining_time and attempts
                     except Exception as e:
                         logger.error(f'Failed to update attempts in cache: {e}')
                         return -4, None

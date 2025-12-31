@@ -25,7 +25,7 @@ class PaymentStartView(APIView, ResponseBuilderMixin, GetDataMixin):
     """
     
     permission_classes = (IsAuthenticated,)  # Only authenticated users can access this endpoint
-    throttle_rate = 'payment-start'  # 3 calls per minute
+    throttle_scope = 'payment-start'  # 3 calls per minute
     
     def post(self, request):
         """
@@ -114,7 +114,7 @@ class PaymentCallbackView(APIView, ResponseBuilderMixin, GetDataMixin):
     """
     
     permission_classes = (AllowAny,)  # Since this endpoint is called by the gateway we may not have the user available everytime
-    throttle_rate = 'payment-callback'  # 600 calls per minute
+    throttle_scope = 'payment-callback'  # 600 calls per minute
     
     def get(self, request):
         """

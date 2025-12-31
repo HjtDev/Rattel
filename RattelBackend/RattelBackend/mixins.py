@@ -4,7 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.response import Response
-from typing import Any
+from typing import Any, AnyStr
 import re
 
 
@@ -107,6 +107,22 @@ class GetDataMixin:
             return True, []
         except ValidationError as e:
             return False, e.messages
+        
+    @staticmethod
+    def validate_string(string: AnyStr):
+        """
+        Validates a string:
+            1. Should be an instance of str
+            2. Can not be empty
+            3. Can not only contain whitespace
+            
+        Args:
+            string: String to validate
+            
+        Returns:
+            bool: True if string is valid, False otherwise
+        """
+        return True if string and isinstance(string, str) and string.strip() else False
     
     @staticmethod
     def is_id(value: Any) -> bool:
