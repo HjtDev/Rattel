@@ -48,6 +48,8 @@ class GetDataMixin:
     EMAIL_REGEX = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
     USERNAME_REGEX = re.compile(r'^[a-zA-Z][a-zA-Z0-9_.]{2,29}$')
     PHONE_REGEX = re.compile(r'^09\d{9}$')
+    PERSIAN_NAME_REGEX = re.compile(r'^[\u0600-\u06FF ]{1,60}$')
+    ENGLISH_NAME_REGEX = re.compile(r'^[A-Za-z ]{1,60}$')
     NATIONAL_CODE_REGEX = re.compile(r'^[0-9]{10}$')
     FILTER_REGEX = re.compile(
         r'^'
@@ -153,8 +155,61 @@ class GetDataMixin:
     
     @staticmethod
     def is_url(url: str) -> bool:
+        """
+        Checks if url is valid.
+        
+        Args:
+            url: URL to validate
+            
+        Returns:
+            bool: True if url is valid, False otherwise
+        """
         result = urlparse(url)
         return all([result.scheme, result.netloc])
+    
+    @staticmethod
+    def username_type(username: AnyStr) -> str | None:
+        """
+        Determine the type of username.
+        
+        Args:
+            username: Username value to check its type
+            
+        Returns:
+            str: Type of username -> username/phone/None(Could not match it with anything)
+        """
+        if GetDataMixin.validate_phone(username):
+            return 'phone'
+        elif GetDataMixin.validate_username(username):
+            return 'username'
+        else:
+            return None
+        
+        
+    @staticmethod
+    def validate_name(name: str) -> bool:
+        """
+        Validates a person's name.
+
+        Rules:
+        - Must not be empty or whitespace
+        - Maximum length: 60 characters
+        - Must contain only Persian OR only English letters
+        - No digits or special characters
+        """
+        
+        if not isinstance(name, str):
+            return False
+
+        name = name.strip()
+
+        if not name:
+            return False
+        
+        is_persian = GetDataMixin.PERSIAN_NAME_REGEX.fullmatch(name) is not None
+        is_english = GetDataMixin.ENGLISH_NAME_REGEX.fullmatch(name) is not None
+        
+        return is_persian ^ is_english  # It can only be Persian or English
     
     @staticmethod
     def get_data(request, *args) -> tuple[bool, dict[str, Any] | list[str]]:

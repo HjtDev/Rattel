@@ -14,7 +14,9 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 from cryptography.fernet import Fernet
-import dj_database_url, os
+from notifications.handlers.sms import SMSHandler
+from notifications.providers.sms.local import LocalSMSProvider
+import dj_database_url, os, logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -281,6 +283,7 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+logger = logging.getLogger(__name__)
 
 # Health Check
 
@@ -319,6 +322,12 @@ SMS_API_KEY = config('SMS_API_KEY')
 SMS_API_USERNAME = config('SMS_API_USERNAME')
 SMS_API_PASSWORD = config('SMS_API_PASSWORD')
 SMS_API_WARN_ON_LOW_CREDIT = config('SMS_API_WARN_ON_LOW_CREDIT')
+SMS_HANDLER = SMSHandler
+SMS_PROVIDER = LocalSMSProvider
+SMS_SETTINGS = {
+    'sender': 'Local SMS Provider',
+    'output': logger.info
+}
 
 # Gateway Settings
 
