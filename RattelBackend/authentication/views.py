@@ -1,59 +1,22 @@
-from typing import Tuple
+from typing import AnyStr, Any, Dict
 from django.contrib.auth import get_user_model
-from django.db.models.expressions import result
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
-from notifications.handlers.sms import SMSHandler
-from notifications.providers.sms.local import LocalSMSProvider
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from users.utils.unique import check_user_uniqueness
+from users.utils.create_account import register
+from users.utils.login import login
+from users.utils.find_user import get_user_by_dynamic_username
 from .OTP.otp import OTP
+from .OTP.session import start_otp_session_with_sms
 from rest_framework import status
 from django.conf import settings
 import logging
 
 
 logger = logging.getLogger(__name__)
-
-
-def check_for_user_race_condition(username: str = None, phone: str = None, email: str = None, **kwargs) -> Tuple[bool, str | None]:
-    """
-    Checks if any user with the given username/phone/email exists.
-    Happens when two user try to log in with the same credentials or when credentials are already is use.
-    Prevents registering the same user twice because of race conditions and also can be used for duplicate users.
-    At least one argument must be provided
-    
-    Args:
-        username: str
-        phone: str
-        email: str
-        kwargs: To ignore extra user data if available
-        
-    Returns:
-        True if user with the given credentials exists, False otherwise + duplicate field if it exists, None otherwise.
-    """
-    
-    user_model = get_user_model()
-    
-    # Checking if any user with the same username exists
-    if username and user_model.objects.only('id').filter(username=username).exists():
-        logger.error('User with this username already exists')
-        return True, 'username'
-    
-    # Checking if any user with the same phone exists
-    if phone and user_model.objects.only('id').filter(phone=phone).exists():
-        logger.error('User with this phone already exists')
-        return True, 'phone'
-    
-    # Checking if any user with the same email address exists
-    if email and user_model.objects.only('id').filter(email=email).exists():
-        logger.error('User with this email already exists.')
-        return True, 'email'
-    
-    # No race condition
-    return False, None
 
 
 class RegisterView(APIView, GetDataMixin, ResponseBuilderMixin):
@@ -80,7 +43,7 @@ class RegisterView(APIView, GetDataMixin, ResponseBuilderMixin):
         success, result = self.get_data(
             request,
             ('username', self.validate_username),
-            ('name', lambda name: name and name.strip() and isinstance(name, str) and len(name) < 60),
+            ('name', self.validate_name),
             ('phone', self.validate_phone),
         )
         
@@ -106,7 +69,7 @@ class RegisterView(APIView, GetDataMixin, ResponseBuilderMixin):
                 )
             
         # Checking if any other user with the same username/phone/email(if passed) exists.
-        already_exists, field = check_for_user_race_condition(**result)
+        already_exists, field = check_user_uniqueness(**result)
         if already_exists:
             logger.error(f'User with the same {field} already exists.')
             return self.build_response(
@@ -116,49 +79,20 @@ class RegisterView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message=f'{field} already exists'
             )
         
-        # Initializing SMS handler
-        sms = SMSHandler(LocalSMSProvider, sender='Local SMS Provider', output=logger.info)
+        # Pre-Building otp_options
+        otp_options = {
+            'encrypted': True,
+            'override': False,
+            'user': result,
+            'action': 'register'
+        }
         
-        # Initializing OTP session with username as indicator
-        indicator = result['username']
-        otp = OTP(indicator)
-        
-        # Creating a secure/random token
-        token = otp.generate_otp_token()
-        
-        # Initiating OTP session
-        started = otp.start(token=token, encrypted=True, override=False, user=result, action='register')
-        
-        if not started:  # If otp.start failed it means there is another active OTP session with the same indicator
-            logger.error('An active OTP session already exists')
-            return self.build_response(
-                status.HTTP_208_ALREADY_REPORTED,
-                success=False,
-                error=-5,
-                message='An active verification request with this username already exists.'
-            )
-        
-        # OTP session started
-        
-        # Sending the token to user phone number
-        sent = sms.send(result['phone'], f'Your verification code: {token}')
-        
-        if not sent:  # If it failed to send SMS
-            logger.error('Failed to send verification code. Canceling the OTP session.')
-            otp.cancel()
-            return self.build_response(
-                status.HTTP_502_BAD_GATEWAY,
-                success=False,
-                error=-6,
-                message='Failed to send verification code'
-            )
-        
-        # Successfully started OTP session and verification sms is sent.
-        return self.build_response(
-            status.HTTP_200_OK,
-            success=True,
-            indicator=indicator,
-            message='Verification code sent.'
+        # Starting OTP session with sending the token via SMSHandler
+        return start_otp_session_with_sms(
+            indicator=result['username'],
+            phone=result['phone'],
+            error_code_start=-4,
+            **otp_options
         )
     
 
@@ -192,12 +126,9 @@ class LoginView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message=result
             )
         
-        if self.validate_phone(result['username']):  # username matches phone-regex
-            username_type = 'phone'
-        elif self.validate_username(result['username']):  # username matches username-regex
-            username_type = 'username'
-        else:  # username is invalid
-            logger.error(f'username: {result['username']} is not a valid username/phone number')
+        username_type = self.username_type(result['username'])  # Returns username or phone if a valid username was detected, None if it couldn't match it with anything
+        if username_type is None:  # Username is not a valid username/phone
+            logger.warning(f'username: {result['username']} is not a valid username/phone number')
             return self.build_response(
                 status.HTTP_400_BAD_REQUEST,
                 success=False,
@@ -205,83 +136,47 @@ class LoginView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message='Use username or phone number to login.'
             )
         
-        user_model = get_user_model()
+        # Get user instance with minor optimizations
+        user = get_user_by_dynamic_username(result['username'], username_type, ['id', 'phone', 'is_active'])
         
-        try:
-            if username_type == 'phone':  # Tries to find user account based on phone number
-                user = user_model.objects.only('id', 'phone', 'is_active').get(phone=result['username'])
-            else:  # Tries to find user account based on username
-                user = user_model.objects.only('id', 'phone', 'is_active').get(username=result['username'])
-                
-            # User account is disabled and con not be accessed
-            if not user.is_active:
-                logger.error(f'User {result['username']} is inactive')
-                return self.build_response(
-                    status.HTTP_403_FORBIDDEN,
-                    success=False,
-                    error=-7,
-                    message='User account is disabled.'
-                )
-            
-            result['id'] = user.id  # Saving user.id in result next to username/phone
-            phone = user.phone  # Saving user.phone so we can send SMS to it later
-            
-        # Failed to find any user matching the given username/phone
-        except user_model.DoesNotExist:
-            logger.error(f'Could find any matching user account for {result['username']}')
+        if user is None:  # User's account was not found
+            logger.error(f'Could not find any matching user account for {result['username']}')
             return self.build_response(
                 status.HTTP_404_NOT_FOUND,
                 success=False,
                 error=-3,
                 message='Username/Phone does not exist.'
             )
-        
-        # Initializing SMS handler
-        sms = SMSHandler(LocalSMSProvider, sender='Local SMS Provider', output=logger.info)
-        
-        # Initializing OTP session
-        indicator = f'login-{result['id']}'
-        otp = OTP(indicator)
-        
-        # Generating secure/random token
-        token = otp.generate_otp_token()
-        
-        # Starting OTP session with the generated token + encryption
-        started = otp.start(token=token, encrypted=True, override=False, user=result, action='login')
-        
-        # Another active OTP session already exists
-        if not started:
-            logger.error('An active OTP session already exists.')
+            
+        # User account is disabled and con not be accessed
+        if not user.is_active:
+            logger.error(f'User {result['username']} is inactive')
             return self.build_response(
-                status.HTTP_208_ALREADY_REPORTED,
+                status.HTTP_403_FORBIDDEN,
                 success=False,
-                error=-5,
-                message='An active verification request with this username already exists.'
+                error=-4,
+                message='User account is disabled.'
             )
         
-        # Sending the token to user's phone number
-        sent = sms.send(phone, f'Your verification code: {token}')
+        result['id'] = user.id  # Saving user.id in result next to username/phone
+        phone = user.phone  # Saving user.phone so we can send SMS to it later
         
-        # Failed to send verification token to user
-        if not sent:
-            logger.error('Failed to send verification code. Canceling the OTP session.')
-            otp.cancel()
-            return self.build_response(
-                status.HTTP_502_BAD_GATEWAY,
-                success=False,
-                error=-6,
-                message='Failed to send verification code'
-            )
+        # Pre-Building OTP session options
+        otp_options = {
+            'encrypted': True,
+            'override': False,
+            'user': result,
+            'action': 'login'
+        }
         
-        # OTP session was started successfully, and verification code is sent
-        return self.build_response(
-            status.HTTP_200_OK,
-            success=True,
-            indicator=indicator,
-            message='Verification code sent.'
+        # Starting OTP session with sending the token via SMSHandler
+        return start_otp_session_with_sms(
+            indicator=f'login-{user.id}',
+            phone=phone,
+            error_code_start=-5,
+            **otp_options
         )
-    
-    
+        
 class VerifyView(APIView, GetDataMixin, ResponseBuilderMixin):
     """
     Finalizes a verification request and completes the requested action
@@ -290,6 +185,114 @@ class VerifyView(APIView, GetDataMixin, ResponseBuilderMixin):
     permission_classes = (AllowAny,)
     throttle_scope = 'verify'  # 10/minute
     
+    def invalid_action(self, action: AnyStr, error: int):
+        """
+        Returns a server-error response for an invalid action.
+        
+        Args:
+            action (AnyStr): The invalid action
+            error (int): The error code to use for response
+            
+        Returns:
+            restframework.responses.Response: The server error response
+        """
+        
+        logger.error(f'The requested action: "{action}" was not found.')
+        return self.build_response(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            success=False,
+            error=error,
+            message=f'Invalid action: {action}'
+        )
+    
+    def register_action(self, user_data: dict):
+        """
+        Tries to create an account with user_data.
+        If user account was created successfully it will return a new refresh+access token for that account.
+        
+        Args:
+            user_data (dict): The user data -> At least should have username/phone/name | email(optional)
+            
+        Returns:
+            restframework.responses.Response: The final result of registration
+        """
+        
+        created, output = register(**user_data)  # If created output=user otherwise output=error_message
+        
+        # User data are invalid. Could be also a server-error
+        if not created:
+            logger.error(f'User registration failed. {output}')
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-9,
+                message=f'Failed to register user: {output}'
+            )
+        
+        user = output
+        refresh = RefreshToken.for_user(user)  # Generates refresh and access token for user
+        
+        # Returns refresh and access token
+        return self.build_response(
+            status.HTTP_201_CREATED,
+            success=True,
+            message='Registered successfully.',
+            refresh=str(refresh),
+            access=str(refresh.access_token)
+        )
+    
+    def login_action(self, user_data: dict):
+        logged_in, output = login(**user_data)
+        
+        if not logged_in:
+            logger.error(f'Failed to login user: {output}')
+            return self.build_response(
+                status.HTTP_401_UNAUTHORIZED,
+                success=False,
+                error=-10,
+                message=f'Failed to login user: {output}'
+            )
+        
+        user = output
+        refresh = RefreshToken.for_user(user)  # Generates refresh and access token for user
+        
+        # Returns refresh and access token
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True,
+            message='Logged in successfully.',
+            refresh=str(refresh),
+            access=str(refresh.access_token)
+        )
+    
+    @staticmethod
+    def get_otp_error_code(code: int) -> Dict[str, Any] | None:
+        """
+        Maps OTP.finish error_codes to error_responses and returns it if code was in error_responses
+        
+        Args:
+            code (int): The OTP.finish success/error code
+            
+        Returns:
+            dict: A pre-built error response if code was in error_responses
+        """
+        
+        # Pre-Building error_responses
+        error_responses = {
+             0: { 'success': False, 'error': -2, 'message': 'Invalid verification code.' },
+            -1: { 'success': False, 'error': -3, 'message': 'No active verification session found.' },
+            -2: { 'success': False, 'error': -4, 'message': 'Failed to validate. Please try again later.' },
+            -3: { 'success': False, 'error': -5, 'message': 'Failed to decrypt the token. Please try again later.' },
+            -4: { 'success': False, 'error': -6, 'message': 'Lost track attempts. Please try again later.' },
+            -5: { 'success': False, 'error': -7, 'message': 'Too many attempts. Please try again later.' },
+            -6: { 'success': False, 'error': -8, 'message': 'Could not check encryption of token. Please try again later.' },
+        }
+        
+        if error_responses.get(code):  # Checking for error
+            return error_responses[code]
+        else:  # No error
+            return None
+        
     def post(self, request):
         """
         Handles verification request
@@ -317,122 +320,31 @@ class VerifyView(APIView, GetDataMixin, ResponseBuilderMixin):
             )
         
         otp = OTP(result['indicator'])  # Initiates the OTP
-        
         code, data = otp.finish(result['token'])  # Tries to validate user token
         
-        # Pre-building error responses
-        error_responses = {
-             0: { 'success': False, 'error': -2, 'message': 'Invalid verification code.' },
-            -1: { 'success': False, 'error': -3, 'message': 'No active verification session found.' },
-            -2: { 'success': False, 'error': -4, 'message': 'Failed to validate. Please try again later.' },
-            -3: { 'success': False, 'error': -5, 'message': 'Failed to decrypt the token. Please try again later.' },
-            -4: { 'success': False, 'error': -6, 'message': 'Lost track attempts. Please try again later.' },
-            -5: { 'success': False, 'error': -7, 'message': 'Too many attempts. Please try again later.' },
-            -6: { 'success': False, 'error': -8, 'message': 'Could not check encryption of token. Please try again later.' },
-        }
+        error_response = self.get_otp_error_code(code)
         
-        if code != 1:  # If OTP validation was not successful returns the matching response with error code
-            logger.warning(f'OTP validation failed. Token: {result['token']} is invalid.')
+        if error_response:  # If OTP validation was not successful returns the matching response with error code
+            logger.warning(f'OTP validation failed. {error_response}')
             return self.build_response(
-                status.HTTP_406_NOT_ACCEPTABLE,
-                **error_responses[code]
+                status.HTTP_400_BAD_REQUEST,
+                **error_response
             )
         
         # If code reaches here it means that the OTP validation was successful and the OTP session is cleared.
         
-        user_model = get_user_model()
         action = data.get('action', None)  # The action that lead to here.
         
         if action == 'register':  # User is trying to register a new account
             user_data = data.get('user')  # Restoring user data
-            
-            # All the necessary fields should exist in the user_data to continue
-            if not all(field in user_data for field in ('username', 'phone', 'name')):
-                logger.error(f'Not all the required fields for registration are present. {user_data}')
-                return self.build_response(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    success=False,
-                    error=-9,
-                    message='Failed to find user data for registration.'
-                )
-            
-            # Checking for race condition
-            already_exists, field = check_for_user_race_condition(**user_data)
-            if already_exists:
-                logger.error(f'User with the same {field} already exists.')
-                return self.build_response(
-                    status.HTTP_409_CONFLICT,
-                    success=False,
-                    error=-14,
-                    message=f'User with the same {field} already exists.'
-                )
-            
-            # Creates the user account with user_data and saves the user
-            user = user_model(**user_data)
-            user.save()
-            
-            refresh = RefreshToken.for_user(user)  # Generates refresh and access token for user
-            
-            # Returns refresh and access token
-            return self.build_response(
-                status.HTTP_201_CREATED,
-                success=True,
-                message='Registered successfully.',
-                refresh=str(refresh),
-                access=str(refresh.access_token)
-            )
+            return self.register_action(user_data)
+        
         elif action == 'login':  # User is trying to log in
             user_data = data.get('user')  # Restoring user data
+            return self.login_action(user_data)
             
-            # User id must be saved in user_data to continue
-            if 'id' not in user_data:
-                logger.error(f'Could not find any user ID to log in. {user_data=}')
-                return self.build_response(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    success=False,
-                    error=-10,
-                    message='Failed to find user data for login.'
-                )
-            
-            try:
-                user = user_model.objects.get(id=user_data['id'])  # Tries to find the user account
-            
-                if not user.is_active:
-                    logger.error(f'User {user} is inactive')
-                    return self.build_response(
-                        status.HTTP_403_FORBIDDEN,
-                        success=False,
-                        error=-13,
-                        message='User account is disabled.'
-                    )
-                
-                refresh = RefreshToken.for_user(user)  # Generates refresh and access token for user
-                
-                # Returns refresh and access token
-                return self.build_response(
-                    status.HTTP_200_OK,
-                    success=True,
-                    message='Logged in successfully.',
-                    refresh=str(refresh),
-                    access=str(refresh.access_token)
-                )
-            except user_model.DoesNotExist:  # Failed to find the user account
-                logger.error(f'Could not find any matching account with user ID {user_data=}')
-                return self.build_response(
-                    status.HTTP_404_NOT_FOUND,
-                    success=False,
-                    error=-11,
-                    message='User does not exist.'
-                )
         else:  # The action is not supported/invalid
-            logger.error(f'The requested action: "{action}" was not found.')
-            return self.build_response(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                success=False,
-                error=-12,
-                message='The action you requested is invalid/supported.'
-            )
-
+            return self.invalid_action(action=str(action), error=-11)
 
 class RefreshView(APIView, GetDataMixin, ResponseBuilderMixin):
     """
@@ -453,7 +365,7 @@ class RefreshView(APIView, GetDataMixin, ResponseBuilderMixin):
         """
         
         # Extracts refresh token from request.data
-        success, result = self.get_data(request, 'refresh')
+        success, result = self.get_data(request, ('refresh', self.validate_string))
         
         # refresh token is missing
         if not success:
