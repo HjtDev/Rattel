@@ -5,7 +5,12 @@ from .models import User, Profile, UserSettings
 class ProfileSerializer(ModelSerializer):
     class Meta:
         model = Profile
-        fields = ('role', 'gender', 'biography', 'education', 'extra_info', 'telegram_id', 'eitaa_id', 'instagram_id')
+        fields = (
+            'role', 'gender', 'national_code',
+            'education', 'had_other_classes', 'memorized',
+            'invited_by', 'birthday', 'city',
+            'telegram_id', 'eitaa_id', 'instagram_id'
+        )
 
 
 class UserSettingsSerializer(ModelSerializer):
