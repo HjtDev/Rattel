@@ -6,27 +6,28 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def check_access_to_profile(**profile_filters) -> bool:
+def get_accessible_profile(**profile_filters) -> Tuple[bool, Profile | None]:
     """
     Checks whether a profile is public or not.
     
     Args:
-        profile_filters (dict): filters to find the Profile object -> id, user__username, or any other filter.
+        profile_filters: filters to find the Profile object -> id, user__username, or any other filter.
         
     Returns:
-        bool: True or False depending on whether a profile is public or not.
+        Tuple[bool, Profile | None] -> (success, Profile Instance | None)
     """
     
     try:
         # Load Profile object(id only) and join user__settings to it then in user.settings check for profile_visible
-        return Profile.objects.select_related('user__settings').get(**profile_filters).user.settings.profile_visible
+        profile = Profile.objects.select_related('user__settings').get(**profile_filters)
+        return profile.user.settings.profile_visible and not profile.user.is_superuser, profile
     except Profile.DoesNotExist:
         logger.warning(f'Profile {profile_filters} does not exist.')
     except Profile.MultipleObjectsReturned:
         logger.warning(f'Multiple profiles found for {profile_filters}.')
     except Exception as e:
         logger.warning(f'Error getting profile {profile_filters}: {e}')
-    return False
+    return False, None
 
 
 def get_user_profile(**user_filters) -> Profile | None:
@@ -34,7 +35,7 @@ def get_user_profile(**user_filters) -> Profile | None:
     Fetch the user profile for a given user filter.
     
     Args:
-        user_filters (dict): User filters -> id, pk, phone or any other field you want to use to find your user.
+        user_filters: User filters -> id, pk, phone or any other field you want to use to find your user.
         
     Returns:
          Profile instance or None.
@@ -60,7 +61,7 @@ def get_user_settings(**user_filters) -> UserSettings | None:
     Fetch the user settings for a given user filter.
     
     Args:
-        user_filters (dict): User filters -> id, user__username, or any other field you want to use to find your user.
+        user_filters: User filters -> id, user__username, or any other field you want to use to find your user.
         
     Returns:
         UserSettings instance or None.

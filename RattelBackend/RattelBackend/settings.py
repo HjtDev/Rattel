@@ -196,6 +196,7 @@ REST_FRAMEWORK = {
         'login': '10/min',
         'verify': '10/min',
         'refresh': '50/min',
+        'user-profile': '15/min'
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
