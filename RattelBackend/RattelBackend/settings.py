@@ -13,7 +13,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
-import dj_database_url, os
+from cryptography.fernet import Fernet
+from notifications.handlers.sms import SMSHandler
+from notifications.providers.sms.local import LocalSMSProvider
+import dj_database_url, os, logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,8 +47,10 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'notifications.apps.NotificationsConfig',
     'payment.apps.PaymentConfig',
+    'authentication.apps.AuthenticationConfig',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_celery_beat',
     'django_celery_results',
@@ -181,9 +186,16 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.ScopedRateThrottle',
+    ),
     'DEFAULT_THROTTLE_RATES': {
         'payment-start': '3/min',
-        'payment-callback': '600/min'
+        'payment-callback': '600/min',
+        'register': '10/min',
+        'login': '10/min',
+        'verify': '10/min',
+        'refresh': '50/min',
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -193,10 +205,33 @@ REST_FRAMEWORK = {
 # JWT
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'LEEWAY': 0,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'username',
+    'USER_ID_CLAIM': 'username',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+}
+
+# CIPHER
+
+CIPHER = Fernet(Fernet.generate_key())
+
+# OTP Config
+
+OTP_SETTING = {
+    'TIMEOUT': timedelta(minutes=2),
+    'ATTEMPTS': 3,  # -1 to disable
+    'TOKEN_TYPE': 'int',  # int, str, alphanumeric / Used for token generator
+    'TOKEN_LENGTH': 4,  # Or any digits bigger than 1 / Used for token generator
+    'ENCRYPTOR': CIPHER,
 }
 
 # CORS
@@ -248,6 +283,7 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+logger = logging.getLogger(__name__)
 
 # Health Check
 
@@ -286,6 +322,12 @@ SMS_API_KEY = config('SMS_API_KEY')
 SMS_API_USERNAME = config('SMS_API_USERNAME')
 SMS_API_PASSWORD = config('SMS_API_PASSWORD')
 SMS_API_WARN_ON_LOW_CREDIT = config('SMS_API_WARN_ON_LOW_CREDIT')
+SMS_HANDLER = SMSHandler
+SMS_PROVIDER = LocalSMSProvider
+SMS_SETTINGS = {
+    'sender': 'Local SMS Provider',
+    'output': logger.info
+}
 
 # Gateway Settings
 
