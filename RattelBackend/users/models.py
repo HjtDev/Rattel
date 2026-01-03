@@ -80,6 +80,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.name
     
+def validate_national_code(national_code: str):
+    if national_code and GetDataMixin.NATIONAL_CODE_REGEX.fullmatch(national_code) is None:
+        raise ValidationError('National code must be 10 digit string.')
+    
 
 class Profile(models.Model):
     class Meta:
@@ -99,9 +103,16 @@ class Profile(models.Model):
     role = models.CharField(max_length=10, choices=RoleChoices.choices, default=RoleChoices.STUDENT, verbose_name='Role')
     gender = models.CharField(max_length=10, choices=GenderChoices.choices, blank=True, null=True, verbose_name='Gender')
     
-    biography = models.TextField(max_length=500, blank=True, null=True, verbose_name='Biography')
+    national_code = models.CharField(max_length=10, blank=True, null=True, validators=[validate_national_code], verbose_name='National Code')
+    
     education = models.TextField(max_length=150, blank=True, null=True, verbose_name='Education')
-    extra_info = models.TextField(max_length=300, blank=True, null=True, verbose_name='Extra Information')
+    had_other_classes = models.TextField(max_length=500, blank=True, null=True, verbose_name='Had other classes: Where')
+    memorized = models.TextField(max_length=300, blank=True, null=True, verbose_name='Memorized', help_text='How much Quran this person memorized.')
+    
+    invited_by = models.CharField(max_length=60, blank=True, null=True, verbose_name='Invited by')
+    
+    birthday = models.DateField(blank=True, null=True, verbose_name='Birthday')
+    city = models.CharField(max_length=120, blank=True, null=True, verbose_name='Province/City')
     
     telegram_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Telegram ID')
     eitaa_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Eitaa ID')
