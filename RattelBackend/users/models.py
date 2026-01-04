@@ -51,6 +51,13 @@ def validate_user_phone(phone: str):
 def validate_email_address(email: str):
     if email and not GetDataMixin.validate_email(email):
         raise ValidationError('Email must be a valid email address.')
+    
+def validate_name(name: str):
+    if not GetDataMixin.validate_name(name):
+        raise ValidationError([
+            'Name should be English or Farsi not both.',
+            'Name should not be empty or contain special characters.',
+        ])
 
 class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
@@ -64,7 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         
     username = models.CharField(max_length=30, unique=True, verbose_name='Username', validators=[validate_username])
     email = models.EmailField(max_length=255, blank=True, null=True, unique=True, validators=[validate_email_address], verbose_name='Email')
-    name = models.CharField(max_length=60, verbose_name='Name')
+    name = models.CharField(max_length=60, validators=[validate_name], verbose_name='Name')
     phone = models.CharField(max_length=11, blank=False, null=False, unique=True, validators=[validate_user_phone], verbose_name='Phone number', help_text='Example: 09123456789')
     profile_picture = ResizedImageField(upload_to=profile_directory_path, blank=True, null=True, verbose_name='Profile Picture')
     

@@ -161,7 +161,7 @@ def update_user_settings(settings: UserSettings, **fields) -> Tuple[bool, Dict[s
     return True, settings
     
 
-def update_user_info(user: User, profile_picture: UploadedFile = None, **fields) -> Tuple[bool, Dict[str, Any] | User]:
+def update_user_info(user: User, profile_picture: UploadedFile = None, context: dict = None, **fields) -> Tuple[bool, Dict[str, Any] | User]:
     
     if not isinstance(user, User):
         raise TypeError(f'User {user} is not a User.')
@@ -169,13 +169,13 @@ def update_user_info(user: User, profile_picture: UploadedFile = None, **fields)
     if profile_picture and not isinstance(profile_picture, UploadedFile):
         raise TypeError(f'Profile picture {profile_picture} is not a UploadedFile.')
     
-    if not fields:
+    if not fields and not profile_picture:
         return False, {'fields': 'There is nothing to update.'}
     
     if profile_picture:
         fields['profile_picture'] = profile_picture
     
-    serializer = BaseUserSerializer(instance=user, data=fields, partial=True)
+    serializer = BaseUserSerializer(instance=user, data=fields, partial=True, context=context)
     
     if not serializer.is_valid():
         errors = serializer.errors
