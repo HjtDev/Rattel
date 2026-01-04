@@ -30,6 +30,7 @@ class UserAdmin(UserAdmin):
     
     search_fields = [
         'username',
+        'phone',
         'name',
         'email'
     ]

@@ -91,12 +91,12 @@ class Profile(models.Model):
         verbose_name_plural = 'Profiles'
     
     class RoleChoices(models.TextChoices):
-        STUDENT = 'Student', 'Student'
-        TEACHER = 'Teacher', 'Teacher'
+        STUDENT = 'student', 'Student'
+        TEACHER = 'teacher', 'Teacher'
         
     class GenderChoices(models.TextChoices):
-        MALE = 'Male', 'Male'
-        FEMALE = 'Female', 'Female'
+        MALE = 'male', 'Male'
+        FEMALE = 'female', 'Female'
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name='User')
     

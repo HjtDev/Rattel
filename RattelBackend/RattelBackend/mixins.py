@@ -65,6 +65,67 @@ class GetDataMixin:
         re.UNICODE
     )
     
+    # SQL injection patterns
+    SQL_PATTERNS = [
+        r'(\bUNION\b.*\bSELECT\b)',
+        r'(\bSELECT\b.*\bFROM\b)',
+        r'(\bINSERT\b.*\bINTO\b)',
+        r'(\bUPDATE\b.*\bSET\b)',
+        r'(\bDELETE\b.*\bFROM\b)',
+        r'(\bDROP\b.*\b(TABLE|DATABASE)\b)',
+        r'(\bEXEC\b|\bEXECUTE\b)',
+        r'(;.*(-{2}|\/\*))',  # SQL comments
+        r'(\bOR\b.*=.*)',
+        r'(\bAND\b.*=.*)',
+        r"('.*--)",
+        r'(1=1|1\s*=\s*1)',
+    ]
+    
+    # Django ORM lookup patterns
+    DJANGO_ORM_PATTERNS = [
+        r'__icontains',
+        r'__contains',
+        r'__iexact',
+        r'__exact',
+        r'__gt',
+        r'__gte',
+        r'__lt',
+        r'__lte',
+        r'__in',
+        r'__startswith',
+        r'__istartswith',
+        r'__endswith',
+        r'__iendswith',
+        r'__range',
+        r'__isnull',
+        r'__regex',
+        r'__iregex',
+    ]
+    
+    # Dangerous characters and patterns
+    DANGEROUS_PATTERNS = [
+        r'<script[^>]*>.*?</script>',  # XSS
+        r'javascript:',  # XSS
+        r'on\w+\s*=',  # Event handlers
+        r'\$\{.*\}',  # Template injection
+        r'\{\{.*\}\}',  # Template injection
+        r'\.\./',  # Path traversal
+        r'\.\.\%2[fF]',  # URL encoded path traversal
+    ]
+    
+    # Redis key dangerous patterns
+    REDIS_KEY_PATTERNS = [
+        r'\s',  # No whitespace allowed
+        r'[\r\n]',  # No newlines
+        r'\*',  # Wildcard patterns
+        r'\?',  # Wildcard patterns
+        r'\[',  # Pattern matching
+        r'\]',  # Pattern matching
+        r'\.\.',  # Path traversal
+        r'//',  # Double slashes
+        r'^\./',  # Relative paths
+    ]
+    
     @staticmethod
     def validate_username(username: str) -> bool:
         """
@@ -125,6 +186,124 @@ class GetDataMixin:
             bool: True if string is valid, False otherwise
         """
         return True if string and isinstance(string, str) and string.strip() else False
+    
+    @classmethod
+    def validate_string_secure(
+            cls,
+            string: AnyStr,
+            max_length: int = 1000,
+            sql: bool = False,
+            lookup: bool = False,
+            injection: bool = False,
+            redis: bool = False
+    ) -> bool:
+        """
+        Validates a string with configurable security checks:
+            1. Basic validation (non-empty, proper type, not only whitespace)
+            2. Length validation
+            3. SQL injection patterns (optional)
+            4. Django ORM lookup patterns (optional)
+            5. XSS and other injection patterns (optional)
+            6. Redis key validation (optional)
+            
+        Args:
+            string: String to validate
+            max_length: Maximum allowed length (default: 1000)
+            sql: Enable SQL injection validation (default: False)
+            lookup: Enable Django ORM lookup validation (default: False)
+            injection: Enable XSS/template injection validation (default: False)
+            redis: Enable Redis key validation (default: False)
+            
+        Returns:
+            bool: True if string is valid and safe, False otherwise
+        """
+        
+        # Empty value is safe
+        if not isinstance(string, str):
+            return True
+        
+        # Length check
+        if len(string) > max_length:
+            return False
+        
+        # Convert to uppercase for case-insensitive pattern matching
+        string_upper = string.upper()
+        
+        # Check SQL injection patterns
+        if sql:
+            for pattern in cls.SQL_PATTERNS:
+                if re.search(pattern, string_upper, re.IGNORECASE):
+                    return False
+        
+        # Check Django ORM lookup patterns
+        if lookup:
+            for pattern in cls.DJANGO_ORM_PATTERNS:
+                if re.search(pattern, string, re.IGNORECASE):
+                    return False
+        
+        # Check dangerous patterns (XSS, template injection, path traversal)
+        if injection:
+            for pattern in cls.DANGEROUS_PATTERNS:
+                if re.search(pattern, string, re.IGNORECASE):
+                    return False
+        
+        # Check Redis key patterns
+        if redis:
+            if not cls._validate_redis_key(string):
+                return False
+        
+        return True
+    
+    @classmethod
+    def _validate_redis_key(cls, key: str) -> bool:
+        """
+        Internal method to validate Redis keys.
+        
+        Args:
+            key: Redis key to validate
+            
+        Returns:
+            bool: True if key is valid for Redis
+        """
+        # Check dangerous patterns
+        for pattern in cls.REDIS_KEY_PATTERNS:
+            if re.search(pattern, key):
+                return False
+        
+        # Redis keys should not be too long (recommended max: 512 bytes)
+        if len(key.encode('utf-8')) > 512:
+            return False
+        
+        return True
+    
+    @classmethod
+    def validate_redis_key(cls, key: AnyStr, prefix: str = None) -> bool:
+        """
+        Validates a Redis key with strict rules:
+            1. Basic validation
+            2. No whitespace or newlines
+            3. No wildcard characters (*, ?, [, ])
+            4. No path traversal patterns
+            5. Maximum 512 bytes (Redis recommendation)
+            6. Optional prefix validation
+            
+        Args:
+            key: Redis key to validate
+            prefix: Optional required prefix for the key
+            
+        Returns:
+            bool: True if key is valid for Redis, False otherwise
+        """
+        # Basic validation
+        if not cls.validate_string(key):
+            return False
+        
+        # Check if prefix is required and present
+        if prefix and not key.startswith(prefix):
+            return False
+        
+        # Validate Redis key patterns
+        return cls._validate_redis_key(key)
     
     @staticmethod
     def is_id(value: Any) -> bool:

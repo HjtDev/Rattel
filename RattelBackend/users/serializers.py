@@ -11,6 +11,7 @@ class ProfileSerializer(ModelSerializer):
             'invited_by', 'birthday', 'city',
             'telegram_id', 'eitaa_id', 'instagram_id'
         )
+        read_only_fields = ('role',)
 
 
 class UserSettingsSerializer(ModelSerializer):
