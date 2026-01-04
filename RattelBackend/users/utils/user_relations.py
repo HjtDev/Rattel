@@ -159,33 +159,76 @@ def update_user_settings(settings: UserSettings, **fields) -> Tuple[bool, Dict[s
     
     # Return True, updated_settings_instance
     return True, settings
-    
 
-def update_user_info(user: User, profile_picture: UploadedFile = None, context: dict = None, **fields) -> Tuple[bool, Dict[str, Any] | User]:
+
+def update_user_info(
+        user: User,
+        profile_picture: UploadedFile = None,
+        context: dict = None,
+        **fields
+) -> Tuple[bool, Dict[str, Any] | User]:
+    """
+    Updates user information including basic fields and profile picture.
     
+    Validates and persists updates to user data through the BaseUserSerializer.
+    Supports partial updates where only provided fields are modified.
+    
+    Args:
+        user: The User instance to update
+        profile_picture: Optional uploaded profile picture file
+        context: Optional serializer context (typically contains request object)
+        **fields: Keyword arguments containing field names and values to update
+                 (e.g., username='john', email='john@example.com', name='John Doe')
+    
+    Returns:
+        Tuple containing:
+            - bool: True if update succeeded, False otherwise
+            - User | dict: Updated User instance on success, error dict on failure
+                          Error dict format: {field_name: error_message}
+    
+    Raises:
+        TypeError: If user is not a User instance or profile_picture is not an UploadedFile
+    """
+    # Validate user parameter type
     if not isinstance(user, User):
         raise TypeError(f'User {user} is not a User.')
     
+    # Validate profile_picture parameter type if provided
     if profile_picture and not isinstance(profile_picture, UploadedFile):
         raise TypeError(f'Profile picture {profile_picture} is not a UploadedFile.')
     
+    # Check if any updates were provided
     if not fields and not profile_picture:
         return False, {'fields': 'There is nothing to update.'}
     
+    # Add profile picture to fields dict if provided
     if profile_picture:
         fields['profile_picture'] = profile_picture
     
-    serializer = BaseUserSerializer(instance=user, data=fields, partial=True, context=context)
+    # Initialize serializer with partial update enabled
+    serializer = BaseUserSerializer(
+        instance=user,
+        data=fields,
+        partial=True,
+        context=context
+    )
     
+    # Validate the provided data
     if not serializer.is_valid():
         errors = serializer.errors
         logger.warning(f'Failed to update user: {errors}')
         return False, errors
     
+    # Attempt to save the validated data
     try:
         user = serializer.save()
     except Exception as e:
-        logger.exception(f'{serializer.__class__.__name__} validated the input data, but failed to save it. {e}', exc_info=True)
+        # Log unexpected save failures
+        logger.exception(
+            f'{serializer.__class__.__name__} validated the input data, but failed to save it. {e}',
+            exc_info=True
+        )
         return False, {'detail': 'Failed to persist user data.'}
-        
+    
+    # Return success with updated user instance
     return True, user

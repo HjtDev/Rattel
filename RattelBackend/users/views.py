@@ -359,12 +359,27 @@ class UserSettingsView(APIView, GetDataMixin, ResponseBuilderMixin, FieldValidat
         
         # Return success response with updated settings
         return self.build_success_response(updated_settings)
-    
-    
+
+
 class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
+    """
+    API endpoint for viewing and updating authenticated user information.
+    
+    Provides GET and PATCH methods to retrieve and modify user basic information
+    including username, email, name, and profile picture.
+    
+    Permissions:
+        - Requires authentication for all operations
+    
+    Throttling:
+        - GET: 100 requests/minute
+        - PATCH: 15 requests/minute
+    """
+    
     throttle_scope = 'user-info'  # 100/min
     permission_classes = (IsAuthenticated,)
     
+    # Security validators configuration for string fields
     validators = {
         'max_length': 255,
         'sql': True,
@@ -373,17 +388,37 @@ class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
         'redis': False
     }
     
+    # Fields allowed for PATCH operations
     valid_fields = ('username', 'email', 'name')
     
     def get_throttles(self):
+        """
+        Applies different throttle rates based on HTTP method.
+        
+        Returns:
+            List of throttle instances for the current request
+        """
+        # Apply stricter throttle for updates
         if self.request.method == 'PATCH':
             self.throttle_scope = 'user-info-edit'  # 15/min
-            
+        
         return super().get_throttles()
     
     def build_success_response(self, user: User, message: str = 'Successful'):
+        """
+        Serializes the user instance and builds a successful response.
+        
+        Args:
+            user: The User instance to serialize
+            message: The success message to include in response
+            
+        Returns:
+            Response object with serialized user data
+        """
+        # Serialize the user instance with request context
         serializer = BaseUserSerializer(user, context={'request': self.request})
         
+        # Build and return success response
         return self.build_response(
             status.HTTP_200_OK,
             success=True,
@@ -393,16 +428,59 @@ class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
     
     
     def get(self, request):
+        """
+        Retrieve the authenticated user's information.
+        
+        Returns the current user data including username, email, name,
+        and profile picture URL.
+        
+        Returns:
+            200 OK: User data with success=True
+        """
+        # Return serialized user information
         return self.build_success_response(user=self.request.user)
     
     def patch(self, request):
+        """
+        Partially update the authenticated user's information.
+        
+        Validates and updates user fields and/or profile picture. Supports
+        updating string fields, profile picture, or both simultaneously.
+        
+        Expected payload: {
+            username: Optional - New username,
+            email: Optional - New email address,
+            name: Optional - New display name,
+            profile_picture: Optional - Image file (multipart/form-data)
+        }
+        
+        File requirements:
+            - Max size: Configured in settings.MAXIMUM_PROFILE_IMAGE_SIZE (typically 2MB)
+            - Allowed MIME types: Configured in settings.ALLOWED_MIMETYPES
+            - Allowed extensions: Configured in settings.ALLOWED_EXTENSIONS
+        
+        Returns:
+            200 OK: Updated user data with success=True
+            400 BAD REQUEST:
+                - error=-1: Invalid string field or contains dangerous content
+                - error=-2: Invalid profile picture (size/type/format)
+                - error=-3: Failed to update user in database
+        """
+        # Separate string fields from file upload
         string_payload = {k: v for k, v in request.data.items() if k in self.valid_fields}
         profile_picture = request.FILES.get('profile_picture', None)
         
-        success, error = self.validate_string_fields(valid_fields=self.valid_fields, validators=self.validators, **string_payload)
+        # Validate string fields with security checks
+        success, error = self.validate_string_fields(
+            valid_fields=self.valid_fields,
+            validators=self.validators,
+            **string_payload
+        )
         
+        # Check if request only contains profile picture without string fields
         profile_only = not string_payload and profile_picture is not None
         
+        # String field validation failed (unless profile-only update)
         if not success and not profile_only:
             return self.build_response(
                 status.HTTP_400_BAD_REQUEST,
@@ -411,14 +489,16 @@ class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
                 message=error
             )
         
+        # Validate profile picture if provided
         if profile_picture:
             file_valid, errors = self.validate_uploaded_file(
                 profile_picture,
-                max_size=2097152,  # 2MB
+                max_size=settings.MAXIMUM_PROFILE_IMAGE_SIZE,  # 2MB
                 allowed_mime_types=settings.ALLOWED_MIMETYPES,
                 allowed_extensions=settings.ALLOWED_EXTENSIONS
             )
             
+            # Profile picture validation failed
             if not file_valid:
                 return self.build_response(
                     status.HTTP_400_BAD_REQUEST,
@@ -426,12 +506,20 @@ class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
                     error=-2,
                     message=errors
                 )
-            
+        
+        # Clear string payload for profile-only updates
         if profile_only:
             string_payload = {}
-            
-        success, result = update_user_info(user=request.user, profile_picture=profile_picture, context={'request': request}, **string_payload)
         
+        # Attempt to update user information
+        success, result = update_user_info(
+            user=request.user,
+            profile_picture=profile_picture,
+            context={'request': request},
+            **string_payload
+        )
+        
+        # Update operation failed
         if not success:
             return self.build_response(
                 status.HTTP_400_BAD_REQUEST,
@@ -440,7 +528,8 @@ class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
                 message=result
             )
         
+        # Map result to updated_user on success
         updated_user = result
         
+        # Return success response with updated user data
         return self.build_success_response(updated_user, message='Updated user successfully.')
-        

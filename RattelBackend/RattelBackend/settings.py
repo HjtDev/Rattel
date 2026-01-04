@@ -308,7 +308,7 @@ DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP'
 # DJANGORESIZED_DEFAULT_NORMALIZE_ROTATION = False
 ALLOWED_MIMETYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp']
-
+MAXIMUM_PROFILE_IMAGE_SIZE = 2097152  # 2MB
 # User Mode
 
 AUTH_USER_MODEL = 'users.User'
