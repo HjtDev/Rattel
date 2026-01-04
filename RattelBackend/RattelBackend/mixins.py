@@ -1,11 +1,11 @@
 from urllib.parse import urlparse
-
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from rest_framework import status
 from rest_framework.response import Response
-from typing import Any, AnyStr, List, Tuple, Dict
-import re
+from typing import Any, AnyStr, List, Tuple, Dict, Iterable
+import re, os
 
 
 class ResponseBuilderMixin:
@@ -659,3 +659,78 @@ class FieldValidator:
         
         # All fields passed validation
         return True, {}
+
+    @staticmethod
+    def validate_uploaded_file(
+            file: UploadedFile,
+            *,
+            max_size: int,
+            allowed_mime_types: Iterable[str],
+            allowed_extensions: Iterable[str],
+    ) -> Tuple[bool, Dict[str, str]]:
+        """
+        Validates an uploaded file from request.data / request.FILES.
+        
+        Performs comprehensive validation on uploaded files including file presence,
+        size limits, filename safety, extension whitelist, and MIME type verification.
+        
+        Args:
+            file: Django UploadedFile instance from request.FILES
+            max_size: Maximum file size in bytes (e.g., 5242880 for 5MB)
+            allowed_mime_types: Iterable of allowed MIME types (e.g., ['image/jpeg', 'image/png'])
+            allowed_extensions: Iterable of allowed file extensions without dots (e.g., ['jpg', 'png', 'pdf'])
+        
+        Returns:
+            Tuple containing:
+                - bool: True if file is valid, False otherwise
+                - dict: Empty dict if valid, or dict with error details if invalid
+                       Format: {'file': error_message}
+        """
+        # 1. Presence & type validation
+        # Check if file was provided
+        if file is None:
+            return False, {'file': 'No file provided.'}
+        
+        # Verify file is a valid Django UploadedFile instance
+        if not isinstance(file, UploadedFile):
+            return False, {'file': 'Invalid file object.'}
+        
+        # 2. Size validation
+        # Ensure file is not empty
+        if file.size <= 0:
+            return False, {'file': 'Uploaded file is empty.'}
+        
+        # Enforce maximum file size limit
+        if file.size > max_size:
+            return False, {'file': f'File size exceeds {max_size} bytes.'}
+        
+        # 3. Filename safety validation
+        filename = file.name
+        
+        # Check filename exists and is within acceptable length
+        if not filename or len(filename) > 255:
+            return False, {'file': 'Invalid filename.'}
+        
+        # Prevent path traversal attacks and invalid path characters
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return False, {'file': 'Invalid filename path.'}
+        
+        # 4. Extension validation
+        # Extract file extension (lowercase, without leading dot)
+        ext = os.path.splitext(filename)[1].lower().lstrip('.')
+        
+        # Verify extension is in the allowed list
+        if ext not in allowed_extensions:
+            return False, {'file': f'Invalid file extension: .{ext}'}
+        
+        # 5. MIME type validation
+        # Get the content type from the uploaded file
+        content_type = file.content_type
+        
+        # Verify MIME type is in the allowed list
+        if content_type not in allowed_mime_types:
+            return False, {'file': f'Invalid file type: {content_type}'}
+        
+        # All validations passed
+        return True, {}
+    

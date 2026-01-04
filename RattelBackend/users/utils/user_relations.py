@@ -1,6 +1,7 @@
 from typing import Tuple, Any, Dict
 from users.models import User, Profile, UserSettings
-from users.serializers import ProfileSerializer, UserSettingsSerializer
+from users.serializers import ProfileSerializer, UserSettingsSerializer, BaseUserSerializer
+from django.core.files.uploadedfile import UploadedFile
 import logging
 
 
@@ -159,4 +160,32 @@ def update_user_settings(settings: UserSettings, **fields) -> Tuple[bool, Dict[s
     # Return True, updated_settings_instance
     return True, settings
     
+
+def update_user_info(user: User, profile_picture: UploadedFile = None, **fields) -> Tuple[bool, Dict[str, Any] | User]:
     
+    if not isinstance(user, User):
+        raise TypeError(f'User {user} is not a User.')
+    
+    if profile_picture and not isinstance(profile_picture, UploadedFile):
+        raise TypeError(f'Profile picture {profile_picture} is not a UploadedFile.')
+    
+    if not fields:
+        return False, {'fields': 'There is nothing to update.'}
+    
+    if profile_picture:
+        fields['profile_picture'] = profile_picture
+    
+    serializer = BaseUserSerializer(instance=user, data=fields, partial=True)
+    
+    if not serializer.is_valid():
+        errors = serializer.errors
+        logger.warning(f'Failed to update user: {errors}')
+        return False, errors
+    
+    try:
+        user = serializer.save()
+    except Exception as e:
+        logger.exception(f'{serializer.__class__.__name__} validated the input data, but failed to save it. {e}', exc_info=True)
+        return False, {'detail': 'Failed to persist user data.'}
+        
+    return True, user
