@@ -4,7 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.response import Response
-from typing import Any, AnyStr
+from typing import Any, AnyStr, List, Tuple, Dict
 import re
 
 
@@ -477,3 +477,185 @@ class GetDataMixin:
         if errors:
             return False, errors
         return True, fields
+
+
+class FieldValidator:
+    """
+    A validator class for validating form/request fields with security checks.
+    
+    This class provides methods to validate string and boolean fields against
+    allowed field names and security patterns. It integrates with GetDataMixin
+    to perform comprehensive security validation including SQL injection,
+    Django ORM lookups, XSS, and Redis key validation.
+    
+    Attributes:
+        _validators (dict): Mapping of validator names to their expected types.
+            Available validators:
+                - max_length (int): Maximum allowed string length
+                - sql (bool): Enable SQL injection validation
+                - lookup (bool): Enable Django ORM lookup validation
+                - injection (bool): Enable XSS/template injection validation
+                - redis (bool): Enable Redis key validation
+    """
+    
+    # Define the allowed validators and their expected data types
+    _validators = {
+        'max_length': int,    # Maximum length for string validation
+        'sql': bool,          # Toggle SQL injection validation
+        'lookup': bool,       # Toggle Django ORM lookup validation
+        'injection': bool,    # Toggle XSS/injection validation
+        'redis': bool         # Toggle Redis key validation
+    }
+    
+    def _validate_validators(self, validators: Dict[str, bool | int]) -> None:
+        """
+        Internal method to validate the validators configuration dictionary.
+        
+        Ensures that:
+        1. The validators parameter is a dictionary
+        2. All validator keys are recognized (exist in _validators)
+        3. All validator values have the correct type
+        
+        Args:
+            validators: Dictionary containing validator configuration.
+                       Keys should be from _validators, values should match
+                       the expected type for each validator.
+        
+        Raises:
+            TypeError: If validators is not a dict or if a validator value
+                      has an incorrect type.
+            ValueError: If an unrecognized validator key is provided.
+        """
+        
+        # Check if validators is a dictionary
+        if not isinstance(validators, dict):
+            raise TypeError(
+                f'Expected a dict, got {type(validators)=} instead. {validators=}'
+            )
+        
+        # Validate each key-value pair in the validators dictionary
+        for key, value in validators.items():
+            # Check if the validator key is recognized
+            if key not in self._validators:
+                raise ValueError(f'Invalid validator: {key}: {value}')
+            
+            # Check if the validator value has the correct type
+            if not isinstance(value, self._validators[key]):
+                raise TypeError(f'Invalid validator value: {key}: {value}')
+    
+    def validate_string_fields(
+            self,
+            valid_fields: Tuple | List,
+            validators: Dict[str, bool | int],
+            **fields
+    ) -> Tuple[bool, Dict[Any, str]]:
+        """
+        Validate multiple string fields against allowed field names and security patterns.
+        
+        This method performs comprehensive validation on string fields by:
+        1. Checking if field names are in the allowed list
+        2. Validating basic string requirements (non-empty, not only whitespace)
+        3. Running security checks (SQL injection, XSS, Django ORM lookups, etc.)
+        
+        Args:
+            valid_fields: Tuple or list of allowed field names. Only fields
+                         in this collection will be accepted for validation.
+            validators: Dictionary of validator configurations to apply.
+                       See _validators attribute for available options.
+            **fields: Keyword arguments where keys are field names and values
+                     are the field values to validate.
+        
+        Returns:
+            Tuple containing:
+                - bool: True if all fields are valid, False if any validation fails
+                - dict: Empty dict if valid, or dict with error details if invalid
+                       Format: {field_name: error_message}
+        
+        Raises:
+            TypeError: If valid_fields is not a list or tuple, or if validators
+                      configuration is invalid.
+        """
+        
+        # Validate that valid_fields is a tuple or list
+        if not isinstance(valid_fields, tuple | list):
+            raise TypeError(
+                f'Expected a list or tuple, got {type(valid_fields)=}: {valid_fields=}'
+            )
+        
+        # Validate the validators configuration
+        self._validate_validators(validators)
+        
+        # Check if any fields were provided
+        if not fields:
+            return False, {'fields': 'There is nothing to validate'}
+        
+        # Validate each field
+        for field, value in fields.items():
+            # Check if field name is in the allowed list
+            if field not in valid_fields:
+                return False, {field: 'This field is not acceptable'}
+            
+            # Basic string validation (non-empty, not only whitespace)
+            if not GetDataMixin.validate_string(value):
+                return False, {field: f'This field value is invalid. {value}'}
+            
+            # Security validation (SQL injection, XSS, etc.)
+            if not GetDataMixin.validate_string_secure(value, **validators):
+                return False, {field: f'This field contains dangerous content. {value}'}
+        
+        # All fields passed validation
+        return True, {}
+    
+    @staticmethod
+    def validate_boolean_fields(
+            valid_fields: Tuple | List,
+            **fields
+    ) -> Tuple[bool, Dict[Any, str]]:
+        """
+        Validate multiple boolean fields against allowed field names and type.
+        
+        This method validates that:
+        1. Field names are in the allowed list
+        2. Field values are boolean or can be converted to boolean
+        
+        The method uses GetDataMixin.convert_data_to_bool() to handle string
+        representations of boolean values (e.g., 'true', 'false', '1', '0').
+        
+        Args:
+            valid_fields: Tuple or list of allowed field names. Only fields
+                         in this collection will be accepted for validation.
+            **fields: Keyword arguments where keys are field names and values
+                     are the field values to validate as booleans.
+        
+        Returns:
+            Tuple containing:
+                - bool: True if all fields are valid, False if any validation fails
+                - dict: Empty dict if valid, or dict with error details if invalid
+                       Format: {field_name: error_message}
+        
+        Raises:
+            TypeError: If valid_fields is not a list or tuple.
+        """
+        
+        # Validate that valid_fields is a tuple or list
+        if not isinstance(valid_fields, tuple | list):
+            raise TypeError(f'Expected a list or tuple, got {type(valid_fields)=}')
+        
+        # Check if any fields were provided
+        if not fields:
+            return False, {'fields': 'There is nothing to validate'}
+        
+        # Validate each field
+        for field, value in fields.items():
+            # Check if field name is in the allowed list
+            if field not in valid_fields:
+                return False, {field: 'This field is not acceptable'}
+            
+            # Check if value is already boolean or can be converted to boolean
+            if not isinstance(value, bool) and not isinstance(
+                    GetDataMixin.convert_data_to_bool(value), bool
+            ):
+                return False, {field: f'This field value should be a boolean. {value}'}
+        
+        # All fields passed validation
+        return True, {}
