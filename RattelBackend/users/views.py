@@ -1,8 +1,8 @@
 from typing import Tuple, Any, Dict
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
-from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
-from .models import Profile, User
-from .utils.user_relations import get_accessible_profile, get_user_profile, update_user_profile
+from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin, FieldValidator
+from .models import Profile, User, UserSettings
+from .utils.user_relations import get_accessible_profile, get_user_profile, update_user_profile, update_user_settings
 from .serializers import ProfileSerializer, UserSettingsSerializer
 from rest_framework.views import APIView
 from rest_framework import status
@@ -11,7 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class UserProfileView(APIView, GetDataMixin, ResponseBuilderMixin):
+class UserProfileView(APIView, GetDataMixin, ResponseBuilderMixin, FieldValidator):
     """
     Using this endpoint you can See/Edit your profile if you are authenticated and other users' profile if it's accessible.
     """
@@ -22,41 +22,19 @@ class UserProfileView(APIView, GetDataMixin, ResponseBuilderMixin):
     valid_fields = ('gender', 'national_code', 'education', 'had_other_classes',
                     'memorized', 'invited_by', 'birthday', 'city',
                     'telegram_id', 'eitaa_id', 'instagram_id')
+    validators = {
+        'max_length': 500,
+        'sql': False,
+        'lookup': True,
+        'injection': False,
+        'redis': False
+    }
     
     def get_throttles(self):
         if self.request.method == 'PATCH':
             self.throttle_scope = 'user-profile-edit'  # 15/min
         
         return super().get_throttles()
-    
-    def validate_update_fields(self, **fields) -> Tuple[bool, Dict[Any, str]]:
-        """
-        Checks the items of the fields to only contain valid fields, and checks if their value is safe or not.
-        
-        Args:
-            fields: Fields you passed to update the profile instance
-            
-        Returns:
-            success, error_dict
-        """
-        
-        # Checks if the fields are empty
-        if not fields:
-            return False, {'fields': 'Nothing to update'}
-        
-        # Iterates over items to check their key and value
-        for field, value in fields.items():
-            
-            # Field is not a valid safe_profile_field
-            if field not in self.valid_fields:
-                return False, {field: 'This field is not acceptable'}
-            
-            # Value contains lookup or exceed maximum length
-            if not self.validate_string_secure(string=value, max_length=500, lookup=True):
-                return False, {field: 'This field contains dangerous content'}
-        
-        # Data is safe to use
-        return True, {}
     
     def validate_target_profile(self, value: str) -> bool:
         """
@@ -204,7 +182,7 @@ class UserProfileView(APIView, GetDataMixin, ResponseBuilderMixin):
         """
         
         # Validates the input to be safe
-        is_valid, error = self.validate_update_fields(**request.data)
+        is_valid, error = self.validate_string_fields(valid_fields=self.valid_fields, validators=self.validators, **request.data)
         
         # Input is empty or unsafe
         if not is_valid:
@@ -243,4 +221,139 @@ class UserProfileView(APIView, GetDataMixin, ResponseBuilderMixin):
         
         # Builds and return a success response for the updated profile
         return self.build_success_response(updated_profile, message='Updated profile successfully.')
+
+
+class UserSettingsView(APIView, GetDataMixin, ResponseBuilderMixin, FieldValidator):
+    """
+    API endpoint for viewing and updating authenticated user settings.
+    
+    Provides GET and PATCH methods to retrieve and modify user preference settings
+    such as profile visibility and notification preferences.
+    
+    Permissions:
+        - Requires authentication for all operations
+    
+    Throttling:
+        - GET: 50 requests/minute
+        - PATCH: 15 requests/minute
+    """
+    
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'user-settings'  # 50/min
+    
+    # Fields allowed for PATCH operations
+    valid_fields = ('profile_visible', 'email_on_login', 'email_on_payment', 'sms_on_payment')
+    
+    def get_throttles(self):
+        """
+        Applies different throttle rates based on HTTP method.
         
+        Returns:
+            List of throttle instances for the current request
+        """
+        # Apply stricter throttle for updates
+        if self.request.method == 'PATCH':
+            self.throttle_scope = 'user-settings-edit'  # 15/min
+        
+        return super().get_throttles()
+    
+    def build_success_response(self, settings: UserSettings, message: str = 'Successful'):
+        """
+        Serializes the settings instance and builds a successful response.
+        
+        Args:
+            settings: The UserSettings instance to serialize
+            message: The success message to include in response
+            
+        Returns:
+            Response object with serialized settings data
+        """
+        # Serialize the settings instance
+        serializer = UserSettingsSerializer(settings)
+        
+        # Build and return success response
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True,
+            settings=serializer.data,
+            message=message
+        )
+    
+    def get(self, request):
+        """
+        Retrieve the authenticated user's settings.
+        
+        Returns the current settings configuration including profile visibility
+        and notification preferences.
+        
+        Returns:
+            200 OK: Settings data with success=True
+            404 NOT FOUND: If settings don't exist for the user (error=-1)
+        """
+        # Get the user's settings instance
+        settings = request.user.settings
+        
+        # Validate that settings exist
+        if not isinstance(settings, UserSettings):
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False,
+                error=-1,
+                message='There is no settings for this user.'
+            )
+        
+        # Return serialized settings
+        return self.build_success_response(settings)
+    
+    def patch(self, request):
+        """
+        Partially update the authenticated user's settings.
+        
+        Validates and updates boolean settings fields. Only provided fields
+        will be updated; omitted fields remain unchanged.
+        
+        Expected payload: {
+            profile_visible: Optional - Boolean for profile visibility,
+            email_on_login: Optional - Boolean for login email notifications,
+            email_on_payment: Optional - Boolean for payment email notifications,
+            sms_on_payment: Optional - Boolean for payment SMS notifications
+        }
+        
+        Returns:
+            200 OK: Updated settings with success=True
+            400 BAD REQUEST:
+                - error=-1: Invalid field name or non-boolean value
+                - error=-2: Failed to update settings in database
+        """
+        # Validate boolean fields
+        success, error = self.validate_boolean_fields(
+            valid_fields=self.valid_fields,
+            **request.data
+        )
+        
+        # Input validation failed
+        if not success:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-1,
+                message=error
+            )
+        
+        # Attempt to update user settings
+        success, result = update_user_settings(request.user.settings, **request.data)
+        
+        # Update operation failed
+        if not success:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-2,
+                message=result
+            )
+        
+        # Map result to updated_settings on success
+        updated_settings = result
+        
+        # Return success response with updated settings
+        return self.build_success_response(updated_settings)
