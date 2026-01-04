@@ -196,6 +196,12 @@ REST_FRAMEWORK = {
         'login': '10/min',
         'verify': '10/min',
         'refresh': '50/min',
+        'user-profile': '100/min',
+        'user-profile-edit': '15/min',
+        'user-settings': '50/min',
+        'user-settings-edit': '15/min',
+        'user-info': '100/min',
+        'user-info-edit': '15/min'
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -300,7 +306,9 @@ DJANGORESIZED_DEFAULT_KEEP_META = True
 # DJANGORESIZED_DEFAULT_FORCE_FORMAT = 'JPEG'
 DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP': '.webp'}
 # DJANGORESIZED_DEFAULT_NORMALIZE_ROTATION = False
-
+ALLOWED_MIMETYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp']
+MAXIMUM_PROFILE_IMAGE_SIZE = 2097152  # 2MB
 # User Mode
 
 AUTH_USER_MODEL = 'users.User'

@@ -5,7 +5,13 @@ from .models import User, Profile, UserSettings
 class ProfileSerializer(ModelSerializer):
     class Meta:
         model = Profile
-        fields = ('role', 'gender', 'biography', 'education', 'extra_info', 'telegram_id', 'eitaa_id', 'instagram_id')
+        fields = (
+            'role', 'gender', 'national_code',
+            'education', 'had_other_classes', 'memorized',
+            'invited_by', 'birthday', 'city',
+            'telegram_id', 'eitaa_id', 'instagram_id'
+        )
+        read_only_fields = ('role',)
 
 
 class UserSettingsSerializer(ModelSerializer):
@@ -35,10 +41,22 @@ class UserProfileBuilderMixin:
 
 class BaseUserSerializer(ModelSerializer, UserProfileBuilderMixin):
     """Base user serializer contains all the base fields"""
+    
     class Meta:
         model = User
-        fields = ('username', 'email', 'name', 'phone', 'profile_picture', 'score',)
-        read_only_fields = ('username', 'score')
+        fields = ('username', 'email', 'name', 'phone', 'profile_picture', 'score')
+        read_only_fields = ('phone', 'score')
+    
+    def update(self, instance, validated_data):
+        profile_picture = validated_data.pop('profile_picture', None)
+        
+        instance = super().update(instance, validated_data)
+        
+        if profile_picture:
+            instance.profile_picture = profile_picture
+            instance.save(update_fields=['profile_picture'])
+        
+        return instance
 
 
 class FullUserSerializer(BaseUserSerializer):
@@ -67,3 +85,15 @@ class FullUserSerializer(BaseUserSerializer):
         except UserSettings.DoesNotExist:
             pass
         return None
+    
+    def update(self, instance, validated_data):
+        """Saves the validated_data to instance when updating it partially"""
+        profile_picture = validated_data.pop('profile_picture', None)
+        
+        instance = super().update(instance, validated_data)
+        
+        if profile_picture:
+            instance.profile_picture = profile_picture
+            instance.save(update_fields=['profile_picture'])
+        
+        return instance

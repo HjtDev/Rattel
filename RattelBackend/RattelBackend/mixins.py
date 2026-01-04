@@ -1,11 +1,11 @@
 from urllib.parse import urlparse
-
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from rest_framework import status
 from rest_framework.response import Response
-from typing import Any, AnyStr
-import re
+from typing import Any, AnyStr, List, Tuple, Dict, Iterable
+import re, os
 
 
 class ResponseBuilderMixin:
@@ -64,6 +64,67 @@ class GetDataMixin:
         r'$',
         re.UNICODE
     )
+    
+    # SQL injection patterns
+    SQL_PATTERNS = [
+        r'(\bUNION\b.*\bSELECT\b)',
+        r'(\bSELECT\b.*\bFROM\b)',
+        r'(\bINSERT\b.*\bINTO\b)',
+        r'(\bUPDATE\b.*\bSET\b)',
+        r'(\bDELETE\b.*\bFROM\b)',
+        r'(\bDROP\b.*\b(TABLE|DATABASE)\b)',
+        r'(\bEXEC\b|\bEXECUTE\b)',
+        r'(;.*(-{2}|\/\*))',  # SQL comments
+        r'(\bOR\b.*=.*)',
+        r'(\bAND\b.*=.*)',
+        r"('.*--)",
+        r'(1=1|1\s*=\s*1)',
+    ]
+    
+    # Django ORM lookup patterns
+    DJANGO_ORM_PATTERNS = [
+        r'__icontains',
+        r'__contains',
+        r'__iexact',
+        r'__exact',
+        r'__gt',
+        r'__gte',
+        r'__lt',
+        r'__lte',
+        r'__in',
+        r'__startswith',
+        r'__istartswith',
+        r'__endswith',
+        r'__iendswith',
+        r'__range',
+        r'__isnull',
+        r'__regex',
+        r'__iregex',
+    ]
+    
+    # Dangerous characters and patterns
+    DANGEROUS_PATTERNS = [
+        r'<script[^>]*>.*?</script>',  # XSS
+        r'javascript:',  # XSS
+        r'on\w+\s*=',  # Event handlers
+        r'\$\{.*\}',  # Template injection
+        r'\{\{.*\}\}',  # Template injection
+        r'\.\./',  # Path traversal
+        r'\.\.\%2[fF]',  # URL encoded path traversal
+    ]
+    
+    # Redis key dangerous patterns
+    REDIS_KEY_PATTERNS = [
+        r'\s',  # No whitespace allowed
+        r'[\r\n]',  # No newlines
+        r'\*',  # Wildcard patterns
+        r'\?',  # Wildcard patterns
+        r'\[',  # Pattern matching
+        r'\]',  # Pattern matching
+        r'\.\.',  # Path traversal
+        r'//',  # Double slashes
+        r'^\./',  # Relative paths
+    ]
     
     @staticmethod
     def validate_username(username: str) -> bool:
@@ -125,6 +186,124 @@ class GetDataMixin:
             bool: True if string is valid, False otherwise
         """
         return True if string and isinstance(string, str) and string.strip() else False
+    
+    @classmethod
+    def validate_string_secure(
+            cls,
+            string: AnyStr,
+            max_length: int = 1000,
+            sql: bool = False,
+            lookup: bool = False,
+            injection: bool = False,
+            redis: bool = False
+    ) -> bool:
+        """
+        Validates a string with configurable security checks:
+            1. Basic validation (non-empty, proper type, not only whitespace)
+            2. Length validation
+            3. SQL injection patterns (optional)
+            4. Django ORM lookup patterns (optional)
+            5. XSS and other injection patterns (optional)
+            6. Redis key validation (optional)
+            
+        Args:
+            string: String to validate
+            max_length: Maximum allowed length (default: 1000)
+            sql: Enable SQL injection validation (default: False)
+            lookup: Enable Django ORM lookup validation (default: False)
+            injection: Enable XSS/template injection validation (default: False)
+            redis: Enable Redis key validation (default: False)
+            
+        Returns:
+            bool: True if string is valid and safe, False otherwise
+        """
+        
+        # Empty value is safe
+        if not isinstance(string, str):
+            return True
+        
+        # Length check
+        if len(string) > max_length:
+            return False
+        
+        # Convert to uppercase for case-insensitive pattern matching
+        string_upper = string.upper()
+        
+        # Check SQL injection patterns
+        if sql:
+            for pattern in cls.SQL_PATTERNS:
+                if re.search(pattern, string_upper, re.IGNORECASE):
+                    return False
+        
+        # Check Django ORM lookup patterns
+        if lookup:
+            for pattern in cls.DJANGO_ORM_PATTERNS:
+                if re.search(pattern, string, re.IGNORECASE):
+                    return False
+        
+        # Check dangerous patterns (XSS, template injection, path traversal)
+        if injection:
+            for pattern in cls.DANGEROUS_PATTERNS:
+                if re.search(pattern, string, re.IGNORECASE):
+                    return False
+        
+        # Check Redis key patterns
+        if redis:
+            if not cls._validate_redis_key(string):
+                return False
+        
+        return True
+    
+    @classmethod
+    def _validate_redis_key(cls, key: str) -> bool:
+        """
+        Internal method to validate Redis keys.
+        
+        Args:
+            key: Redis key to validate
+            
+        Returns:
+            bool: True if key is valid for Redis
+        """
+        # Check dangerous patterns
+        for pattern in cls.REDIS_KEY_PATTERNS:
+            if re.search(pattern, key):
+                return False
+        
+        # Redis keys should not be too long (recommended max: 512 bytes)
+        if len(key.encode('utf-8')) > 512:
+            return False
+        
+        return True
+    
+    @classmethod
+    def validate_redis_key(cls, key: AnyStr, prefix: str = None) -> bool:
+        """
+        Validates a Redis key with strict rules:
+            1. Basic validation
+            2. No whitespace or newlines
+            3. No wildcard characters (*, ?, [, ])
+            4. No path traversal patterns
+            5. Maximum 512 bytes (Redis recommendation)
+            6. Optional prefix validation
+            
+        Args:
+            key: Redis key to validate
+            prefix: Optional required prefix for the key
+            
+        Returns:
+            bool: True if key is valid for Redis, False otherwise
+        """
+        # Basic validation
+        if not cls.validate_string(key):
+            return False
+        
+        # Check if prefix is required and present
+        if prefix and not key.startswith(prefix):
+            return False
+        
+        # Validate Redis key patterns
+        return cls._validate_redis_key(key)
     
     @staticmethod
     def is_id(value: Any) -> bool:
@@ -298,3 +477,260 @@ class GetDataMixin:
         if errors:
             return False, errors
         return True, fields
+
+
+class FieldValidator:
+    """
+    A validator class for validating form/request fields with security checks.
+    
+    This class provides methods to validate string and boolean fields against
+    allowed field names and security patterns. It integrates with GetDataMixin
+    to perform comprehensive security validation including SQL injection,
+    Django ORM lookups, XSS, and Redis key validation.
+    
+    Attributes:
+        _validators (dict): Mapping of validator names to their expected types.
+            Available validators:
+                - max_length (int): Maximum allowed string length
+                - sql (bool): Enable SQL injection validation
+                - lookup (bool): Enable Django ORM lookup validation
+                - injection (bool): Enable XSS/template injection validation
+                - redis (bool): Enable Redis key validation
+    """
+    
+    # Define the allowed validators and their expected data types
+    _validators = {
+        'max_length': int,    # Maximum length for string validation
+        'sql': bool,          # Toggle SQL injection validation
+        'lookup': bool,       # Toggle Django ORM lookup validation
+        'injection': bool,    # Toggle XSS/injection validation
+        'redis': bool         # Toggle Redis key validation
+    }
+    
+    def _validate_validators(self, validators: Dict[str, bool | int]) -> None:
+        """
+        Internal method to validate the validators configuration dictionary.
+        
+        Ensures that:
+        1. The validators parameter is a dictionary
+        2. All validator keys are recognized (exist in _validators)
+        3. All validator values have the correct type
+        
+        Args:
+            validators: Dictionary containing validator configuration.
+                       Keys should be from _validators, values should match
+                       the expected type for each validator.
+        
+        Raises:
+            TypeError: If validators is not a dict or if a validator value
+                      has an incorrect type.
+            ValueError: If an unrecognized validator key is provided.
+        """
+        
+        # Check if validators is a dictionary
+        if not isinstance(validators, dict):
+            raise TypeError(
+                f'Expected a dict, got {type(validators)=} instead. {validators=}'
+            )
+        
+        # Validate each key-value pair in the validators dictionary
+        for key, value in validators.items():
+            # Check if the validator key is recognized
+            if key not in self._validators:
+                raise ValueError(f'Invalid validator: {key}: {value}')
+            
+            # Check if the validator value has the correct type
+            if not isinstance(value, self._validators[key]):
+                raise TypeError(f'Invalid validator value: {key}: {value}')
+    
+    def validate_string_fields(
+            self,
+            valid_fields: Tuple | List,
+            validators: Dict[str, bool | int],
+            **fields
+    ) -> Tuple[bool, Dict[Any, str]]:
+        """
+        Validate multiple string fields against allowed field names and security patterns.
+        
+        This method performs comprehensive validation on string fields by:
+        1. Checking if field names are in the allowed list
+        2. Validating basic string requirements (non-empty, not only whitespace)
+        3. Running security checks (SQL injection, XSS, Django ORM lookups, etc.)
+        
+        Args:
+            valid_fields: Tuple or list of allowed field names. Only fields
+                         in this collection will be accepted for validation.
+            validators: Dictionary of validator configurations to apply.
+                       See _validators attribute for available options.
+            **fields: Keyword arguments where keys are field names and values
+                     are the field values to validate.
+        
+        Returns:
+            Tuple containing:
+                - bool: True if all fields are valid, False if any validation fails
+                - dict: Empty dict if valid, or dict with error details if invalid
+                       Format: {field_name: error_message}
+        
+        Raises:
+            TypeError: If valid_fields is not a list or tuple, or if validators
+                      configuration is invalid.
+        """
+        
+        # Validate that valid_fields is a tuple or list
+        if not isinstance(valid_fields, tuple | list):
+            raise TypeError(
+                f'Expected a list or tuple, got {type(valid_fields)=}: {valid_fields=}'
+            )
+        
+        # Validate the validators configuration
+        self._validate_validators(validators)
+        
+        # Check if any fields were provided
+        if not fields:
+            return False, {'fields': 'There is nothing to validate'}
+        
+        # Validate each field
+        for field, value in fields.items():
+            # Check if field name is in the allowed list
+            if field not in valid_fields:
+                return False, {field: 'This field is not acceptable'}
+            
+            # Basic string validation (non-empty, not only whitespace)
+            if not GetDataMixin.validate_string(value):
+                return False, {field: f'This field value is invalid. {value}'}
+            
+            # Security validation (SQL injection, XSS, etc.)
+            if not GetDataMixin.validate_string_secure(value, **validators):
+                return False, {field: f'This field contains dangerous content. {value}'}
+        
+        # All fields passed validation
+        return True, {}
+    
+    @staticmethod
+    def validate_boolean_fields(
+            valid_fields: Tuple | List,
+            **fields
+    ) -> Tuple[bool, Dict[Any, str]]:
+        """
+        Validate multiple boolean fields against allowed field names and type.
+        
+        This method validates that:
+        1. Field names are in the allowed list
+        2. Field values are boolean or can be converted to boolean
+        
+        The method uses GetDataMixin.convert_data_to_bool() to handle string
+        representations of boolean values (e.g., 'true', 'false', '1', '0').
+        
+        Args:
+            valid_fields: Tuple or list of allowed field names. Only fields
+                         in this collection will be accepted for validation.
+            **fields: Keyword arguments where keys are field names and values
+                     are the field values to validate as booleans.
+        
+        Returns:
+            Tuple containing:
+                - bool: True if all fields are valid, False if any validation fails
+                - dict: Empty dict if valid, or dict with error details if invalid
+                       Format: {field_name: error_message}
+        
+        Raises:
+            TypeError: If valid_fields is not a list or tuple.
+        """
+        
+        # Validate that valid_fields is a tuple or list
+        if not isinstance(valid_fields, tuple | list):
+            raise TypeError(f'Expected a list or tuple, got {type(valid_fields)=}')
+        
+        # Check if any fields were provided
+        if not fields:
+            return False, {'fields': 'There is nothing to validate'}
+        
+        # Validate each field
+        for field, value in fields.items():
+            # Check if field name is in the allowed list
+            if field not in valid_fields:
+                return False, {field: 'This field is not acceptable'}
+            
+            # Check if value is already boolean or can be converted to boolean
+            if not isinstance(value, bool) and not isinstance(
+                    GetDataMixin.convert_data_to_bool(value), bool
+            ):
+                return False, {field: f'This field value should be a boolean. {value}'}
+        
+        # All fields passed validation
+        return True, {}
+
+    @staticmethod
+    def validate_uploaded_file(
+            file: UploadedFile,
+            *,
+            max_size: int,
+            allowed_mime_types: Iterable[str],
+            allowed_extensions: Iterable[str],
+    ) -> Tuple[bool, Dict[str, str]]:
+        """
+        Validates an uploaded file from request.data / request.FILES.
+        
+        Performs comprehensive validation on uploaded files including file presence,
+        size limits, filename safety, extension whitelist, and MIME type verification.
+        
+        Args:
+            file: Django UploadedFile instance from request.FILES
+            max_size: Maximum file size in bytes (e.g., 5242880 for 5MB)
+            allowed_mime_types: Iterable of allowed MIME types (e.g., ['image/jpeg', 'image/png'])
+            allowed_extensions: Iterable of allowed file extensions without dots (e.g., ['jpg', 'png', 'pdf'])
+        
+        Returns:
+            Tuple containing:
+                - bool: True if file is valid, False otherwise
+                - dict: Empty dict if valid, or dict with error details if invalid
+                       Format: {'file': error_message}
+        """
+        # 1. Presence & type validation
+        # Check if file was provided
+        if file is None:
+            return False, {'file': 'No file provided.'}
+        
+        # Verify file is a valid Django UploadedFile instance
+        if not isinstance(file, UploadedFile):
+            return False, {'file': 'Invalid file object.'}
+        
+        # 2. Size validation
+        # Ensure file is not empty
+        if file.size <= 0:
+            return False, {'file': 'Uploaded file is empty.'}
+        
+        # Enforce maximum file size limit
+        if file.size > max_size:
+            return False, {'file': f'File size exceeds {max_size} bytes.'}
+        
+        # 3. Filename safety validation
+        filename = file.name
+        
+        # Check filename exists and is within acceptable length
+        if not filename or len(filename) > 255:
+            return False, {'file': 'Invalid filename.'}
+        
+        # Prevent path traversal attacks and invalid path characters
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return False, {'file': 'Invalid filename path.'}
+        
+        # 4. Extension validation
+        # Extract file extension (lowercase, without leading dot)
+        ext = os.path.splitext(filename)[1].lower().lstrip('.')
+        
+        # Verify extension is in the allowed list
+        if ext not in allowed_extensions:
+            return False, {'file': f'Invalid file extension: .{ext}'}
+        
+        # 5. MIME type validation
+        # Get the content type from the uploaded file
+        content_type = file.content_type
+        
+        # Verify MIME type is in the allowed list
+        if content_type not in allowed_mime_types:
+            return False, {'file': f'Invalid file type: {content_type}'}
+        
+        # All validations passed
+        return True, {}
+    

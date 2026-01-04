@@ -48,6 +48,17 @@ def validate_user_phone(phone: str):
     if not GetDataMixin.validate_phone(phone):
         raise ValidationError('Phone number must be a 11 digit starting with 09.')
 
+def validate_email_address(email: str):
+    if email and not GetDataMixin.validate_email(email):
+        raise ValidationError('Email must be a valid email address.')
+    
+def validate_name(name: str):
+    if not GetDataMixin.validate_name(name):
+        raise ValidationError([
+            'Name should be English or Farsi not both.',
+            'Name should not be empty or contain special characters.',
+        ])
+
 class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = 'User'
@@ -59,8 +70,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
         
     username = models.CharField(max_length=30, unique=True, verbose_name='Username', validators=[validate_username])
-    email = models.EmailField(max_length=255, blank=True, null=True, unique=True, verbose_name='Email')
-    name = models.CharField(max_length=60, verbose_name='Name')
+    email = models.EmailField(max_length=255, blank=True, null=True, unique=True, validators=[validate_email_address], verbose_name='Email')
+    name = models.CharField(max_length=60, validators=[validate_name], verbose_name='Name')
     phone = models.CharField(max_length=11, blank=False, null=False, unique=True, validators=[validate_user_phone], verbose_name='Phone number', help_text='Example: 09123456789')
     profile_picture = ResizedImageField(upload_to=profile_directory_path, blank=True, null=True, verbose_name='Profile Picture')
     
@@ -80,6 +91,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.name
     
+def validate_national_code(national_code: str):
+    if national_code and GetDataMixin.NATIONAL_CODE_REGEX.fullmatch(national_code) is None:
+        raise ValidationError('National code must be 10 digit string.')
+    
 
 class Profile(models.Model):
     class Meta:
@@ -87,21 +102,28 @@ class Profile(models.Model):
         verbose_name_plural = 'Profiles'
     
     class RoleChoices(models.TextChoices):
-        STUDENT = 'Student', 'Student'
-        TEACHER = 'Teacher', 'Teacher'
+        STUDENT = 'student', 'Student'
+        TEACHER = 'teacher', 'Teacher'
         
     class GenderChoices(models.TextChoices):
-        MALE = 'Male', 'Male'
-        FEMALE = 'Female', 'Female'
+        MALE = 'male', 'Male'
+        FEMALE = 'female', 'Female'
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name='User')
     
     role = models.CharField(max_length=10, choices=RoleChoices.choices, default=RoleChoices.STUDENT, verbose_name='Role')
     gender = models.CharField(max_length=10, choices=GenderChoices.choices, blank=True, null=True, verbose_name='Gender')
     
-    biography = models.TextField(max_length=500, blank=True, null=True, verbose_name='Biography')
+    national_code = models.CharField(max_length=10, blank=True, null=True, validators=[validate_national_code], verbose_name='National Code')
+    
     education = models.TextField(max_length=150, blank=True, null=True, verbose_name='Education')
-    extra_info = models.TextField(max_length=300, blank=True, null=True, verbose_name='Extra Information')
+    had_other_classes = models.TextField(max_length=500, blank=True, null=True, verbose_name='Had other classes: Where')
+    memorized = models.TextField(max_length=300, blank=True, null=True, verbose_name='Memorized', help_text='How much Quran this person memorized.')
+    
+    invited_by = models.CharField(max_length=60, blank=True, null=True, verbose_name='Invited by')
+    
+    birthday = models.DateField(blank=True, null=True, verbose_name='Birthday')
+    city = models.CharField(max_length=120, blank=True, null=True, verbose_name='Province/City')
     
     telegram_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Telegram ID')
     eitaa_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Eitaa ID')
