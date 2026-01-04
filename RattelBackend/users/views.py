@@ -2,10 +2,12 @@ from typing import Tuple, Any, Dict
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin, FieldValidator
 from .models import Profile, User, UserSettings
-from .utils.user_relations import get_accessible_profile, get_user_profile, update_user_profile, update_user_settings
-from .serializers import ProfileSerializer, UserSettingsSerializer
+from .utils.user_relations import get_accessible_profile, get_user_profile, update_user_profile, update_user_settings, \
+    update_user_info
+from .serializers import ProfileSerializer, UserSettingsSerializer, BaseUserSerializer
 from rest_framework.views import APIView
 from rest_framework import status
+from django.conf import settings
 import logging
 
 
@@ -357,3 +359,88 @@ class UserSettingsView(APIView, GetDataMixin, ResponseBuilderMixin, FieldValidat
         
         # Return success response with updated settings
         return self.build_success_response(updated_settings)
+    
+    
+class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
+    throttle_scope = 'user-info'  # 100/min
+    permission_classes = (IsAuthenticated,)
+    
+    validators = {
+        'max_length': 255,
+        'sql': True,
+        'lookup': True,
+        'injection': True,
+        'redis': False
+    }
+    
+    valid_fields = ('username', 'email', 'name')
+    
+    def get_throttles(self):
+        if self.request.method == 'PATCH':
+            self.throttle_scope = 'user-info-edit'  # 15/min
+            
+        return super().get_throttles()
+    
+    def build_success_response(self, user: User, message: str = 'Successful'):
+        serializer = BaseUserSerializer(user, context={'request': self.request})
+        
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True,
+            user=serializer.data,
+            message=message
+        )
+    
+    
+    def get(self, request):
+        return self.build_success_response(user=self.request.user)
+    
+    def patch(self, request):
+        string_payload = {k: v for k, v in request.data.items() if k in self.valid_fields}
+        profile_picture = request.FILES.get('profile_picture', None)
+        
+        success, error = self.validate_string_fields(valid_fields=self.valid_fields, validators=self.validators, **string_payload)
+        
+        profile_only = not string_payload and profile_picture is not None
+        
+        if not success and not profile_only:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-1,
+                message=error
+            )
+        
+        if profile_picture:
+            file_valid, errors = self.validate_uploaded_file(
+                profile_picture,
+                max_size=2097152,  # 2MB
+                allowed_mime_types=settings.ALLOWED_MIMETYPES,
+                allowed_extensions=settings.ALLOWED_EXTENSIONS
+            )
+            
+            if not file_valid:
+                return self.build_response(
+                    status.HTTP_400_BAD_REQUEST,
+                    success=False,
+                    error=-2,
+                    message=errors
+                )
+            
+        if profile_only:
+            string_payload = {}
+            
+        success, result = update_user_info(user=request.user, profile_picture=profile_picture, context={'request': request}, **string_payload)
+        
+        if not success:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-3,
+                message=result
+            )
+        
+        updated_user = result
+        
+        return self.build_success_response(updated_user, message='Updated user successfully.')
+        
