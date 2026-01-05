@@ -141,7 +141,7 @@ def login_email(request: HttpRequest, _user) -> bool:
         email = settings.EMAIL_HANDLER(
             settings.EMAIL_PROVIDER,
             api_key=None,
-            use_celery=True,
+            use_celery=settings.EMAIL_USE_CELERY,
             email_from=settings.DEFAULT_FROM_EMAIL
         )
         
@@ -198,7 +198,7 @@ def build_login_message_html(request: HttpRequest, user):
         'login_time': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
         'ip_address': GetDataMixin.get_client_ip(request),
         'user_agent': GetDataMixin.get_client_user_agent(request),
-        'site_name': 'Rattel',
+        'site_name': settings.SITE_NAME,
     }
     
     # Render and return the HTML template

@@ -327,6 +327,7 @@ EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 EMAIL_HANDLER = EmailHandler
 EMAIL_PROVIDER = SMTPEmailProvider
+EMAIL_USE_CELERY = True
 
 # SMS Settings
 
@@ -345,3 +346,6 @@ SMS_SETTINGS = {
 
 MERCHANT = config('MERCHANT')
 GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
+
+# Site Settings
+SITE_NAME = config('SITE_NAME')
