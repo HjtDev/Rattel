@@ -16,6 +16,8 @@ from datetime import timedelta
 from cryptography.fernet import Fernet
 from notifications.handlers.sms import SMSHandler
 from notifications.providers.sms.local import LocalSMSProvider
+from notifications.handlers.email import EmailHandler
+from notifications.providers.email.smtp import SMTPEmailProvider
 import dj_database_url, os, logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -323,6 +325,9 @@ EMAIL_PORT = config('EMAIL_PORT')
 EMAIL_USE_SSL = True
 EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+EMAIL_HANDLER = EmailHandler
+EMAIL_PROVIDER = SMTPEmailProvider
+EMAIL_USE_CELERY = True
 
 # SMS Settings
 
@@ -341,3 +346,6 @@ SMS_SETTINGS = {
 
 MERCHANT = config('MERCHANT')
 GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
+
+# Site Settings
+SITE_NAME = config('SITE_NAME')

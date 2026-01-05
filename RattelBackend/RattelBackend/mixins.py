@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
+from django.http import HttpRequest
 from rest_framework import status
 from rest_framework.response import Response
 from typing import Any, AnyStr, List, Tuple, Dict, Iterable
@@ -477,6 +478,43 @@ class GetDataMixin:
         if errors:
             return False, errors
         return True, fields
+
+    @staticmethod
+    def get_client_ip(request: HttpRequest):
+        """
+        Extract request's user IP-Address from request instance
+        
+        Args:
+            request: Django request object
+            
+        Returns:
+            str: User IP
+        """
+        
+        if not hasattr(request, 'META'):
+            raise TypeError(f'Please use a valid request instance that has META.')
+        
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            return x_forwarded_for.split(',')[0].strip()
+        return request.META.get('REMOTE_ADDR')
+    
+    @staticmethod
+    def get_client_user_agent(request: HttpRequest):
+        """
+        Extract request's user agent from request instance
+        
+        Args:
+            request: Django request object
+            
+        Returns:
+            str: User agent
+        """
+        
+        if not hasattr(request, 'META'):
+            raise TypeError(f'Please use a valid request instance that has META.')
+        
+        return request.META.get('HTTP_USER_AGENT')
 
 
 class FieldValidator:
