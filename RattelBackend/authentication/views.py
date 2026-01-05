@@ -242,7 +242,7 @@ class VerifyView(APIView, GetDataMixin, ResponseBuilderMixin):
         )
     
     def login_action(self, user_data: dict):
-        logged_in, output = login(**user_data)
+        logged_in, output = login(self.request, **user_data)
         
         if not logged_in:
             logger.error(f'Failed to login user: {output}')
