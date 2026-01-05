@@ -73,3 +73,63 @@ def email_on_payment(sender, instance: Transaction, created, **kwargs):
             f'Failed to send transaction email to {instance.user.email}. Exception: {e}',
             exc_info=True
         )
+        
+
+@receiver(post_save, sender=Transaction)
+def sms_on_payment(sender, instance: Transaction, created, **kwargs):
+    if not created:
+        return
+    
+    if not instance.user.phone:
+        return
+    
+    user_settings = getattr(instance.user, 'settings', None)
+    if not user_settings or not user_settings.sms_on_payment:
+        return
+    
+    required_settings = (
+        'SMS_HANDLER',
+        'SMS_PROVIDER',
+        'SMS_SETTINGS',
+        'SITE_NAME',
+    )
+    
+    for setting in required_settings:
+        if not hasattr(settings, setting):
+            logger.warning(f'{setting} not configured')
+            return
+    
+    try:
+        sms = settings.SMS_HANDLER(
+            settings.SMS_PROVIDER,
+            **settings.SMS_SETTINGS
+        )
+    except Exception as e:
+        logger.error(f'Failed to initialize SMS handler: {e}')
+        return
+    
+    rendered_content = f"""
+    {settings.SITE_NAME} - Transaction: {instance.tracking_id}
+    Amount: {instance.amount} {instance.currency}
+    Status: {instance.transaction_status.upper()}
+    Type: {instance.transaction_type.upper()}
+    Reason: {instance.transaction_reason.upper()}
+    TrackID: {instance.tracking_id}
+    Time: {instance.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+    
+    Regards.
+    {settings.SITE_NAME}
+    """
+    
+    try:
+        sent = sms.send(
+            to=instance.user.phone,
+            message=rendered_content,
+        )
+        if not sent:
+            logger.warning(f'SMS provider returned False for {instance.user.phone}')
+    except Exception as e:
+        logger.error(
+            f'Failed to send transaction SMS to {instance.user.phone}. Exception: {e}',
+            exc_info=True
+        )
