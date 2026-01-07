@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'notifications.apps.NotificationsConfig',
     'payment.apps.PaymentConfig',
     'authentication.apps.AuthenticationConfig',
+    'siteconfig.apps.SiteconfigConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -203,7 +204,8 @@ REST_FRAMEWORK = {
         'user-settings': '50/min',
         'user-settings-edit': '15/min',
         'user-info': '100/min',
-        'user-info-edit': '15/min'
+        'user-info-edit': '15/min',
+        'main-throttle': '300/min'
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
