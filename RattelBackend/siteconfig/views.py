@@ -1,6 +1,8 @@
+from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
+from RattelBackend.cache import drf_cached_response, invalidate_cache
 from .models import Footer
 from .serializers import FooterSerializer
 from rest_framework import status
@@ -27,6 +29,15 @@ class FooterView(APIView, ResponseBuilderMixin):
     permission_classes = (AllowAny,)
     throttle_scope = 'main-throttle'
     
+    @method_decorator(
+        drf_cached_response(
+            ttl=1800,
+            cache_prefix='footer',
+            user_aware=False,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
     def get(self, request):
         """
         Retrieve the active footer configuration.

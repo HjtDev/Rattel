@@ -1,4 +1,7 @@
 from typing import Tuple, Any, Dict
+
+from django.db.models.functions import Trunc
+from django.utils.decorators import method_decorator
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin, FieldValidator
 from .models import Profile, User, UserSettings
@@ -7,6 +10,7 @@ from .utils.user_relations import get_accessible_profile, get_user_profile, upda
 from .serializers import ProfileSerializer, UserSettingsSerializer, BaseUserSerializer
 from rest_framework.views import APIView
 from rest_framework import status
+from RattelBackend.cache import drf_cached_response, invalidate_cache
 from django.conf import settings
 import logging
 
@@ -113,6 +117,15 @@ class UserProfileView(APIView, GetDataMixin, ResponseBuilderMixin, FieldValidato
             profile=serializer.data
         )
     
+    @method_decorator(
+        drf_cached_response(
+            ttl=600,
+            cache_prefix='UserProfile',
+            user_aware=True,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
     def get(self, request):
         """
         Access a profile instance
@@ -221,6 +234,9 @@ class UserProfileView(APIView, GetDataMixin, ResponseBuilderMixin, FieldValidato
         # Mapping result to updated_profile on success
         updated_profile = result
         
+        # Invalidate Profile cache
+        invalidate_cache(cache_prefix='UserProfile', request=request)
+        
         # Builds and return a success response for the updated profile
         return self.build_success_response(updated_profile, message='Updated profile successfully.')
 
@@ -281,6 +297,15 @@ class UserSettingsView(APIView, GetDataMixin, ResponseBuilderMixin, FieldValidat
             message=message
         )
     
+    @method_decorator(
+        drf_cached_response(
+            ttl=600,
+            cache_prefix='UserSettings',
+            user_aware=True,
+            response_codes=[200],
+            cache_headers=False
+        )
+    )
     def get(self, request):
         """
         Retrieve the authenticated user's settings.
@@ -357,6 +382,9 @@ class UserSettingsView(APIView, GetDataMixin, ResponseBuilderMixin, FieldValidat
         # Map result to updated_settings on success
         updated_settings = result
         
+        # Invalidating user cache
+        invalidate_cache(cache_prefix='UserSettings', request=request)
+        
         # Return success response with updated settings
         return self.build_success_response(updated_settings)
 
@@ -426,7 +454,15 @@ class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
             message=message
         )
     
-    
+    @method_decorator(
+        drf_cached_response(
+            ttl=600,
+            cache_prefix='UserInfo',
+            user_aware=True,
+            response_codes=[200],
+            cache_headers=False
+        )
+    )
     def get(self, request):
         """
         Retrieve the authenticated user's information.
@@ -530,6 +566,9 @@ class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
         
         # Map result to updated_user on success
         updated_user = result
+        
+        # Invalidating user cache
+        invalidate_cache(cache_prefix='UserInfo', request=request)
         
         # Return success response with updated user data
         return self.build_success_response(updated_user, message='Updated user successfully.')
