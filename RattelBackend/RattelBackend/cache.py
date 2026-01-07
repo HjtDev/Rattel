@@ -91,6 +91,39 @@ def _generate_cache_prefix(view):
     return view.__name__
 
 
+def _get_user_identifier(request):
+    """
+    Gets consistent user identifier for cache key tracking.
+    
+    Args:
+        request: DRF request object
+        
+    Returns:
+        User ID (int) or metadata dict for anonymous users
+    """
+    return (
+        request.user.id if request.user.is_authenticated
+        else _extract_user_metadata(request)
+    )
+
+
+def _get_user_cache_tracking_key(user_identifier, cache_prefix):
+    """
+    Generates Redis key for tracking user's cache keys.
+    
+    Args:
+        user_identifier: User ID or metadata dict
+        cache_prefix: Cache prefix for the view
+        
+    Returns:
+        str: Redis key for tracking (e.g., "user_cache_tracking:123:footer")
+    """
+    user_hash = hashlib.sha256(
+        convert_payload_to_string(user_identifier, sort_keys=True, default=str).encode()
+    ).hexdigest()
+    return f'user_cache_tracking:{user_hash}:{cache_prefix}'
+
+
 def drf_cached_response(
         ttl: int,
         cache_prefix: str = None,
@@ -117,7 +150,11 @@ def drf_cached_response(
             return Response(data)
             
     Cache Invalidation:
-        cache.delete_pattern('footer_drf_cache_*')
+        # Invalidate all users
+        invalidate_cache('footer')
+        
+        # Invalidate specific user only
+        invalidate_cache('footer', request=request)
     """
     # Auto-generate prefix if not provided
     def decorator(view):
@@ -151,11 +188,10 @@ def drf_cached_response(
             }
             
             # Include user identification in cache key
+            user_identifier = None
             if user_aware:
-                payload['user'] = (
-                    request.user.id if request.user.is_authenticated
-                    else _extract_user_metadata(request)
-                )
+                user_identifier = _get_user_identifier(request)
+                payload['user'] = user_identifier
             
             # Optionally include specific headers in cache key
             if cache_headers:
@@ -176,7 +212,7 @@ def drf_cached_response(
             
             if cached_response is not None:
                 # Cache hit - log and return cached data
-                logger.debug(
+                logger.info(
                     f'Cache HIT: {cache_key[:50]}... for {view.__qualname__}',
                     extra={'cache_key': cache_key, 'view': view.__qualname__}
                 )
@@ -190,7 +226,7 @@ def drf_cached_response(
                 return Response(data=cached_data, status=cached_response['status'])
             
             # Cache miss - execute view
-            logger.debug(
+            logger.info(
                 f'Cache MISS: {cache_key[:50]}... for {view.__qualname__}',
                 extra={'cache_key': cache_key, 'view': view.__qualname__}
             )
@@ -199,7 +235,7 @@ def drf_cached_response(
             
             # Only cache if response status code is in allowed list
             if response.status_code not in res_codes:
-                logger.debug(
+                logger.info(
                     f'Skipped caching: status {response.status_code} not in {res_codes}'
                 )
                 return response
@@ -221,40 +257,101 @@ def drf_cached_response(
             
             # Store in cache
             cache.set(cache_key, response_data, timeout=ttl)
-            logger.debug(f'Cached response for {cache_key[:50]}... (TTL: {ttl}s)')
+            logger.info(f'Cached response for {cache_key[:50]}... (TTL: {ttl}s)')
             
-            return response
+            # Track cache key for user-specific invalidation
+            if user_aware and user_identifier is not None:
+                tracking_key = _get_user_cache_tracking_key(user_identifier, cache_prefix)
+                
+                # Get existing tracked keys for this user+prefix
+                tracked_keys = cache.get(tracking_key, set())
+                if not isinstance(tracked_keys, set):
+                    tracked_keys = set()
+                
+                # Add new cache key to tracking
+                tracked_keys.add(cache_key)
+                
+                # Store with same TTL as actual cache
+                cache.set(tracking_key, tracked_keys, timeout=ttl)
+                
+                logger.info(
+                    f'Tracking cache key for user invalidation: {tracking_key}'
+                )
+            
+            return Response(data=data, status=response.status_code)
         return wrapper
     return decorator
 
 
-# Convenience function for manual cache invalidation
-def invalidate_cache(cache_prefix: str) -> int:
+def invalidate_cache(cache_prefix: str, request=None) -> int:
     """
-    Invalidates all cache entries for a given prefix.
+    Invalidates cache entries for a given prefix.
     
     Args:
         cache_prefix: The prefix used in @drf_cached_response
+        request: Optional DRF request object for user-specific invalidation
         
     Returns:
         int: Number of keys deleted
         
     Usage:
+        # Invalidate all users' cache for this prefix
         invalidate_cache('footer')
         
-    Note: Requires Redis backend with delete_pattern support
+        # Invalidate only specific user's cache
+        invalidate_cache('footer', request=request)
+        
+    Note:
+        - Global invalidation requires Redis backend with delete_pattern support
+        - User-specific invalidation works with any cache backend
     """
-    pattern = f'{cache_prefix}_drf_cache_*'
     
     try:
-        # Redis-specific pattern deletion
-        deleted = cache.delete_pattern(pattern)
-        logger.info(f'Invalidated {deleted} cache keys with pattern: {pattern}')
+        if request is None:
+            # Global invalidation - all users
+            pattern = f'{cache_prefix}_drf_cache_*'
+            deleted = cache.delete_pattern(pattern)
+            
+            # Also clean up tracking keys
+            tracking_pattern = f'user_cache_tracking:*:{cache_prefix}'
+            cache.delete_pattern(tracking_pattern)
+            
+            logger.info(
+                f'Invalidated {deleted} cache keys globally for prefix: {cache_prefix}'
+            )
+        else:
+            # User-specific invalidation
+            user_identifier = _get_user_identifier(request)
+            tracking_key = _get_user_cache_tracking_key(user_identifier, cache_prefix)
+            
+            # Get tracked cache keys for this user
+            tracked_keys = cache.get(tracking_key, set())
+            
+            if not tracked_keys:
+                logger.info(
+                    f'No cached keys found for user in prefix: {cache_prefix}'
+                )
+                return 0
+            
+            # Delete all cache keys for this user+prefix
+            deleted = 0
+            for cache_key in tracked_keys:
+                if cache.delete(cache_key):
+                    deleted += 1
+            
+            # Clean up tracking key itself
+            cache.delete(tracking_key)
+            
+            logger.info(
+                f'Invalidated {deleted} cache keys for user in prefix: {cache_prefix}'
+            )
+        
         return deleted
+    
     except AttributeError:
-        # Fallback for non-Redis backends
+        # Fallback for non-Redis backends (only for global invalidation)
         logger.warning(
             'Cache backend does not support delete_pattern. '
-            'Manual invalidation required or use djagno-redis.'
+            'Use django-redis for global invalidation or provide request for user-specific.'
         )
         return 0
