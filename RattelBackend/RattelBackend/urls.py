@@ -24,7 +24,8 @@ urlpatterns = [
     path('health/', include('health_check.urls')),
     path('api/v1/users/', include('users.urls')),
     path('api/v1/payment/', include('payment.urls', namespace='payment')),
-    path('api/v1/auth/', include('authentication.urls', namespace='authentication'))
+    path('api/v1/auth/', include('authentication.urls', namespace='authentication')),
+    path('api/v1/site/', include('siteconfig.urls', namespace='siteconfig'))
 ]
 
 if settings.DEBUG:

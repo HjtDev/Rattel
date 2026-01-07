@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'notifications.apps.NotificationsConfig',
     'payment.apps.PaymentConfig',
     'authentication.apps.AuthenticationConfig',
+    'siteconfig.apps.SiteconfigConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
