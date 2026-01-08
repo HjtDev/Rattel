@@ -139,3 +139,98 @@ class Footer(models.Model):
             }
         )
         return footer
+    
+    
+class BaseNavbarItem(models.Model):
+    """Base Navbar item - Abstract"""
+    class Meta:
+        abstract = True
+    
+    navbar = models.ForeignKey('siteconfig.SiteNavbar', on_delete=models.CASCADE, related_name='+', verbose_name='Navbar')
+    
+    link = models.ForeignKey(Link, related_name='+', on_delete=models.CASCADE, verbose_name='Link')
+    label = models.CharField(max_length=100, verbose_name='Display Label', blank=True, null=True,
+                             help_text='How this link appears in this column. Leave blank if you want to use link.name instead.')
+    
+    order = models.PositiveSmallIntegerField(default=0, verbose_name='Order',
+                                        help_text='Lower numbers appear first')
+    
+    
+class SiteNavbarTitleOnlyItems(BaseNavbarItem):
+    """Site navbar mega-menu col-1"""
+    class Meta:
+        verbose_name = 'Site Navbar Items'
+        verbose_name_plural = 'Site Navbar Items'
+        ordering = ('order',)
+    
+    def __str__(self):
+        return f'Title Only: {self.label or self.link.name}'
+    
+class SiteNavbarDescribedItems(BaseNavbarItem):
+    """Site navbar mega-menu col-2"""
+    class Meta:
+        verbose_name = 'Site Navbar Described'
+        verbose_name_plural = 'Site Navbar Described'
+        ordering = ('order',)
+        
+    description = models.CharField(max_length=150, verbose_name='Description')
+    
+    def __str__(self):
+        return f'Described: {self.label or self.link.name} - {self.description}'
+    
+    
+class SiteNavbarImageItems(BaseNavbarItem):
+    """Site navbar mega-menu col-3"""
+    class Meta:
+        verbose_name = 'Site Navbar Image Items'
+        verbose_name_plural = 'Site Navbar Image Items'
+        ordering = ('order',)
+        
+    description = models.CharField(max_length=150, verbose_name='Description')
+    icon = ResizedImageField(upload_to='navbar_images/Col3/', size=[40, 40], crop=['middle', 'center'], quality=100, verbose_name='Icon', help_text='40 * 40 pixels')
+    
+    def __str__(self):
+        return f'Image Items: {self.label or self.link.name} - {self.icon.name or 'no-icon'}'
+    
+    
+class SiteNavbar(models.Model):
+    """Singleton site navbar configuration"""
+    class Meta:
+        verbose_name = 'Site Navbar'
+        verbose_name_plural = 'Site Navbar'
+        
+    col1_title = models.CharField(max_length=100, verbose_name='Col 1 Title')
+    col2_title = models.CharField(max_length=100, verbose_name='Col 2 Title')
+    col3_title = models.CharField(max_length=100, verbose_name='Col 3 Title')
+    
+    banner_title = models.CharField(max_length=100, verbose_name='Banner Col Title')
+    banner_link = models.URLField(verbose_name='Banner URL')
+    banner_img = ResizedImageField(upload_to='navbar_images/Col4/', size=[367, 320], crop=['middle', 'center'], quality=100, verbose_name='Banner Image', help_text='367 * 320 pixels')
+    
+    notification = models.CharField(max_length=255, blank=True, null=True, verbose_name='Notification message', help_text='Shown under the mega-menu')
+    
+    def __str__(self):
+        return 'Site Navbar'
+    
+    def save(self, *args, **kwargs):
+        """Enforce singleton pattern"""
+        if not self.pk and SiteNavbar.objects.exists():
+            raise ValidationError('Only one Site Navbar instance can exist. Edit the existing one.')
+        return super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        """Prevent deletion of singleton"""
+        raise ValidationError('Site Navbar cannot be deleted. You can only edit it.')
+    
+    @classmethod
+    def get_instance(cls):
+        """Get or create the singleton Site Navbar instance"""
+        navbar, created = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                'col1_title': 'Col 1 Title',
+                'col2_title': 'Col 2 Title',
+                'col3_title': 'Col 3 Title',
+            }
+        )
+        return navbar
