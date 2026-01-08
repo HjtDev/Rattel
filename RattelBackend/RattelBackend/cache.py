@@ -116,7 +116,7 @@ def _get_user_cache_tracking_key(user_identifier, cache_prefix):
         cache_prefix: Cache prefix for the view
         
     Returns:
-        str: Redis key for tracking (e.g., "user_cache_tracking:123:footer")
+        str: Redis key for tracking (e.g., "user_cache_tracking:123:prefix")
     """
     user_hash = hashlib.sha256(
         convert_payload_to_string(user_identifier, sort_keys=True, default=str).encode()
@@ -145,16 +145,16 @@ def drf_cached_response(
         Decorated view function
         
     Usage:
-        @drf_cached_response(ttl=3600, cache_prefix='footer')
+        @drf_cached_response(ttl=3600, cache_prefix='prefix')
         def list(self, request):
             return Response(data)
             
     Cache Invalidation:
         # Invalidate all users
-        invalidate_cache('footer')
+        invalidate_cache('prefix')
         
         # Invalidate specific user only
-        invalidate_cache('footer', request=request)
+        invalidate_cache('prefix', request=request)
     """
     # Auto-generate prefix if not provided
     def decorator(view):
@@ -296,10 +296,10 @@ def invalidate_cache(cache_prefix: str, request=None) -> int:
         
     Usage:
         # Invalidate all users' cache for this prefix
-        invalidate_cache('footer')
+        invalidate_cache('prefix')
         
         # Invalidate only specific user's cache
-        invalidate_cache('footer', request=request)
+        invalidate_cache('prefix', request=request)
         
     Note:
         - Global invalidation requires Redis backend with delete_pattern support

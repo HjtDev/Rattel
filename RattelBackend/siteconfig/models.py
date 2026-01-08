@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django_resized import ResizedImageField
+from RattelBackend.cache import invalidate_cache
 
 
 class Link(models.Model):
@@ -122,6 +123,10 @@ class Footer(models.Model):
         """Enforce singleton pattern"""
         if not self.pk and Footer.objects.exists():
             raise ValidationError('Only one Footer instance can exist. Edit the existing one.')
+        
+        # Invalidate footer cache for everyone
+        invalidate_cache('footer')
+        
         return super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
@@ -216,6 +221,10 @@ class SiteNavbar(models.Model):
         """Enforce singleton pattern"""
         if not self.pk and SiteNavbar.objects.exists():
             raise ValidationError('Only one Site Navbar instance can exist. Edit the existing one.')
+        
+        # Invalidate footer cache for everyone
+        invalidate_cache('navbar')
+        
         return super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
