@@ -7,7 +7,11 @@ from .models import (
     FooterColumnLink,
     SocialMediaLink,
     FooterSocialMedia,
-    Footer
+    Footer,
+    SiteNavbarTitleOnlyItems,
+    SiteNavbarDescribedItems,
+    SiteNavbarImageItems,
+    SiteNavbar
 )
 
 
@@ -145,4 +149,85 @@ class FooterAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context['title'] = 'Configure Footer'
         extra_context['subtitle'] = 'Manage footer branding, columns, and social media'
+        return super().change_view(request, object_id, form_url, extra_context)
+
+
+class SiteNavbarTitleOnlyItemsInline(admin.StackedInline):
+    """Inline for managing title only items within navbar"""
+    model = SiteNavbarTitleOnlyItems
+    extra = 1
+    fields = ['label', 'link', 'order']
+    ordering = ['order']
+    autocomplete_fields = ['link']
+    verbose_name = 'Title Only Item'
+    verbose_name_plural = 'Title Only Items'
+
+class SiteNavbarDescribedItemsInline(admin.StackedInline):
+    """Inline for managing title only items within navbar"""
+    model = SiteNavbarDescribedItems
+    extra = 1
+    fields = ['label', 'link', 'description', 'order']
+    ordering = ['order']
+    autocomplete_fields = ['link']
+    verbose_name = 'Described Item'
+    verbose_name_plural = 'Described Items'
+
+class SiteNavbarImageItemsInline(admin.StackedInline):
+    """Inline for managing title only items within navbar"""
+    model = SiteNavbarImageItems
+    extra = 1
+    fields = ['label', 'link', 'description', 'icon', 'order']
+    ordering = ['order']
+    autocomplete_fields = ['link']
+    verbose_name = 'Image Item'
+    verbose_name_plural = 'Image Items'
+
+
+@admin.register(SiteNavbar)
+class SiteNavbarAdmin(admin.ModelAdmin):
+    """
+    Site Navbar configuration - Singleton pattern
+    Manage everything from here or use dedicated pages
+    """
+    
+    inlines = [SiteNavbarTitleOnlyItemsInline, SiteNavbarDescribedItemsInline, SiteNavbarImageItemsInline]
+    
+    fieldsets = [
+        ('Titles', {
+            'fields': ['col1_title', 'col2_title', 'col3_title'],
+            'description': 'Title of each column in mega-menu',
+            'classes': ['wide']
+        }),
+        ('Banner', {
+            'fields': ['banner_title', 'banner_link', 'banner_img'],
+            'description': 'Banner info/image in mega-menu',
+            'classes': ['wide']
+        }),
+        ('Notification', {
+            'fields': ['notification'],
+            'description': 'Notification message in mega-menu',
+            'classes': ['wide']
+        })
+    ]
+    
+    def has_add_permission(self, request):
+        """Only allow one SiteNavbar instance"""
+        return not SiteNavbar.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        """Prevent deletion of singleton site navbar"""
+        return False
+    
+    def changelist_view(self, request, extra_context=None):
+        """Auto-redirect to edit page if footer exists"""
+        if SiteNavbar.objects.exists():
+            navbar = SiteNavbar.objects.first()
+            return redirect(reverse('admin:siteconfig_sitenavbar_change', args=[navbar.pk]))
+        return super().changelist_view(request, extra_context)
+    
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        """Add helpful context to the change view"""
+        extra_context = extra_context or {}
+        extra_context['title'] = 'Configure SiteNavbar'
+        extra_context['subtitle'] = 'Manage Navbar items, banner and notification'
         return super().change_view(request, object_id, form_url, extra_context)
