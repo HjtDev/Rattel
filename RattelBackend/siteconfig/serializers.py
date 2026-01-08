@@ -1,5 +1,8 @@
+from rest_framework.fields import SerializerMethodField
+from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
-from .models import Footer, FooterLinkColumn, FooterColumnLink, FooterSocialMedia, SocialMediaLink, Link
+from .models import Footer, FooterLinkColumn, FooterColumnLink, FooterSocialMedia, SocialMediaLink, Link, SiteNavbar, \
+    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems
 import logging
 
 
@@ -125,4 +128,143 @@ class FooterSerializer(ModelSerializer):
             logger.warning(f'Falling back to static URL. request context was not passed. {self.__class__.__name__}.logo')
             return obj.logo.url
         
-        return request.get_absolute_uri(obj.logo.url)
+        return request.build_absolute_uri(obj.logo.url)
+
+
+class BaseNavbarItemSerializer(ModelSerializer):
+    """
+    Base serializer for all navbar items.
+    
+    Serializes common fields for navbar items including:
+        - `link`: Nested link details using `LinkSerializer`
+        - `label`: Display text of the navbar item
+        - `order`: Display order for sorting in the navbar
+    
+    Used as a base class for more specialized navbar item serializers.
+    """
+    link = LinkSerializer()
+    
+    class Meta:
+        model = BaseNavbarItem
+        fields = ['link', 'label', 'order']
+
+
+class SiteNavbarTitleOnlyItemsSerializer(BaseNavbarItemSerializer):
+    """
+    Serializer for navbar items that only include a title.
+    
+    Inherits all fields from `BaseNavbarItemSerializer`.
+    Maps to `SiteNavbarTitleOnlyItems` model.
+    """
+    class Meta:
+        model = SiteNavbarTitleOnlyItems
+        fields = BaseNavbarItemSerializer.Meta.fields
+
+
+class SiteNavbarDescribedItemsSerializer(BaseNavbarItemSerializer):
+    """
+    Serializer for navbar items with a title and description.
+    
+    Inherits fields from `BaseNavbarItemSerializer` and adds:
+        - `description`: Text description for the item
+    
+    Maps to `SiteNavbarDescribedItems` model.
+    """
+    class Meta:
+        model = SiteNavbarDescribedItems
+        fields = BaseNavbarItemSerializer.Meta.fields + ['description']
+
+
+class SiteNavbarImageItemsSerializer(BaseNavbarItemSerializer):
+    """
+    Serializer for navbar items that include an image/icon.
+    
+    Inherits fields from `BaseNavbarItemSerializer` and adds:
+        - `description`: Text description
+        - `icon`: Image/icon URL for the navbar item, full URL built with request context if available
+    """
+    icon = SerializerMethodField()
+    
+    class Meta:
+        model = SiteNavbarImageItems
+        fields = BaseNavbarItemSerializer.Meta.fields + ['description', 'icon']
+    
+    def get_icon(self, obj: SiteNavbarImageItems):
+        """
+        Build the full URL for the item's icon.
+        
+        Args:
+            obj: SiteNavbarImageItems model instance
+            
+        Returns:
+            Full URL of the icon if request context exists; otherwise returns relative URL.
+        """
+        request = self.context.get('request', None)
+        if request is None:
+            return obj.icon.url
+        return request.build_absolute_uri(obj.icon.url)
+
+
+class SiteNavbarSerializer(ModelSerializer):
+    """
+    Serializer for the complete site navbar structure.
+    
+    Includes three columns of navbar items (col1, col2, col3) and an optional banner.
+    Each column is populated using specialized item serializers:
+        - col1: Title-only items
+        - col2: Described items
+        - col3: Image items
+    """
+    col1 = SerializerMethodField()
+    col2 = SerializerMethodField()
+    col3 = SerializerMethodField()
+    banner = SerializerMethodField()
+    
+    class Meta:
+        model = SiteNavbar
+        fields = ('col1', 'col2', 'col3', 'banner', 'notification')
+    
+    def get_col1(self, obj: SiteNavbar):
+        """
+        Retrieve title-only navbar items for column 1, ordered by `order`.
+        """
+        items = SiteNavbarTitleOnlyItems.objects.filter(navbar=obj).order_by('order')
+        return SiteNavbarTitleOnlyItemsSerializer(items, many=True).data
+    
+    def get_col2(self, obj: SiteNavbar):
+        """
+        Retrieve described navbar items for column 2, ordered by `order`.
+        """
+        items = SiteNavbarDescribedItems.objects.filter(navbar=obj).order_by('order')
+        return SiteNavbarDescribedItemsSerializer(items, many=True).data
+    
+    def get_col3(self, obj: SiteNavbar):
+        """
+        Retrieve image navbar items for column 3, ordered by `order`.
+        """
+        items = SiteNavbarImageItems.objects.filter(navbar=obj).order_by('order')
+        return SiteNavbarImageItemsSerializer(items, context=self.context, many=True).data
+    
+    def get_banner(self, obj: SiteNavbar):
+        """
+        Build the banner object for the navbar.
+        
+        Returns:
+            Dictionary containing:
+                - image: Full URL of the banner image (or None if not set)
+                - title: Banner title string
+                - link: Banner link URL
+        """
+        banner_image = obj.banner_img.url if obj.banner_img else None
+        banner_title = obj.banner_title
+        banner_link = obj.banner_link
+        
+        request = self.context.get('request', None)
+        if request is not None and banner_image:
+            banner_image = request.build_absolute_uri(banner_image)
+        
+        return {
+            'image': banner_image,
+            'title': banner_title,
+            'link': banner_link,
+        }
