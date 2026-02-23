@@ -1,8 +1,7 @@
 from rest_framework.fields import SerializerMethodField
-from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
 from .models import Footer, FooterLinkColumn, FooterColumnLink, FooterSocialMedia, SocialMediaLink, Link, SiteNavbar, \
-    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems
+    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems, MainPage
 import logging
 
 

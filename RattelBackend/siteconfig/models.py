@@ -293,7 +293,7 @@ class MainPage(models.Model):
                 'name': self.landing_link.name,
                 'url': self.landing_link.url,
             } if self.landing_link else None,  # Serialize link if a link is added
-            'landing_video': self.landing_video and self.landing_video.url,  # Grab URL if available
+            'landing_video': self.landing_video.name and self.landing_video.url,  # Grab URL if available
             'landing_image': self.landing_image.url,
             'landing_message_title': self.landing_message_title,
             'landing_message_description': self.landing_message_description,
@@ -386,19 +386,19 @@ class MainPage(models.Model):
             'ux_description': self.ux_description,
             'top_users': self.ux_top_users_enable and {  # Returns top users list if ux_top_users_enable == True
                 'ux_top_users_title': self.ux_top_users_title,
-                'ux_top_users': [{'name': user.name, 'profile_picture': user.profile_picture and user.profile_picture.url} for user in self.ux_top_users.all()]
+                'ux_top_users': [{'name': user.name, 'profile_picture': user.profile_picture.name and user.profile_picture.url} for user in self.ux_top_users.all()]
             },
             'ux_comment1_text': self.ux_comment1_text,
             'ux_comment1_user': {
                 'name': self.ux_comment1_user.name,
-                'profile_picture': self.ux_comment1_user.profile_picture and self.ux_comment1_user.profile_picture.url,  # Checks if the profile exists
-            },
+                'profile_picture': self.ux_comment1_user.profile_picture.name and self.ux_comment1_user.profile_picture.url,  # Checks if the profile exists
+            } if self.ux_comment1_user else None,
             'ux_comment1_rate': self.ux_comment1_rate,
             'ux_comment2_text': self.ux_comment2_text,
             'ux_comment2_user': {
                 'name': self.ux_comment2_user.name,
-                'profile_picture': self.ux_comment2_user.profile_picture and self.ux_comment2_user.profile_picture.url,  # Checks if the profile exists
-            },
+                'profile_picture': self.ux_comment2_user.profile_picture.name and self.ux_comment2_user.profile_picture.url,  # Checks if the profile exists
+            } if self.ux_comment2_user else None,
             'ux_comment2_rate': self.ux_comment2_rate,
         }
 
@@ -425,28 +425,32 @@ class MainPage(models.Model):
         """Get or create the singleton MainPage instance"""
         mainpage, created = cls.objects.get_or_create(
             pk=1,
-            landing_title='Landing Title',
-            landing_brushed_title='Landing Brushed Title',
-            landing_description='Landing Description',
-            landing_image=generate_random_image(386, 603, 'landing_contents/image'),
-            landing_message_title='Landing Message Title',
-            landing_message_description='Landing Message Description',
-            stat1_title='Stat1 Title',
-            stat1_description='Stat1 Description',
-            stat2_title='Stat2 Title',
-            stat2_description='Stat2 Description',
-            stat3_title='Stat3 Title',
-            stat3_description='Stat3 Description',
-            courses_title='Courses Title',
-            courses_description='Courses Description',
-            ad_title='Ads Title',
-            ad_description='Ads Description',
-            course_suggestions_title='Course Suggestions Title',
-            course_suggestions_description='Course Suggestions Description',
-            ux_title='UX Title',
-            ux_description='UX Description',
-            ux_top_users_title='UX Top Users Title',
-            ux_comment1_text='UX Comment #1 Text',
-            ux_comment2_text='UX Comment #2 Text'
+            defaults={
+                'landing_title': 'Landing Title',
+                'landing_brushed_title': 'Landing Brushed Title',
+                'landing_description': 'Landing Description',
+                'landing_image': generate_random_image(386, 603, 'landing_contents/image'),
+                'landing_message_title': 'Landing Message Title',
+                'landing_message_description': 'Landing Message Description',
+                'stat1_title': 'Stat1 Title',
+                'stat1_description': 'Stat1 Description',
+                'stat2_title': 'Stat2 Title',
+                'stat2_description': 'Stat2 Description',
+                'stat3_title': 'Stat3 Title',
+                'stat3_description': 'Stat3 Description',
+                'stat4_title': 'Stat4 Title',
+                'stat4_description': 'Stat4 Description',
+                'courses_title': 'Courses Title',
+                'courses_description': 'Courses Description',
+                'ad_title': 'Ads Title',
+                'ad_description': 'Ads Description',
+                'course_suggestions_title': 'Course Suggestions Title',
+                'course_suggestions_description': 'Course Suggestions Description',
+                'ux_title': 'UX Title',
+                'ux_description': 'UX Description',
+                'ux_top_users_title': 'UX Top Users Title',
+                'ux_comment1_text': 'UX Comment #1 Text',
+                'ux_comment2_text': 'UX Comment #2 Text'
+            }
         )
         return mainpage
