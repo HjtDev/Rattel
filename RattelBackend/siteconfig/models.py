@@ -6,6 +6,7 @@ from RattelBackend.cache import invalidate_cache
 from users.models import User
 import mimetypes
 
+from utilities.image import generate_random_image
 
 
 class Link(models.Model):
@@ -408,21 +409,44 @@ class MainPage(models.Model):
     def save(self, *args, **kwargs):
         """Enforce singleton pattern"""
         if not self.pk and MainPage.objects.exists():
-            raise ValidationError('Only one Landing instance can exist. Edit the existing one.')
+            raise ValidationError('Only one MainPage instance can exist. Edit the existing one.')
 
-        # Invalidate Landing cache for everyone
-        invalidate_cache('landing')
+        # Invalidate MainPage cache for everyone
+        invalidate_cache('mainpage')
 
         return super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         """Prevent deletion of singleton"""
-        raise ValidationError('Landing cannot be deleted. You can only edit it.')
+        raise ValidationError('MainPage cannot be deleted. You can only edit it.')
 
     @classmethod
     def get_instance(cls) -> MainPage:
-        """Get or create the singleton Landing instance"""
-        landing, created = cls.objects.get_or_create(
-            pk=1
+        """Get or create the singleton MainPage instance"""
+        mainpage, created = cls.objects.get_or_create(
+            pk=1,
+            landing_title='Landing Title',
+            landing_brushed_title='Landing Brushed Title',
+            landing_description='Landing Description',
+            landing_image=generate_random_image(386, 603, 'landing_contents/image'),
+            landing_message_title='Landing Message Title',
+            landing_message_description='Landing Message Description',
+            stat1_title='Stat1 Title',
+            stat1_description='Stat1 Description',
+            stat2_title='Stat2 Title',
+            stat2_description='Stat2 Description',
+            stat3_title='Stat3 Title',
+            stat3_description='Stat3 Description',
+            courses_title='Courses Title',
+            courses_description='Courses Description',
+            ad_title='Ads Title',
+            ad_description='Ads Description',
+            course_suggestions_title='Course Suggestions Title',
+            course_suggestions_description='Course Suggestions Description',
+            ux_title='UX Title',
+            ux_description='UX Description',
+            ux_top_users_title='UX Top Users Title',
+            ux_comment1_text='UX Comment #1 Text',
+            ux_comment2_text='UX Comment #2 Text'
         )
-        return landing
+        return mainpage
