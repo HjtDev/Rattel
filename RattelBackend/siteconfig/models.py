@@ -1,7 +1,11 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.core.exceptions import ValidationError
 from django_resized import ResizedImageField
 from RattelBackend.cache import invalidate_cache
+from users.models import User
+import mimetypes
+
 
 
 class Link(models.Model):
@@ -243,3 +247,182 @@ class SiteNavbar(models.Model):
             }
         )
         return navbar
+
+
+def video_validator(file):
+    """Video file validator"""
+    if file is None:
+        return
+
+    mime_type, _ = mimetypes.guess_type(file.name)
+
+    # Unknow file format
+    if not mime_type:
+        raise ValidationError('Could not guess the file type')
+
+    # Not a video
+    if not mime_type.startswith('video'):
+        raise ValidationError('Only video files are allowed.')
+
+class MainPage(models.Model):
+    """Main Page Content"""
+    class Meta:
+        verbose_name = 'Main Page'
+        verbose_name_plural = 'Main Page'
+
+    # Landing
+    landing_title = models.CharField(max_length=100, verbose_name='Main Title')
+    landing_brushed_title = models.CharField(max_length=100, verbose_name='Brushed Title')
+    landing_description = models.TextField(max_length=600, verbose_name='Description')
+
+    landing_link = models.ForeignKey(Link, on_delete=models.SET_NULL, related_name='is_landing_link', blank=True, null=True, verbose_name='Quick Start Link')
+    landing_video = models.FileField(upload_to='landing_contents/video', blank=True, null=True, validators=[video_validator], verbose_name='Video Intro')
+
+    landing_image = ResizedImageField(upload_to='landing_contents/image', size=[386, 603], quality=100, crop=['middle', 'center'], verbose_name='Landing Image')
+    landing_message_title = models.CharField(max_length=60, verbose_name='Message Title')
+    landing_message_description = models.CharField(max_length=80, verbose_name='Message Description')
+
+    @property
+    def landing(self):  # Get all landing data with one property
+        return {
+            'landing_title': self.landing_title,
+            'landing_brushed_title': self.landing_brushed_title,
+            'landing_description': self.landing_description,
+            'landing_link': {
+                'name': self.landing_link.name,
+                'url': self.landing_link.url,
+            } if self.landing_link else None,  # Serialize link if a link is added
+            'landing_video': self.landing_video and self.landing_video.url,  # Grab URL if available
+            'landing_image': self.landing_image.url,
+            'landing_message_title': self.landing_message_title,
+            'landing_message_description': self.landing_message_description,
+        }
+
+    # Stats
+    stat1_title = models.CharField(max_length=80, verbose_name='Stat #1 Title')
+    stat1_description = models.CharField(max_length=80, verbose_name='Stat #1 Description')
+
+    stat2_title = models.CharField(max_length=80, verbose_name='Stat #2 Title')
+    stat2_description = models.CharField(max_length=80, verbose_name='Stat #2 Description')
+
+    stat3_title = models.CharField(max_length=80, verbose_name='Stat #3 Title')
+    stat3_description = models.CharField(max_length=80, verbose_name='Stat #3 Description')
+
+    stat4_title = models.CharField(max_length=80, verbose_name='Stat #4 Title')
+    stat4_description = models.CharField(max_length=80, verbose_name='Stat #4 Description')
+
+    @property
+    def stats(self):  # Access all the statistics of the site with one property
+        return {
+            'stat1_title': self.stat1_title,
+            'stat1_description': self.stat1_description,
+            'stat2_title': self.stat2_title,
+            'stat2_description': self.stat2_description,
+            'stat3_title': self.stat3_title,
+            'stat3_description': self.stat3_description,
+            'stat4_title': self.stat4_title,
+            'stat4_description': self.stat4_description,
+        }
+
+    # Courses
+    courses_title = models.CharField(max_length=100, verbose_name='Courses Section Title')
+    courses_description = models.TextField(max_length=200, verbose_name='Courses Section Description')
+
+    @property
+    def courses(self):  # Access Courses section content with one property
+        return {
+            'courses_title': self.courses_title,
+            'courses_description': self.courses_description,
+        }
+
+    # Advertisement
+    ad_title = models.CharField(max_length=100, verbose_name='Advertisement Title')
+    ad_description = models.TextField(max_length=300, verbose_name='Advertisement Description')
+    ad_link = models.ForeignKey(Link, on_delete=models.SET_NULL, related_name='is_ad_link', blank=True, null=True, verbose_name='Advertisement Link')
+
+    @property
+    def advertisement(self):  # Access Advertisement content with one property
+        return {
+            'ad_title': self.ad_title,
+            'ad_description': self.ad_description,
+            'ad_link': {
+                'name': self.ad_link.name,
+                'url': self.ad_link.url,
+            } if self.ad_link else None,
+        }
+
+    # Course Suggestions
+    course_suggestions_title = models.CharField(max_length=100, verbose_name='Course Suggestion Title')
+    course_suggestions_description = models.TextField(max_length=200, verbose_name='Course Suggestion Description')
+
+    @property
+    def course_suggestions(self):  # Access Courses section content with one property
+        return {
+            'course_suggestions_title': self.course_suggestions_title,
+            'course_suggestions_description': self.course_suggestions_description,
+        }
+
+    # User Experience
+    ux_title = models.CharField(max_length=100, verbose_name='User Experience Title')
+    ux_description = models.TextField(max_length=300, verbose_name='User Experience Description')
+
+    ux_top_users_enable = models.BooleanField(default=False, verbose_name='Show Selected Top Users')
+    ux_top_users = models.ManyToManyField(User, related_name='ux_top_users', blank=True, verbose_name='Top Users List')
+    ux_top_users_title = models.CharField(max_length=60, verbose_name='Top Users Title')
+
+    ux_comment1_text = models.TextField(max_length=400, verbose_name='User Comment #1 Text')
+    ux_comment1_user = models.ForeignKey(User, related_name='main_page_comment1', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='User Comment #1 User')
+    ux_comment1_rate = models.PositiveIntegerField(default=5, validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='User Comment #1 Rate')
+
+    ux_comment2_text = models.TextField(max_length=400, verbose_name='User Comment #2 Text')
+    ux_comment2_user = models.ForeignKey(User, related_name='main_page_comment2', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='User Comment #2 User')
+    ux_comment2_rate = models.PositiveIntegerField(default=5, validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='User Comment #2 Rate')
+
+    @property
+    def user_experience(self):
+        return {
+            'ux_title': self.ux_title,
+            'ux_description': self.ux_description,
+            'top_users': self.ux_top_users_enable and {  # Returns top users list if ux_top_users_enable == True
+                'ux_top_users_title': self.ux_top_users_title,
+                'ux_top_users': [{'name': user.name, 'profile_picture': user.profile_picture and user.profile_picture.url} for user in self.ux_top_users.all()]
+            },
+            'ux_comment1_text': self.ux_comment1_text,
+            'ux_comment1_user': {
+                'name': self.ux_comment1_user.name,
+                'profile_picture': self.ux_comment1_user.profile_picture and self.ux_comment1_user.profile_picture.url,  # Checks if the profile exists
+            },
+            'ux_comment1_rate': self.ux_comment1_rate,
+            'ux_comment2_text': self.ux_comment2_text,
+            'ux_comment2_user': {
+                'name': self.ux_comment2_user.name,
+                'profile_picture': self.ux_comment2_user.profile_picture and self.ux_comment2_user.profile_picture.url,  # Checks if the profile exists
+            },
+            'ux_comment2_rate': self.ux_comment2_rate,
+        }
+
+
+    def __str__(self):
+        return 'Main Page Content'
+
+    def save(self, *args, **kwargs):
+        """Enforce singleton pattern"""
+        if not self.pk and MainPage.objects.exists():
+            raise ValidationError('Only one Landing instance can exist. Edit the existing one.')
+
+        # Invalidate Landing cache for everyone
+        invalidate_cache('landing')
+
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion of singleton"""
+        raise ValidationError('Landing cannot be deleted. You can only edit it.')
+
+    @classmethod
+    def get_instance(cls) -> MainPage:
+        """Get or create the singleton Landing instance"""
+        landing, created = cls.objects.get_or_create(
+            pk=1
+        )
+        return landing

@@ -11,7 +11,8 @@ from .models import (
     SiteNavbarTitleOnlyItems,
     SiteNavbarDescribedItems,
     SiteNavbarImageItems,
-    SiteNavbar
+    SiteNavbar,
+    MainPage
 )
 
 
@@ -231,3 +232,93 @@ class SiteNavbarAdmin(admin.ModelAdmin):
         extra_context['title'] = 'Configure SiteNavbar'
         extra_context['subtitle'] = 'Manage Navbar items, banner and notification'
         return super().change_view(request, object_id, form_url, extra_context)
+
+@admin.register(MainPage)
+class MainPageAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        """Only allow one MainPage instance"""
+        return not MainPage.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        """Prevent deletion of singleton site navbar"""
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        """Auto-redirect to edit page if MainPage exists"""
+        if MainPage.objects.exists():
+            navbar = MainPage.objects.first()
+            return redirect(reverse('admin:siteconfig_mainpage_change', args=[navbar.pk]))
+        return super().changelist_view(request, extra_context)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        """Add helpful context to the change view"""
+        extra_context = extra_context or {}
+        extra_context['title'] = 'Configure MainPage'
+        extra_context['subtitle'] = 'Manage MainPage items'
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    # ── Fieldset layout ────────────────────────────────────────────────────────
+    fieldsets = (
+        ('Landing Section', {
+            'description': 'Hero area at the top of the page.',
+            'fields': (
+                ('landing_title', 'landing_brushed_title'),
+                'landing_description',
+                ('landing_link', 'landing_video'),
+                'landing_image',
+                ('landing_message_title', 'landing_message_description'),
+            ),
+        }),
+        ('Statistics', {
+            'description': 'Four stat blocks shown on the homepage.',
+            'classes': ('collapse',),
+            'fields': (
+                ('stat1_title', 'stat1_description'),
+                ('stat2_title', 'stat2_description'),
+                ('stat3_title', 'stat3_description'),
+                ('stat4_title', 'stat4_description'),
+            ),
+        }),
+        ('Courses Section', {
+            'classes': ('collapse',),
+            'fields': (
+                'courses_title',
+                'courses_description',
+            ),
+        }),
+        ('Advertisement Banner', {
+            'classes': ('collapse',),
+            'fields': (
+                'ad_title',
+                'ad_description',
+                'ad_link',
+            ),
+        }),
+        ('Course Suggestions', {
+            'classes': ('collapse',),
+            'fields': (
+                'course_suggestions_title',
+                'course_suggestions_description',
+            ),
+        }),
+        ('User Experience Section', {
+            'description': 'Testimonials and top-user showcase.',
+            'classes': ('collapse',),
+            'fields': (
+                'ux_title',
+                'ux_description',
+                # Top users
+                'ux_top_users_enable',
+                'ux_top_users_title',
+                'ux_top_users',
+                # Comment 1
+                'ux_comment1_text',
+                'ux_comment1_user',
+                'ux_comment1_rate',
+                # Comment 2
+                'ux_comment2_text',
+                'ux_comment2_user',
+                'ux_comment2_rate',
+            ),
+        }),
+    )
