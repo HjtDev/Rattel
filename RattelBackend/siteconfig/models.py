@@ -302,27 +302,50 @@ class MainPage(models.Model):
     # Stats
     stat1_title = models.CharField(max_length=80, verbose_name='Stat #1 Title')
     stat1_description = models.CharField(max_length=80, verbose_name='Stat #1 Description')
+    stat1_link = models.ForeignKey(Link, on_delete=models.SET_NULL, blank=True, null=True, related_name='is_stat1_link', verbose_name='Stat #1 Link')
 
     stat2_title = models.CharField(max_length=80, verbose_name='Stat #2 Title')
     stat2_description = models.CharField(max_length=80, verbose_name='Stat #2 Description')
+    stat2_link = models.ForeignKey(Link, on_delete=models.SET_NULL, blank=True, null=True, related_name='is_stat2_link', verbose_name='Stat #2 Link')
 
     stat3_title = models.CharField(max_length=80, verbose_name='Stat #3 Title')
     stat3_description = models.CharField(max_length=80, verbose_name='Stat #3 Description')
+    stat3_link = models.ForeignKey(Link, on_delete=models.SET_NULL, blank=True, null=True, related_name='is_stat3_link', verbose_name='Stat #3 Link')
 
     stat4_title = models.CharField(max_length=80, verbose_name='Stat #4 Title')
     stat4_description = models.CharField(max_length=80, verbose_name='Stat #4 Description')
+    stat4_link = models.ForeignKey(Link, on_delete=models.SET_NULL, blank=True, null=True, related_name='is_stat4_link', verbose_name='Stat #4 Link')
 
     @property
     def stats(self):  # Access all the statistics of the site with one property
         return {
             'stat1_title': self.stat1_title,
             'stat1_description': self.stat1_description,
+            'stat1_link': {
+                'name': self.stat1_link.name,
+                'url': self.stat1_link.url,
+            } if self.stat1_link else None,
+
             'stat2_title': self.stat2_title,
             'stat2_description': self.stat2_description,
+            'stat2_link': {
+                'name': self.stat2_link.name,
+                'url': self.stat2_link.url,
+            } if self.stat2_link else None,
+
             'stat3_title': self.stat3_title,
             'stat3_description': self.stat3_description,
+            'stat3_link': {
+                'name': self.stat3_link.name,
+                'url': self.stat3_link.url,
+            } if self.stat3_link else None,
+
             'stat4_title': self.stat4_title,
             'stat4_description': self.stat4_description,
+            'stat4_link': {
+                'name': self.stat4_link.name,
+                'url': self.stat4_link.url,
+            } if self.stat4_link else None,
         }
 
     # Courses

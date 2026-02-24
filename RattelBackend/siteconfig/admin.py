@@ -274,9 +274,16 @@ class MainPageAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'fields': (
                 ('stat1_title', 'stat1_description'),
+                ('stat1_link',),
+
                 ('stat2_title', 'stat2_description'),
+                ('stat2_link',),
+
                 ('stat3_title', 'stat3_description'),
+                ('stat3_link',),
+
                 ('stat4_title', 'stat4_description'),
+                ('stat4_link',),
             ),
         }),
         ('Courses Section', {
