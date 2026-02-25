@@ -2,11 +2,12 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.core.exceptions import ValidationError
 from django_resized import ResizedImageField
+from tinymce.models import HTMLField
 from RattelBackend.cache import invalidate_cache
 from users.models import User
-import mimetypes
-
+from users.serializers import QuickUserSerializer
 from utilities.image import generate_random_image
+import mimetypes
 
 
 class Link(models.Model):
@@ -18,6 +19,8 @@ class Link(models.Model):
     
     name = models.CharField(max_length=255, verbose_name='Internal Name',
                             help_text='Internal reference (e.g., "Contact Page")')
+    logo = ResizedImageField(upload_to='Links/', quality=100, blank=True, null=True,
+                             verbose_name='Link Logo', help_text='Recommended: Maintain square aspect-ratio')
     url = models.URLField(verbose_name='URL')
     
     def __str__(self):
@@ -208,6 +211,9 @@ class SiteNavbar(models.Model):
     class Meta:
         verbose_name = 'Site Navbar'
         verbose_name_plural = 'Site Navbar'
+
+    navbar_logo = ResizedImageField(upload_to='navbar_images/logo/', size=[150, 36], crop=['middle', 'center'], quality=100, verbose_name='Navbar Logo', help_text='150 * 36 pixels')
+    navbar_links = models.ManyToManyField(Link, related_name='navbar_links', blank=True, verbose_name='Navbar Links')
         
     col1_title = models.CharField(max_length=100, verbose_name='Col 1 Title')
     col2_title = models.CharField(max_length=100, verbose_name='Col 2 Title')
@@ -242,12 +248,32 @@ class SiteNavbar(models.Model):
         navbar, created = cls.objects.get_or_create(
             pk=1,
             defaults={
+                'navbar_logo': generate_random_image(150, 36, 'navbar_images/logo'),
                 'col1_title': 'Col 1 Title',
                 'col2_title': 'Col 2 Title',
                 'col3_title': 'Col 3 Title',
             }
         )
         return navbar
+
+
+class Information(models.Model):
+    """Information sections model"""
+    class Meta:
+        verbose_name = 'Information Section'
+        verbose_name_plural = 'Information Sections'
+        ordering = ('order',)
+
+    title = models.CharField(max_length=130, verbose_name='Title')
+    description = HTMLField(verbose_name='Description')
+    image = ResizedImageField(upload_to='information/images', quality=100, verbose_name='Image', help_text='Recommended: 615 * 435')
+
+    order = models.PositiveIntegerField(default=0, verbose_name='Order', help_text='Lower number appear first')
+
+    mainpage = models.ForeignKey('siteconfig.MainPage', on_delete=models.SET_NULL, blank=True, null=True, related_name='info_boxes', verbose_name='Main Page')
+
+    def __str__(self):
+        return f'Information Section: {self.title}'
 
 
 def video_validator(file):
@@ -285,18 +311,16 @@ class MainPage(models.Model):
 
     @property
     def landing(self):  # Get all landing data with one property
+        from siteconfig.serializers import LinkSerializer
         return {
-            'landing_title': self.landing_title,
-            'landing_brushed_title': self.landing_brushed_title,
-            'landing_description': self.landing_description,
-            'landing_link': {
-                'name': self.landing_link.name,
-                'url': self.landing_link.url,
-            } if self.landing_link else None,  # Serialize link if a link is added
-            'landing_video': self.landing_video.name and self.landing_video.url,  # Grab URL if available
-            'landing_image': self.landing_image.url,
-            'landing_message_title': self.landing_message_title,
-            'landing_message_description': self.landing_message_description,
+            'title': self.landing_title,
+            'brushed_title': self.landing_brushed_title,
+            'description': self.landing_description,
+            'link': LinkSerializer(self.landing_link).data if self.landing_link else None,  # Serialize link if a link is added
+            'video': self.landing_video.name and self.landing_video.url,  # Grab URL if available
+            'image': self.landing_image.url,
+            'message_title': self.landing_message_title,
+            'message_description': self.landing_message_description,
         }
 
     # Stats
@@ -348,17 +372,6 @@ class MainPage(models.Model):
             } if self.stat4_link else None,
         }
 
-    # Courses
-    courses_title = models.CharField(max_length=100, verbose_name='Courses Section Title')
-    courses_description = models.TextField(max_length=200, verbose_name='Courses Section Description')
-
-    @property
-    def courses(self):  # Access Courses section content with one property
-        return {
-            'courses_title': self.courses_title,
-            'courses_description': self.courses_description,
-        }
-
     # Advertisement
     ad_title = models.CharField(max_length=100, verbose_name='Advertisement Title')
     ad_description = models.TextField(max_length=300, verbose_name='Advertisement Description')
@@ -366,24 +379,39 @@ class MainPage(models.Model):
 
     @property
     def advertisement(self):  # Access Advertisement content with one property
+        from siteconfig.serializers import LinkSerializer
         return {
-            'ad_title': self.ad_title,
-            'ad_description': self.ad_description,
-            'ad_link': {
-                'name': self.ad_link.name,
-                'url': self.ad_link.url,
-            } if self.ad_link else None,
+            'title': self.ad_title,
+            'description': self.ad_description,
+            'link': LinkSerializer(self.ad_link).data if self.ad_link else None,
         }
 
-    # Course Suggestions
-    course_suggestions_title = models.CharField(max_length=100, verbose_name='Course Suggestion Title')
-    course_suggestions_description = models.TextField(max_length=200, verbose_name='Course Suggestion Description')
+    # Dual Choice
+    choice1_title = models.CharField(max_length=100, verbose_name='Choice #1 Title')
+    choice1_description = models.TextField(max_length=300, verbose_name='Choice #1 Description')
+    choice1_image = ResizedImageField(upload_to='DualChoice/images', quality=100,
+                             verbose_name='Choice #1 Image', help_text='Recommended: 235 * 200 pixel')
+    choice1_link = models.ForeignKey(Link, on_delete=models.SET_NULL, blank=True, null=True, related_name='is_choice1_link', verbose_name='Choice #1 Link')
+
+    choice2_title = models.CharField(max_length=100, verbose_name='Choice #2 Title')
+    choice2_description = models.TextField(max_length=300, verbose_name='Choice #2 Description')
+    choice2_image = ResizedImageField(upload_to='DualChoice/images', quality=100,
+                                      verbose_name='Choice #2 Image', help_text='Recommended: 235 * 200 pixel')
+    choice2_link = models.ForeignKey(Link, on_delete=models.SET_NULL, blank=True, null=True, related_name='is_choice2_link', verbose_name='Choice #2 Link')
 
     @property
-    def course_suggestions(self):  # Access Courses section content with one property
+    def dual_choices(self):
+        from siteconfig.serializers import LinkSerializer
         return {
-            'course_suggestions_title': self.course_suggestions_title,
-            'course_suggestions_description': self.course_suggestions_description,
+            'choice1_title': self.choice1_title,
+            'choice1_description': self.choice1_description,
+            'choice1_image': self.choice1_image.name and self.choice1_image.url,
+            'choice1_link': LinkSerializer(self.choice1_link).data,
+
+            'choice2_title': self.choice2_title,
+            'choice2_description': self.choice2_description,
+            'choice2_image': self.choice2_image.name and self.choice2_image.url,
+            'choice2_link': LinkSerializer(self.choice2_link).data,
         }
 
     # User Experience
@@ -405,29 +433,75 @@ class MainPage(models.Model):
     @property
     def user_experience(self):
         return {
-            'ux_title': self.ux_title,
-            'ux_description': self.ux_description,
+            'title': self.ux_title,
+            'description': self.ux_description,
+
             'top_users': self.ux_top_users_enable and {  # Returns top users list if ux_top_users_enable == True
-                'ux_top_users_title': self.ux_top_users_title,
-                'ux_top_users': [{'name': user.name, 'profile_picture': user.profile_picture.name and user.profile_picture.url} for user in self.ux_top_users.all()]
+                'title': self.ux_top_users_title,
+                'list': QuickUserSerializer(self.ux_top_users.all(), many=True).data,
             },
-            'ux_comment1_text': self.ux_comment1_text,
-            'ux_comment1_user': {
-                'name': self.ux_comment1_user.name,
-                'profile_picture': self.ux_comment1_user.profile_picture.name and self.ux_comment1_user.profile_picture.url,  # Checks if the profile exists
-            } if self.ux_comment1_user else None,
-            'ux_comment1_rate': self.ux_comment1_rate,
-            'ux_comment2_text': self.ux_comment2_text,
-            'ux_comment2_user': {
-                'name': self.ux_comment2_user.name,
-                'profile_picture': self.ux_comment2_user.profile_picture.name and self.ux_comment2_user.profile_picture.url,  # Checks if the profile exists
-            } if self.ux_comment2_user else None,
-            'ux_comment2_rate': self.ux_comment2_rate,
+            'comment1_text': self.ux_comment1_text,
+            'comment1_user': QuickUserSerializer(self.ux_comment1_user).data if self.ux_comment1_user else None,
+            'comment1_rate': self.ux_comment1_rate,
+
+            'comment2_text': self.ux_comment2_text,
+            'comment2_user': QuickUserSerializer(self.ux_comment2_user).data if self.ux_comment2_user else None,
+            'comment2_rate': self.ux_comment2_rate,
+        }
+
+    # Top teachers
+    top_teachers_title = models.CharField(max_length=100, verbose_name='Top Teachers Title')
+    top_teachers_description = models.TextField(max_length=200, verbose_name='Top Teachers Description')
+    top_teachers_list = models.ManyToManyField(User, related_name='top_teachers', blank=True, verbose_name='Top Teachers List')
+
+    @property
+    def top_teachers(self):
+        return {
+            'title': self.top_teachers_title,
+            'description': self.top_teachers_description,
+            'list': QuickUserSerializer(self.top_teachers_list.all(), many=True).data,
+        }
+
+    # Imaged Links
+    imaged_links_list = models.ManyToManyField(Link, related_name='custom_imaged_links', blank=True, verbose_name='Custom Imaged Links List')
+
+    @property
+    def imaged_links(self):
+        from siteconfig.serializers import LinkSerializer
+        return {
+            'links': LinkSerializer(self.imaged_links_list.all(), many=True).data,
+        }
+
+    # Top Courses Video
+    top_courses_video = models.FileField(upload_to='top_course_video/', blank=True, validators=[video_validator], verbose_name='Top Course Video File')
+
+    @property
+    def courses_demo(self):
+        return {
+            'video': self.top_courses_video.name and self.top_courses_video.url,
+        }
+
+
+    @property
+    def information_boxes(self):
+        from .serializers import InformationSerializer
+        return {
+            'boxes': InformationSerializer(self.info_boxes.all().order_by('order'), many=True).data,
         }
 
 
     def __str__(self):
         return 'Main Page Content'
+
+    def clean(self):
+        super().clean()
+        if not self.pk:
+            return
+
+        if self.imaged_links_list.exists():
+            for link in self.imaged_links_list.all():
+                if not link.logo.name:
+                    raise ValidationError({'imaged_links_list': f'Imaged Links List must have logo. {link} does not have a logo.'})
 
     def save(self, *args, **kwargs):
         """Enforce singleton pattern"""
@@ -467,13 +541,38 @@ class MainPage(models.Model):
                 'courses_description': 'Courses Description',
                 'ad_title': 'Ads Title',
                 'ad_description': 'Ads Description',
+                'choice1_title': 'Choice1 Title',
+                'choice1_description': 'Choice1 Description',
+                'choice1_image': generate_random_image(235, 200, 'DualChoice/images'),
+                'choice2_title': 'Choice2 Title',
+                'choice2_description': 'Choice2 Description',
+                'choice2_image': generate_random_image(235, 200, 'DualChoice/images'),
                 'course_suggestions_title': 'Course Suggestions Title',
                 'course_suggestions_description': 'Course Suggestions Description',
                 'ux_title': 'UX Title',
                 'ux_description': 'UX Description',
                 'ux_top_users_title': 'UX Top Users Title',
                 'ux_comment1_text': 'UX Comment #1 Text',
-                'ux_comment2_text': 'UX Comment #2 Text'
+                'ux_comment2_text': 'UX Comment #2 Text',
+                'top_teachers_title': 'Top Teachers Title',
+                'top_teachers_description': 'Top Teachers Description',
             }
         )
         return mainpage
+
+
+class FAQ(models.Model):
+    class Meta:
+        verbose_name = 'FAQ'
+        verbose_name_plural = 'FAQs'
+        ordering = ('order',)
+
+    question = models.CharField(max_length=255, verbose_name='Question')
+    answer = models.TextField(verbose_name='Answer')
+
+    order = models.PositiveIntegerField(default=0, verbose_name='Order', help_text='Order of the FAQ. Lower number appears first.')
+
+    is_visible = models.BooleanField(default=True, verbose_name='Visible')
+
+    def __str__(self):
+        return f'FAQ: {self.question[:19] + '...' if len(self.question) > 20 else self.question}'
