@@ -1,5 +1,4 @@
 from typing import Optional, Any, Dict
-
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -183,15 +182,23 @@ class MainPageView(APIView, GetDataMixin, ResponseBuilderMixin):
         - full_page:          All sections combined
         - landing:            Hero area (title, video, image, CTA)
         - stats:              Four statistics blocks
-        - courses:            Courses section title and description
         - advertisement:      Ad banner content and link
-        - course_suggestions: Course suggestion title and description
+        - dual_choices:            Dual choice section titles, descriptions and images
         - user_experience:    Testimonials and top users
+        - top_teachers: Top selected teachers
+        - imaged_links: Imaged button links with icon
+        - courses_demo: Courses Demo video
+        - information_boxes: Information boxes with HTML content
     """
 
     permission_classes = (AllowAny,)
     throttle_scope = 'main-throttle'
-    VALID_SECTIONS = ('full_page', 'landing', 'stats', 'courses', 'advertisement', 'course_suggestions', 'user_experience')
+    VALID_SECTIONS = (
+        'full_page', 'landing', 'stats',
+        'advertisement', 'dual_choices', 'user_experience',
+        'top_teachers', 'imaged_links', 'courses_demo',
+        'information_boxes'
+    )
 
     def validate_target_section(self, section: str) -> bool:
         """
