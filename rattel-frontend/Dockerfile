@@ -1,9 +1,9 @@
-FROM node:25.2.1-slim AS deps
+FROM node:25.6.1-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:25.2.1-slim AS builder
+FROM node:25.6.1-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

@@ -150,6 +150,8 @@ services:
         condition: service_healthy
       backend:
         condition: service_started
+      celery:
+        condition: service_started
     restart: unless-stopped
 
   flower:
