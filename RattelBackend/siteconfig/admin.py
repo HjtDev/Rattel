@@ -11,7 +11,8 @@ from .models import (
     SiteNavbarTitleOnlyItems,
     SiteNavbarDescribedItems,
     SiteNavbarImageItems,
-    SiteNavbar
+    SiteNavbar,
+    MainPage, Information, FAQ
 )
 
 
@@ -50,20 +51,16 @@ class FooterSocialMediaInline(admin.TabularInline):
 
 @admin.register(Link)
 class LinkAdmin(admin.ModelAdmin):
-    list_display = ['name', 'url', 'usage_count']
+    list_display = ['name', 'url']
     search_fields = ['name', 'url']
     list_per_page = 25
     
     fieldsets = [
         ('Link Information', {
-            'fields': ['name', 'url'],
-            'description': 'Create reusable links that can be used throughout the footer columns'
+            'fields': ['name', 'url', 'logo'],
+            'description': 'Create reusable links that can be used throughout the site'
         })
     ]
-    
-    def usage_count(self, obj):
-        return obj.footercolumnlink_set.count()
-    usage_count.short_description = 'Used in Columns'
 
 
 @admin.register(SocialMediaLink)
@@ -183,6 +180,17 @@ class SiteNavbarImageItemsInline(admin.StackedInline):
     verbose_name_plural = 'Image Items'
 
 
+class InformationInline(admin.StackedInline):
+    """Inline for managing site information boxes"""
+    model = Information
+    extra = 0
+    fields = ('title', 'description', 'image', 'order')
+    ordering = ('order',)
+    verbose_name = 'Information Box'
+    verbose_name_plural = 'Information Boxes'
+
+
+
 @admin.register(SiteNavbar)
 class SiteNavbarAdmin(admin.ModelAdmin):
     """
@@ -193,17 +201,22 @@ class SiteNavbarAdmin(admin.ModelAdmin):
     inlines = [SiteNavbarTitleOnlyItemsInline, SiteNavbarDescribedItemsInline, SiteNavbarImageItemsInline]
     
     fieldsets = [
-        ('Titles', {
+        ('Navbar', {
+            'fields': ['navbar_logo', 'navbar_links'],
+            'description': 'Navbar Items + Logo',
+            'classes': ['wide']
+        }),
+        ('Mega-Menu Titles', {
             'fields': ['col1_title', 'col2_title', 'col3_title'],
             'description': 'Title of each column in mega-menu',
             'classes': ['wide']
         }),
-        ('Banner', {
+        ('Mega-Menu Banner', {
             'fields': ['banner_title', 'banner_link', 'banner_img'],
             'description': 'Banner info/image in mega-menu',
             'classes': ['wide']
         }),
-        ('Notification', {
+        ('Mega-Menu Notification', {
             'fields': ['notification'],
             'description': 'Notification message in mega-menu',
             'classes': ['wide']
@@ -231,3 +244,122 @@ class SiteNavbarAdmin(admin.ModelAdmin):
         extra_context['title'] = 'Configure SiteNavbar'
         extra_context['subtitle'] = 'Manage Navbar items, banner and notification'
         return super().change_view(request, object_id, form_url, extra_context)
+
+@admin.register(MainPage)
+class MainPageAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        """Only allow one MainPage instance"""
+        return not MainPage.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        """Prevent deletion of singleton site navbar"""
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        """Auto-redirect to edit page if MainPage exists"""
+        if MainPage.objects.exists():
+            navbar = MainPage.objects.first()
+            return redirect(reverse('admin:siteconfig_mainpage_change', args=[navbar.pk]))
+        return super().changelist_view(request, extra_context)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        """Add helpful context to the change view"""
+        extra_context = extra_context or {}
+        extra_context['title'] = 'Configure MainPage'
+        extra_context['subtitle'] = 'Manage MainPage items'
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    inlines = [InformationInline]
+
+    # ── Fieldset layout ────────────────────────────────────────────────────────
+    fieldsets = (
+        ('Landing Section', {
+            'description': 'Hero area at the top of the page.',
+            'fields': (
+                ('landing_title', 'landing_brushed_title'),
+                'landing_description',
+                ('landing_link', 'landing_video'),
+                'landing_image',
+                ('landing_message_title', 'landing_message_description'),
+            ),
+        }),
+        ('Statistics', {
+            'description': 'Four stat blocks shown on the homepage.',
+            'classes': ('collapse',),
+            'fields': (
+                ('stat1_title', 'stat1_description'),
+                ('stat1_link',),
+
+                ('stat2_title', 'stat2_description'),
+                ('stat2_link',),
+
+                ('stat3_title', 'stat3_description'),
+                ('stat3_link',),
+
+                ('stat4_title', 'stat4_description'),
+                ('stat4_link',),
+            ),
+        }),
+        ('Advertisement Banner', {
+            'classes': ('collapse',),
+            'fields': (
+                'ad_title',
+                'ad_description',
+                'ad_link',
+            ),
+        }),
+        ('Dual Choice', {
+            'classes': ('collapse',),
+            'fields': (
+                ('choice1_title', 'choice1_link'),
+                ('choice1_description',),
+                ('choice1_image',),
+                ('choice2_title', 'choice2_link'),
+                ('choice2_description',),
+                ('choice2_image',),
+            )
+        }),
+        ('User Experience Section', {
+            'description': 'Testimonials and top-user showcase.',
+            'classes': ('collapse',),
+            'fields': (
+                'ux_title',
+                'ux_description',
+                # Top users
+                'ux_top_users_enable',
+                'ux_top_users_title',
+                'ux_top_users',
+                # Comment 1
+                'ux_comment1_text',
+                'ux_comment1_user',
+                'ux_comment1_rate',
+                # Comment 2
+                'ux_comment2_text',
+                'ux_comment2_user',
+                'ux_comment2_rate',
+            ),
+        }),
+        ('Top Teachers', {
+            'classes': ('collapse',),
+            'fields': (
+                'top_teachers_title',
+                'top_teachers_description',
+                'top_teachers_list'
+            )
+        }),
+        ('Imaged Links', {
+            'classes': ('collapse',),
+            'fields': ('imaged_links_list',)
+        }),
+        ('Course Demo', {
+            'classes': ('collapse',),
+            'fields': ('top_courses_video',)
+        }),
+    )
+
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ('question', 'is_visible')
+    list_filter = ('is_visible',)
+    search_fields = ('question', 'answer', 'order')
+    ordering = ('order',)

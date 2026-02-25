@@ -59,6 +59,13 @@ class BaseUserSerializer(ModelSerializer, UserProfileBuilderMixin):
         return instance
 
 
+class QuickUserSerializer(BaseUserSerializer):
+    """Serialize the user instance with name + profile picture"""
+    class Meta:
+        model = User
+        fields = ('name', 'profile_picture')
+
+
 class FullUserSerializer(BaseUserSerializer):
     """Serialize the user instance fully with profile and settings"""
     profile = SerializerMethodField()

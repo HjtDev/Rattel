@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'health_check.storage',
     'health_check.contrib.celery',
     'drf_spectacular',
+    'tinymce'
 ]
 
 MIDDLEWARE = [
@@ -205,7 +206,7 @@ REST_FRAMEWORK = {
         'user-settings-edit': '15/min',
         'user-info': '100/min',
         'user-info-edit': '15/min',
-        'main-throttle': '300/min'
+        'main-throttle': '500/min'
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -351,3 +352,31 @@ GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
 
 # Site Settings
 SITE_NAME = config('SITE_NAME')
+
+# TinyMCE
+
+TINYMCE_DEFAULT_CONFIG = {
+    'height': 500,
+    'width': '100%',
+    'menubar': True,
+    'plugins': (
+        'advlist anchor autolink autosave charmap code codesample directionality emoticons fullscreen help '
+        'image insertdatetime link lists media nonbreaking pagebreak paste preview print quickbars save searchreplace '
+        'table template visualblocks visualchars wordcount'
+    ),
+    'toolbar': (
+        'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | '
+        'alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor '
+        'removeformat | pagebreak | charmap emoticons | fullscreen preview save print | '
+        'insertfile image media template link anchor codesample | ltr rtl | code'
+    ),
+    'contextmenu': 'link image imagetools table',
+    'images_upload_url': '/api/blog/editor/upload/',
+    'automatic_uploads': True,
+    'image_advtab': True,
+    'image_caption': True,
+    'file_picker_types': 'file image media',
+    'quickbars_selection_toolbar': 'bold italic | quicklink h2 h3 blockquote quickimage quicktable',
+    'nonbreaking_force_tab': True,
+    'toolbar_mode': 'sliding',
+}

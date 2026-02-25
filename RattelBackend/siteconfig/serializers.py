@@ -1,8 +1,7 @@
 from rest_framework.fields import SerializerMethodField
-from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
 from .models import Footer, FooterLinkColumn, FooterColumnLink, FooterSocialMedia, SocialMediaLink, Link, SiteNavbar, \
-    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems
+    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems, Information, FAQ
 import logging
 
 
@@ -14,11 +13,37 @@ class LinkSerializer(ModelSerializer):
     Serializes reusable Link objects.
     
     Input: Link model instance
-    Output: {name: str, url: str}
+    Output: {name: str, url: str, logo: str<file-path>}
     """
     class Meta:
         model = Link
-        fields = ('name', 'url')
+        fields = ('name', 'logo', 'url')
+
+    def get_logo(self, obj: Footer):
+        """
+        Build full URL for logo if request context was passed and a logo was attached.
+
+        Args:
+            obj: Link model instance
+
+        Returns:
+            None if no logo is attached.
+            Full URL for logo if request context exists, static URL of logo otherwise.
+        """
+
+        # Returns None if no logo is attached
+        if not obj.logo.name:
+            return None
+
+        # Retrieve request from context
+        request = self.context.get('request', None)
+
+        # request was not passed
+        if request is None:
+            logger.warning(f'Falling back to static URL. request context was not passed. {self.__class__.__name__}.logo')
+            return obj.logo.url
+
+        return request.build_absolute_uri(obj.logo.url)
 
 
 class SocialMediaLinkSerializer(ModelSerializer):
@@ -215,6 +240,7 @@ class SiteNavbarSerializer(ModelSerializer):
         - col2: Described items
         - col3: Image items
     """
+    navbar_links = LinkSerializer(many=True, read_only=True)
     col1 = SerializerMethodField()
     col2 = SerializerMethodField()
     col3 = SerializerMethodField()
@@ -222,7 +248,24 @@ class SiteNavbarSerializer(ModelSerializer):
     
     class Meta:
         model = SiteNavbar
-        fields = ('col1', 'col2', 'col3', 'banner', 'notification')
+        fields = ('navbar_logo', 'navbar_links', 'col1', 'col2', 'col3', 'banner', 'notification')
+
+    def get_navbar_logo(self, obj: SiteNavbar):
+        """
+        Build the full URL for the navbar logo if request context passed..
+
+        Args:
+            obj: SiteNavbar model instance
+
+        Returns:
+            Full URL of the logo if request context exists; otherwise returns relative URL.
+        """
+        request = self.context.get('request', None)
+
+        if request is None:
+            return obj.logo.url
+
+        return request.build_absolute_uri(obj.logo.url)
     
     def get_col1(self, obj: SiteNavbar):
         """
@@ -268,3 +311,30 @@ class SiteNavbarSerializer(ModelSerializer):
             'title': banner_title,
             'link': banner_link,
         }
+
+class InformationSerializer(ModelSerializer):
+    class Meta:
+        model = Information
+        fields = ('title', 'description', 'image', 'order')
+
+    def get_image(self, obj: Information):
+        """
+        Build the full URL for the image if request context passed..
+
+        Args:
+            obj: Information model instance
+
+        Returns:
+            Full URL for the image if request context exists; otherwise returns relative URL.
+        """
+        request = self.context.get('request', None)
+
+        if request is None:
+            return obj.image.url
+
+        return request.build_absolute_uri(obj.image.url)
+
+class FAQSerializer(ModelSerializer):
+    class Meta:
+        model = FAQ
+        fields = ('question', 'answer', 'order')
