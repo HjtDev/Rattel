@@ -12,7 +12,7 @@ from .models import (
     SiteNavbarDescribedItems,
     SiteNavbarImageItems,
     SiteNavbar,
-    MainPage
+    MainPage, Information, FAQ
 )
 
 
@@ -51,20 +51,16 @@ class FooterSocialMediaInline(admin.TabularInline):
 
 @admin.register(Link)
 class LinkAdmin(admin.ModelAdmin):
-    list_display = ['name', 'url', 'usage_count']
+    list_display = ['name', 'url']
     search_fields = ['name', 'url']
     list_per_page = 25
     
     fieldsets = [
         ('Link Information', {
-            'fields': ['name', 'url'],
-            'description': 'Create reusable links that can be used throughout the footer columns'
+            'fields': ['name', 'url', 'logo'],
+            'description': 'Create reusable links that can be used throughout the site'
         })
     ]
-    
-    def usage_count(self, obj):
-        return obj.footercolumnlink_set.count()
-    usage_count.short_description = 'Used in Columns'
 
 
 @admin.register(SocialMediaLink)
@@ -184,6 +180,17 @@ class SiteNavbarImageItemsInline(admin.StackedInline):
     verbose_name_plural = 'Image Items'
 
 
+class InformationInline(admin.StackedInline):
+    """Inline for managing site information boxes"""
+    model = Information
+    extra = 0
+    fields = ('title', 'description', 'image', 'order')
+    ordering = ('order',)
+    verbose_name = 'Information Box'
+    verbose_name_plural = 'Information Boxes'
+
+
+
 @admin.register(SiteNavbar)
 class SiteNavbarAdmin(admin.ModelAdmin):
     """
@@ -194,17 +201,22 @@ class SiteNavbarAdmin(admin.ModelAdmin):
     inlines = [SiteNavbarTitleOnlyItemsInline, SiteNavbarDescribedItemsInline, SiteNavbarImageItemsInline]
     
     fieldsets = [
-        ('Titles', {
+        ('Navbar', {
+            'fields': ['navbar_logo', 'navbar_links'],
+            'description': 'Navbar Items + Logo',
+            'classes': ['wide']
+        }),
+        ('Mega-Menu Titles', {
             'fields': ['col1_title', 'col2_title', 'col3_title'],
             'description': 'Title of each column in mega-menu',
             'classes': ['wide']
         }),
-        ('Banner', {
+        ('Mega-Menu Banner', {
             'fields': ['banner_title', 'banner_link', 'banner_img'],
             'description': 'Banner info/image in mega-menu',
             'classes': ['wide']
         }),
-        ('Notification', {
+        ('Mega-Menu Notification', {
             'fields': ['notification'],
             'description': 'Notification message in mega-menu',
             'classes': ['wide']
@@ -257,6 +269,8 @@ class MainPageAdmin(admin.ModelAdmin):
         extra_context['subtitle'] = 'Manage MainPage items'
         return super().change_view(request, object_id, form_url, extra_context)
 
+    inlines = [InformationInline]
+
     # ── Fieldset layout ────────────────────────────────────────────────────────
     fieldsets = (
         ('Landing Section', {
@@ -286,13 +300,6 @@ class MainPageAdmin(admin.ModelAdmin):
                 ('stat4_link',),
             ),
         }),
-        ('Courses Section', {
-            'classes': ('collapse',),
-            'fields': (
-                'courses_title',
-                'courses_description',
-            ),
-        }),
         ('Advertisement Banner', {
             'classes': ('collapse',),
             'fields': (
@@ -301,12 +308,16 @@ class MainPageAdmin(admin.ModelAdmin):
                 'ad_link',
             ),
         }),
-        ('Course Suggestions', {
+        ('Dual Choice', {
             'classes': ('collapse',),
             'fields': (
-                'course_suggestions_title',
-                'course_suggestions_description',
-            ),
+                ('choice1_title', 'choice1_link'),
+                ('choice1_description',),
+                ('choice1_image',),
+                ('choice2_title', 'choice2_link'),
+                ('choice2_description',),
+                ('choice2_image',),
+            )
         }),
         ('User Experience Section', {
             'description': 'Testimonials and top-user showcase.',
@@ -328,4 +339,27 @@ class MainPageAdmin(admin.ModelAdmin):
                 'ux_comment2_rate',
             ),
         }),
+        ('Top Teachers', {
+            'classes': ('collapse',),
+            'fields': (
+                'top_teachers_title',
+                'top_teachers_description',
+                'top_teachers_list'
+            )
+        }),
+        ('Imaged Links', {
+            'classes': ('collapse',),
+            'fields': ('imaged_links_list',)
+        }),
+        ('Course Demo', {
+            'classes': ('collapse',),
+            'fields': ('top_courses_video',)
+        }),
     )
+
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ('question', 'is_visible')
+    list_filter = ('is_visible',)
+    search_fields = ('question', 'answer', 'order')
+    ordering = ('order',)
