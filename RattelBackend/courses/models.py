@@ -55,6 +55,8 @@ class Course(models.Model):
 
     total_time = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)], verbose_name='Total Time(H)', help_text='Time it takes to finish this course')
 
+    is_visible = models.BooleanField(default=True, verbose_name='Visible', help_text='If disabled purchasing items of this model will be disabled too.')
+
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
 
@@ -80,6 +82,26 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+
+    def add_user(self, user):
+        """On successful purchase this method is used to add user to the bought_by
+
+        Args:
+            user: User instance to add.
+        """
+        self.bought_by.add(user)
+
+    def has_access_to_course(self, user) -> bool:
+        """Checks if a user has access to course data or not
+
+        Args:
+            user: User instance to check.
+
+        Returns:
+            bool: True if user has access to course, False otherwise.
+        """
+        return self.teacher == user or self.bought_by.filter(pk=user.pk).exists()
+
 
 
 class Chapter(models.Model):

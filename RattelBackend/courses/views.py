@@ -1,17 +1,20 @@
 import logging
 from typing import Any, Dict, Optional, Tuple
+from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator, EmptyPage
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Count, Avg
 from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from RattelBackend.cache import drf_cached_response
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
+from users.serializers import QuickUserSerializer
 from .models import Course
 from .serializers import CourseListSerializer, CourseDetailSerializer
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 SORT_MAP = {
     'rating': '-rating',
@@ -196,7 +199,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
         count = int(result['count'])
 
         try:
-            qs = Course.objects.select_related('teacher').prefetch_related('chapters', 'bought_by')
+            qs = Course.objects.select_related('teacher').prefetch_related('chapters', 'bought_by').filter(is_visible=True)
             qs = self._apply_filters(qs, request.query_params)
             qs, needs_python_sort = self._apply_sort(qs, sort)
 
@@ -281,7 +284,7 @@ class CourseDetailView(APIView, GetDataMixin, ResponseBuilderMixin):
         drf_cached_response(
             ttl=900,
             cache_prefix='course_detail',
-            user_aware=False,
+            user_aware=True,
             response_codes=[200],
             cache_headers=False,
         )
@@ -328,7 +331,7 @@ class CourseDetailView(APIView, GetDataMixin, ResponseBuilderMixin):
                 Course.objects
                 .select_related('teacher')
                 .prefetch_related('chapters__episodes', 'bought_by')
-                .get(pk=course_id)
+                .get(pk=course_id, is_visible=True)
             )
         except Course.DoesNotExist:
             return self.build_response(
@@ -352,4 +355,88 @@ class CourseDetailView(APIView, GetDataMixin, ResponseBuilderMixin):
             success=True,
             message='Successful',
             course=serializer.data,
+        )
+
+
+class TeacherListView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    Public API endpoint for listing teachers with their course stats.
+
+    Permissions:
+        - AllowAny: No authentication required
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Caching:
+        - TTL: 15 minutes (900 seconds)
+        - Cache prefix: 'teacher_list'
+        - User-agnostic caching
+    """
+
+    permission_classes = (AllowAny,)
+    throttle_scope = 'main-throttle'
+
+    @method_decorator(
+        drf_cached_response(
+            ttl=900,
+            cache_prefix='teacher_list',
+            user_aware=False,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        """
+        Return a list of teachers with their name, profile picture, course count,
+        and average course rating.
+
+        Returns:
+            200 OK:
+                - success=True
+                - message: 'Successful'
+                - teachers: List of teacher objects, each containing:
+                    - name
+                    - profile_picture
+                    - number_of_courses
+                    - average_rating
+
+            500 INTERNAL SERVER ERROR:
+                - success=False
+                - error: -1
+                - message: Generic failure message
+        """
+        try:
+            teachers = (
+                User.objects
+                .filter(courses_taught__isnull=False)
+                .annotate(
+                    number_of_courses=Count('courses_taught', distinct=True),
+                    average_rating=Avg('courses_taught__rating'),
+                )
+                .distinct()
+            )
+
+            data = [
+                {
+                    **QuickUserSerializer(teacher, context={'request': request}).data,
+                    'number_of_courses': teacher.number_of_courses,
+                    'average_rating': round(teacher.average_rating, 2) if teacher.average_rating else 0.0,
+                }
+                for teacher in teachers
+            ]
+        except Exception as e:
+            logger.error(f'TeacherListView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-1,
+                message='Something went wrong while fetching teachers.'
+            )
+
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True,
+            message='Successful',
+            teachers=data,
         )
