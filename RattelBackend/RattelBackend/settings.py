@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'payment.apps.PaymentConfig',
     'authentication.apps.AuthenticationConfig',
     'siteconfig.apps.SiteconfigConfig',
+    'courses.apps.CoursesConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -63,7 +64,7 @@ INSTALLED_APPS = [
     'health_check.storage',
     'health_check.contrib.celery',
     'drf_spectacular',
-    'tinymce'
+    'tinymce',
 ]
 
 MIDDLEWARE = [
