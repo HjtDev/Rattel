@@ -21,7 +21,6 @@ class EpisodeInline(admin.StackedInline):
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
         'name',
         'teacher',
         'category',
@@ -30,6 +29,7 @@ class CourseAdmin(admin.ModelAdmin):
         'price_display',
         'discount_display',
         'total_sell',
+        'is_visible',
         'created_at',
     )
 
@@ -71,6 +71,7 @@ class CourseAdmin(admin.ModelAdmin):
                     'age_group',
                     'rating',
                     'intro_video',
+                    'is_visible',
                 ),
             },
         ),
