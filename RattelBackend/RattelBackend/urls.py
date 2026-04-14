@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/v1/auth/', include('authentication.urls', namespace='authentication')),
     path('api/v1/site/', include('siteconfig.urls', namespace='siteconfig')),
     path('api/v1/courses/', include('courses.urls', namespace='courses')),
+    path('api/v1/cart/', include('cart.urls', namespace='cart')),
 ]
 
 if settings.DEBUG:
