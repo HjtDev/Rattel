@@ -1,6 +1,8 @@
 FROM node:25.6.1-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
+
+RUN npm config set registry https://npm.devneeds.ir
 RUN npm ci
 
 FROM node:25.6.1-slim AS builder
