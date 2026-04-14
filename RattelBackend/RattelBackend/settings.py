@@ -352,6 +352,11 @@ SMS_SETTINGS = {
 MERCHANT = config('MERCHANT')
 GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
 
+# Cart
+CART_ALLOWED_CONTENT_TYPES = [
+    'courses.course',
+]
+
 # Site Settings
 SITE_NAME = config('SITE_NAME')
 
