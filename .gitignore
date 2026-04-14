@@ -124,3 +124,7 @@ dmypy.json
 .pyre/
 
 rattel-frontend/.idea/
+
+*.http
+
+RattelBackend/http-client.env.json
