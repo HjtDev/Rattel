@@ -109,12 +109,50 @@ class TestCartAdd:
         settings.CART_ALLOWED_CONTENT_TYPES = ['courses.course']
         success, message = cart.add('courses', 'course', course.pk, quantity=0)
         assert success is False
-        assert 'positive integer' in message
+        assert 'non-zero integer' in message
 
     def test_add_missing_setting_raises(self, cart, course, settings):
         del settings.CART_ALLOWED_CONTENT_TYPES
         with pytest.raises(ImproperlyConfigured):
             cart.add('courses', 'course', course.pk)
+
+
+class TestCartDecrease:
+
+    def test_decrease_reduces_quantity(self, cart, course, settings):
+        settings.CART_ALLOWED_CONTENT_TYPES = ['courses.course']
+        cart.add('courses', 'course', course.pk, quantity=3)
+        success, status = cart.add('courses', 'course', course.pk, quantity=-1)
+        assert success is True
+        assert status == 'updated'
+
+        from cart.models import CartItem
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get(app_label='courses', model='course')
+        item = CartItem.objects.get(user=cart.user, content_type=content_type, object_id=str(course.pk))
+        assert item.quantity == 2
+
+    def test_decrease_to_zero_removes_item(self, cart, course, settings):
+        settings.CART_ALLOWED_CONTENT_TYPES = ['courses.course']
+        cart.add('courses', 'course', course.pk, quantity=1)
+        success, status = cart.add('courses', 'course', course.pk, quantity=-1)
+        assert success is True
+        assert status == 'removed'
+        assert cart.length() == 0
+
+    def test_decrease_below_zero_removes_item(self, cart, course, settings):
+        settings.CART_ALLOWED_CONTENT_TYPES = ['courses.course']
+        cart.add('courses', 'course', course.pk, quantity=2)
+        success, status = cart.add('courses', 'course', course.pk, quantity=-5)
+        assert success is True
+        assert status == 'removed'
+        assert cart.length() == 0
+
+    def test_decrease_item_not_in_cart(self, cart, course, settings):
+        settings.CART_ALLOWED_CONTENT_TYPES = ['courses.course']
+        success, message = cart.add('courses', 'course', course.pk, quantity=-1)
+        assert success is False
+        assert 'not found' in message
 
 
 class TestCartRemove:

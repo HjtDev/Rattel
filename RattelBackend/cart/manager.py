@@ -87,30 +87,33 @@ class CartManager:
 
     def add(self, app_label: str, model: str, object_id: int, quantity: int = 1) -> tuple[bool, str]:
         """
-        Adds an item to the cart or stacks quantity if the item already exists.
+        Adds or decreases an item in the cart.
+        Pass a positive quantity to add/stack, a negative quantity to decrease.
+        If the resulting quantity drops to zero or below the item is removed from the cart.
 
         Args:
             app_label: The app label of the item's model.
             model: The model name (lowercase).
             object_id: The primary key of the item instance.
-            quantity: Number of units to add. Must be >= 1.
+            quantity: Units to add (positive) or remove (negative). Must not be 0.
 
         Returns:
             (True, 'added') if a new cart item was created.
             (True, 'updated') if an existing cart item's quantity was increased.
+            (True, 'removed') if the decrease brought the quantity to zero or below.
             (False, reason) on failure.
         """
         from .models import CartItem
 
-        if not isinstance(quantity, int) or quantity < 1:
+        if not isinstance(quantity, int) or quantity == 0:
             logger.error(f'Invalid quantity "{quantity}" provided to CartManager.add.')
-            return False, 'Quantity must be a positive integer.'
+            return False, 'Quantity must be a non-zero integer.'
 
         content_type = self._resolve_content_type(app_label, model)
         if content_type is None:
             return False, f'"{app_label}.{model}" is not an allowed cart item type.'
 
-        if not content_type.model_class().objects.filter(pk=object_id).exists():
+        if quantity > 0 and not content_type.model_class().objects.filter(pk=object_id).exists():
             logger.error(
                 f'Object with id={object_id} does not exist for "{app_label}.{model}".'
             )
@@ -125,13 +128,28 @@ class CartManager:
         ).first()
 
         if cart_item is not None:
-            cart_item.quantity += quantity
+            new_quantity = cart_item.quantity + quantity
+            if new_quantity <= 0:
+                cart_item.delete()
+                logger.info(
+                    f'Removed "{app_label}.{model}" id={object_id} from cart for user '
+                    f'{self.user.pk} after quantity dropped to {new_quantity}.'
+                )
+                return True, 'removed'
+            cart_item.quantity = new_quantity
             cart_item.save(update_fields=['quantity'])
             logger.info(
-                f'Stacked quantity for "{app_label}.{model}" id={object_id} '
-                f'to {cart_item.quantity} for user {self.user.pk}.'
+                f'Updated quantity for "{app_label}.{model}" id={object_id} '
+                f'to {new_quantity} for user {self.user.pk}.'
             )
             return True, 'updated'
+
+        if quantity < 0:
+            logger.warning(
+                f'Tried to decrease "{app_label}.{model}" id={object_id} '
+                f'for user {self.user.pk} but it was not in the cart.'
+            )
+            return False, 'Item not found in cart.'
 
         CartItem.objects.create(
             user=self.user,
