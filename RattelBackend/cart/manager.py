@@ -227,6 +227,9 @@ class CartManager:
 
         return CartItem.objects.filter(user=self.user).count()
 
+    def __len__(self):
+        return self.length()
+
     def __iter__(self):
         """
         Iterates over the user's cart items, each with its resolved content object.
@@ -240,3 +243,37 @@ class CartManager:
         for cart_item in items:
             cart_item.item = cart_item.content_object
             yield cart_item
+
+    def total_price(self) -> float:
+        """
+        Returns the total price of all items in the cart.
+
+        For each item, uses new_price if it is non-zero (discounted), otherwise uses price.
+        The quantity of each cart item is taken into account.
+
+        Returns:
+            Total price as a float.
+        """
+        total = 0
+        for cart_item in self:
+            item = cart_item.item
+            unit_price = item.new_price if item.new_price else item.price
+            total += unit_price * cart_item.quantity
+        return total
+
+    def get_serialized_items(self) -> list:
+        """
+        Returns a serialized list of all items in the cart.
+
+        For each cart item, retrieves the CART_SERIALIZER classproperty from the
+        item's model class and uses it to serialize the item instance.
+
+        Returns:
+            List of serialized item data dicts.
+        """
+        serialized = []
+        for cart_item in self:
+            item = cart_item.item
+            serializer_class = item.__class__.CART_SERIALIZER
+            serialized.append(serializer_class(item).data)
+        return serialized
