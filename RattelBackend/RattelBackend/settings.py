@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'authentication.apps.AuthenticationConfig',
     'siteconfig.apps.SiteconfigConfig',
     'courses.apps.CoursesConfig',
+    'cart.apps.CartConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -350,6 +351,11 @@ SMS_SETTINGS = {
 
 MERCHANT = config('MERCHANT')
 GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
+
+# Cart
+CART_ALLOWED_CONTENT_TYPES = [
+    'courses.course',
+]
 
 # Site Settings
 SITE_NAME = config('SITE_NAME')

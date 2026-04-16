@@ -6,6 +6,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class CourseCartSerializer(serializers.ModelSerializer):
+    picture = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Course
+        fields = ('name', 'picture')
+
+    def get_picture(self, obj: Course):
+        return None
+
+
 class EpisodeSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField()
 

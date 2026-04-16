@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from tinymce.models import HTMLField
+from django.utils.functional import classproperty
 
 
 class Course(models.Model):
@@ -59,6 +60,11 @@ class Course(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
+
+    @classproperty
+    def CART_SERIALIZER(cls):
+        from courses.serializers import CourseCartSerializer
+        return CourseCartSerializer
 
     @property
     def discount(self):
