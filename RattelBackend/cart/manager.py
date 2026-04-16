@@ -85,7 +85,7 @@ class CartManager:
 
         return content_type
 
-    def add(self, app_label: str, model: str, object_id: int, quantity: int = 1) -> tuple[bool, str]:
+    def add(self, app_label: str, model: str, object_id: str | int, quantity: int = 1) -> tuple[bool, str]:
         """
         Adds or decreases an item in the cart.
         Pass a positive quantity to add/stack, a negative quantity to decrease.
@@ -163,7 +163,7 @@ class CartManager:
         )
         return True, 'added'
 
-    def remove(self, app_label: str, model: str, object_id: int) -> tuple[bool, str]:
+    def remove(self, app_label: str, model: str, object_id: str | int) -> tuple[bool, str]:
         """
         Removes an item from the cart entirely.
 
@@ -275,5 +275,7 @@ class CartManager:
         for cart_item in self:
             item = cart_item.item
             serializer_class = item.__class__.CART_SERIALIZER
-            serialized.append(serializer_class(item).data)
+            serialized_item = serializer_class(item).data
+            serialized_item['quantity'] = cart_item.quantity
+            serialized.append(serialized_item)
         return serialized

@@ -110,14 +110,16 @@ class CartView(APIView, GetDataMixin, ResponseBuilderMixin):
                     message='Insecure parameter',
                 )
 
-        try:
-            object_id = int(object_id)
-        except (ValueError, TypeError):
+        if not self.validate_string_secure(object_id, sql=True, lookup=True, injection=True):
+            logger.warning(
+                f'Insecure cart POST param object_id={object_id!r} '
+                f'from user {request.user.pk}'
+            )
             return self.build_response(
-                status.HTTP_400_BAD_REQUEST,
+                status.HTTP_403_FORBIDDEN,
                 success=False,
-                error=-1,
-                message='object_id must be an integer.',
+                error=-10,
+                message='Insecure parameter',
             )
 
         quantity = request.data.get('quantity', 1)
@@ -203,14 +205,18 @@ class CartView(APIView, GetDataMixin, ResponseBuilderMixin):
                     message='Insecure parameter',
                 )
 
-        try:
-            object_id = int(object_id)
-        except (ValueError, TypeError):
+        if not isinstance(object_id, str) or not self.validate_string_secure(
+            object_id, sql=True, lookup=True, injection=True
+        ):
+            logger.warning(
+                f'Insecure cart DELETE param object_id={object_id!r} '
+                f'from user {request.user.pk}'
+            )
             return self.build_response(
-                status.HTTP_400_BAD_REQUEST,
+                status.HTTP_403_FORBIDDEN,
                 success=False,
-                error=-1,
-                message='object_id must be an integer.',
+                error=-10,
+                message='Insecure parameter',
             )
 
         ok, result = cart.remove(app_label, model, object_id)
@@ -293,4 +299,156 @@ class CartTotalPriceView(APIView, ResponseBuilderMixin):
             success=True,
             message='Successful',
             total_price=cart.total_price(),
+        )
+
+
+class CartFinalizerView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    Finalizes a purchase by verifying the transaction and granting the user
+    access to each item in their cart.
+
+    Permissions:
+        - IsAuthenticated: Must be logged in.
+
+    Throttling:
+        - Uses the `main-throttle` scope.
+
+    POST:
+        Verifies the transaction_id against the cart total and marks all items
+        as purchased by adding the user to each item's bought_by, then clears
+        the cart.
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    def post(self, request):
+        """
+        Finalize the purchase for the authenticated user's cart.
+
+        Body Params:
+            transaction_id (str): UUID of the Transaction created by the payment gateway.
+
+        Returns:
+            200 OK:
+                - success=True
+                - message: 'Purchase finalized.'
+
+            400 BAD REQUEST:
+                - success=False
+                - error: -1
+                - message: Missing/invalid field
+
+            402 PAYMENT REQUIRED:
+                - success=False
+                - error: -3
+                - message: Transaction amount does not cover cart total
+
+            403 FORBIDDEN:
+                - success=False
+                - error: -10
+                - message: 'Insecure parameter' | Transaction belongs to a different user
+
+            404 NOT FOUND:
+                - success=False
+                - error: -2
+                - message: Transaction not found
+
+            409 CONFLICT:
+                - success=False
+                - error: -4
+                - message: Transaction already used (locked_in)
+        """
+        from payment.models import Transaction
+
+        success, data = self.get_data(request, 'transaction_id')
+        if not success:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-1,
+                message=data,
+            )
+
+        transaction_id = data['transaction_id']
+
+        if not self.validate_string_secure(transaction_id, sql=True, lookup=True, injection=True):
+            logger.warning(
+                f'Insecure transaction_id={transaction_id!r} '
+                f'from user {request.user.pk} in CartFinalizerView.'
+            )
+            return self.build_response(
+                status.HTTP_403_FORBIDDEN,
+                success=False,
+                error=-10,
+                message='Insecure parameter',
+            )
+
+        try:
+            transaction = Transaction.objects.get(pk=transaction_id)
+        except Transaction.DoesNotExist:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False,
+                error=-2,
+                message='Transaction not found.',
+            )
+
+        if transaction.user != request.user:
+            logger.warning(
+                f'User {request.user.pk} attempted to finalize transaction '
+                f'{transaction_id} that belongs to user {transaction.user_id}.'
+            )
+            return self.build_response(
+                status.HTTP_403_FORBIDDEN,
+                success=False,
+                error=-10,
+                message='This transaction does not belong to you.',
+            )
+
+        if transaction.locked_in:
+            return self.build_response(
+                status.HTTP_409_CONFLICT,
+                success=False,
+                error=-4,
+                message='This transaction has already been used.',
+            )
+
+        if transaction.transaction_status != Transaction.TransactionStatus.SUCCESS:
+            return self.build_response(
+                status.HTTP_402_PAYMENT_REQUIRED,
+                success=False,
+                error=-5,
+                message='Transaction has not been completed successfully.',
+            )
+
+        cart = CartItem.for_user(request.user)
+
+        cart_total_in_rial = cart.total_price() * 10
+
+        if transaction.amount < cart_total_in_rial:
+            return self.build_response(
+                status.HTTP_402_PAYMENT_REQUIRED,
+                success=False,
+                error=-3,
+                message='Transaction amount does not cover the cart total.',
+            )
+
+        for cart_item in cart:
+            cart_item.item.bought_by.add(request.user)
+
+        transaction.locked_in = True
+        transaction.save(update_fields=['locked_in'])
+
+        cart.clear()
+
+        logger.info(
+            f'Cart finalized for user {request.user.pk} '
+            f'via transaction {transaction_id}.'
+        )
+
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True,
+            message='Purchase finalized.',
         )
