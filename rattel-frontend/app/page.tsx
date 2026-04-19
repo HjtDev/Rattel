@@ -1,24 +1,24 @@
 import Image from "next/image";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
-import Hero from "@/src/components/home/Hero";
-import FeaturedCourses from "@/src/components/home/FeaturedCourses";
-import Categories from "@/src/components/home/Categories";
-import Teachers from "@/src/components/home/Teachers";
-import Testimonials from "@/src/components/home/Testimonials";
-import CallToAction from "@/src/components/home/CallToAction";
+import Landing from "@/src/components/home/Landing";
+import Statistics from "@/src/components/home/Statistics";
+import PopularCourses from "@/src/components/home/PopularCourses";
+import TrendingCourses from "@/src/components/home/TrendingCourses";
+import UsersExperience from "@/src/components/home/UsersExperience";
+import Advertisement from "@/src/components/home/Advertisement";
 
 export default function Home() {
   return (
     <>
       <Navbar />
       <main>
-        <Hero />
-        <FeaturedCourses />
-        <Categories />
-        <Teachers />
-        <Testimonials />
-        <CallToAction />
+        <Landing />
+        <Statistics />
+        <PopularCourses />
+        <Advertisement />
+        <TrendingCourses />
+        <UsersExperience />
       </main>
       <Footer />
     </>

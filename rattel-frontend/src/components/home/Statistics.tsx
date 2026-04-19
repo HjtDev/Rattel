@@ -1,0 +1,99 @@
+export default function Statistics() {
+  return (
+      <section className="py-0 py-xl-5">
+        <div className="container">
+          <div className="row g-4">
+            <div className="col-sm-6 col-xl-3">
+              <div
+                  className="d-flex justify-content-center align-items-center p-4 bg-warning bg-opacity-15 rounded-3">
+          <span className="display-6 lh-1 text-warning mb-0">
+            <i className="fas fa-tv">
+            </i>
+          </span>
+                <div className="ms-4 h6 fw-normal mb-0">
+                  <div className="d-flex">
+                    <h5 className="purecounter mb-0 fw-bold" data-purecounter-start="0"
+                        data-purecounter-end="10" data-purecounter-delay="200" data-purecounter-duration="0">
+                      10
+                    </h5>
+                    <span className="mb-0 h5">
+                دوره
+              </span>
+                  </div>
+                  <p className="mb-0">
+                    آموزش آنلاین
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-6 col-xl-3">
+              <div className="d-flex justify-content-center align-items-center p-4 bg-blue bg-opacity-10 rounded-3">
+          <span className="display-6 lh-1 text-blue mb-0">
+            <i className="fas fa-user-tie">
+            </i>
+          </span>
+                <div className="ms-4 h6 fw-normal mb-0">
+                  <div className="d-flex">
+                    <h5 className="purecounter mb-0 fw-bold" data-purecounter-start="0"
+                        data-purecounter-end="200" data-purecounter-delay="200" data-purecounter-duration="0">
+                      200
+                    </h5>
+                    <span className="mb-0 h5">
+                مـدرس
+              </span>
+                  </div>
+                  <p className="mb-0">
+                    مجرب و باسابقه
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-6 col-xl-3">
+              <div className="d-flex justify-content-center align-items-center p-4 bg-purple bg-opacity-10 rounded-3">
+          <span className="display-6 lh-1 text-purple mb-0">
+            <i className="fas fa-user-graduate">
+            </i>
+          </span>
+                <div className="ms-4 h6 fw-normal mb-0">
+                  <div className="d-flex">
+                    <h5 className="purecounter mb-0 fw-bold" data-purecounter-start="0"
+                        data-purecounter-end="60" data-purecounter-delay="200" data-purecounter-duration="0">
+                      60
+                    </h5>
+                    <span className="mb-0 h5">
+                هنرجـو
+              </span>
+                  </div>
+                  <p className="mb-0">
+                    دانشجوی آنلاین
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-6 col-xl-3">
+              <div className="d-flex justify-content-center align-items-center p-4 bg-info bg-opacity-10 rounded-3">
+          <span className="display-6 lh-1 text-info mb-0">
+            <i className="bi bi-patch-check-fill">
+            </i>
+          </span>
+                <div className="ms-4 h6 fw-normal mb-0">
+                  <div className="d-flex">
+                    <h5 className="purecounter mb-0 fw-bold" data-purecounter-start="0" data-purecounter-end="6"
+                        data-purecounter-delay="300" data-purecounter-duration="0">
+                      6
+                    </h5>
+                    <span className="mb-0 h5">
+                مدرک بین المللی
+              </span>
+                  </div>
+                  <p className="mb-0">
+                    دوره های گواهی شده
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+  );
+}
