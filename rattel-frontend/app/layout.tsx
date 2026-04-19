@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// TEMPLATE: import your main template CSS files below
-// import "../src/styles/template.css";
-import "./globals.css";
+import "../public/assets/css/style-rtl.css";
 
 export const metadata: Metadata = {
   title: "Rattel",
@@ -26,6 +25,7 @@ export default function RootLayout({
           closeOnClick
           pauseOnHover
         />
+        <Script src="/assets/js/functions.js" strategy="lazyOnload" />
       </body>
     </html>
   );

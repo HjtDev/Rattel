@@ -128,3 +128,5 @@ rattel-frontend/.idea/
 *.http
 
 RattelBackend/http-client.env.json
+
+rattel-frontend/public
