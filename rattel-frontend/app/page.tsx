@@ -7,20 +7,32 @@ import PopularCourses from "@/src/components/home/PopularCourses";
 import TrendingCourses from "@/src/components/home/TrendingCourses";
 import UsersExperience from "@/src/components/home/UsersExperience";
 import Advertisement from "@/src/components/home/Advertisement";
+import DualChoice from "@/src/components/home/DualChoice";
+import TopTeachers from "@/src/components/home/TopTeachers";
+import ImagedLinks from "@/src/components/home/ImagedLinks";
+import CourseDemo from "@/src/components/home/CourseDemo";
+import InformationBoxes from "@/src/components/home/InformationBoxes";
+import FAQ from "@/src/components/home/FAQ";
 
 export default function Home() {
-  return (
-    <>
-      <Navbar />
-      <main>
-        <Landing />
-        <Statistics />
-        <PopularCourses />
-        <Advertisement />
-        <TrendingCourses />
-        <UsersExperience />
-      </main>
-      <Footer />
-    </>
-  );
+    return (
+        <>
+            <Navbar/>
+            <main>
+                <Landing/>
+                <Statistics/>
+                <PopularCourses/>
+                <DualChoice />
+                <Advertisement/>
+                <TrendingCourses/>
+                <UsersExperience/>
+                <TopTeachers />
+                <ImagedLinks />
+                <CourseDemo />
+                <InformationBoxes />
+                <FAQ />
+            </main>
+            <Footer/>
+        </>
+    );
 }
