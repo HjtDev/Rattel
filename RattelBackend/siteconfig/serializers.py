@@ -272,22 +272,27 @@ class SiteNavbarSerializer(ModelSerializer):
         Retrieve title-only navbar items for column 1, ordered by `order`.
         """
         items = SiteNavbarTitleOnlyItems.objects.filter(navbar=obj).order_by('order')
-        return SiteNavbarTitleOnlyItemsSerializer(items, many=True).data
+        return {'title': obj.col1_title, 'items': SiteNavbarTitleOnlyItemsSerializer(items, many=True).data}
     
     def get_col2(self, obj: SiteNavbar):
         """
         Retrieve described navbar items for column 2, ordered by `order`.
         """
         items = SiteNavbarDescribedItems.objects.filter(navbar=obj).order_by('order')
-        return SiteNavbarDescribedItemsSerializer(items, many=True).data
-    
+        return {'title': obj.col2_title, 'items': SiteNavbarDescribedItemsSerializer(items, many=True).data}
+
     def get_col3(self, obj: SiteNavbar):
         """
         Retrieve image navbar items for column 3, ordered by `order`.
         """
+        request = self.context.get('request', None)
         items = SiteNavbarImageItems.objects.filter(navbar=obj).order_by('order')
-        return SiteNavbarImageItemsSerializer(items, context=self.context, many=True).data
-    
+
+        if request:
+            return {'title': obj.col3_title, 'items': SiteNavbarImageItemsSerializer(items, many=True, context={'request': request}).data}
+        else:
+            return {'title': obj.col3_title, 'items': SiteNavbarImageItemsSerializer(items, many=True).data}
+
     def get_banner(self, obj: SiteNavbar):
         """
         Build the banner object for the navbar.
