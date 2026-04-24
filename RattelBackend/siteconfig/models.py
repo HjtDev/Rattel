@@ -575,3 +575,9 @@ class FAQ(models.Model):
 
     def __str__(self):
         return f'FAQ: {self.question[:19] + '...' if len(self.question) > 20 else self.question}'
+    
+    def save(self, *args, **kwargs):
+        invalidate_cache('faq')
+        
+        return super().save(*args, **kwargs)
+        
