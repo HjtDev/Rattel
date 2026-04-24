@@ -1,4 +1,32 @@
-export default function Statistics() {
+import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
+
+interface Link {
+    name: string;
+    logo: string | null;
+    url: string;
+}
+
+interface StatsSection {
+    stat1_title: string;
+    stat1_description: string;
+    stat1_link: Link | null;
+    stat2_title: string;
+    stat2_description: string;
+    stat2_link: Link | null;
+    stat3_title: string;
+    stat3_description: string;
+    stat3_link: Link | null;
+    stat4_title: string;
+    stat4_description: string;
+    stat4_link: Link | null;
+}
+
+interface StatisticsProps {
+    data: StatsSection | null;
+    isLoading: boolean;
+}
+
+export default function Statistics({ data, isLoading }: StatisticsProps) {
   return (
       <section className="py-0 py-xl-5">
         <div className="container">
@@ -12,17 +40,19 @@ export default function Statistics() {
           </span>
                 <div className="ms-4 h6 fw-normal mb-0">
                   <div className="d-flex">
-                    <h5 className="purecounter mb-0 fw-bold" data-purecounter-start="0"
-                        data-purecounter-end="10" data-purecounter-delay="200" data-purecounter-duration="0">
-                      10
-                    </h5>
-                    <span className="mb-0 h5">
-                دوره
-              </span>
+                    <LoadingSkeleton isLoading={isLoading} Content={() => (
+                        <a href={data?.stat1_link?.url}>
+                            <h5 className="mb-0 fw-bold">
+                                {data?.stat1_title}
+                            </h5>
+                        </a>
+                    )} width={80} height={28} />
                   </div>
-                  <p className="mb-0">
-                    آموزش آنلاین
-                  </p>
+                  <LoadingSkeleton isLoading={isLoading} Content={() => (
+                    <p className="mb-0">
+                      {data?.stat1_description}
+                    </p>
+                  )} width={100} height={20} />
                 </div>
               </div>
             </div>
@@ -34,17 +64,19 @@ export default function Statistics() {
           </span>
                 <div className="ms-4 h6 fw-normal mb-0">
                   <div className="d-flex">
-                    <h5 className="purecounter mb-0 fw-bold" data-purecounter-start="0"
-                        data-purecounter-end="200" data-purecounter-delay="200" data-purecounter-duration="0">
-                      200
-                    </h5>
-                    <span className="mb-0 h5">
-                مـدرس
-              </span>
+                    <LoadingSkeleton isLoading={isLoading} Content={() => (
+                        <a href={data?.stat2_link?.url}>
+                            <h5 className="mb-0 fw-bold">
+                                {data?.stat2_title}
+                            </h5>
+                        </a>
+                    )} width={80} height={28} />
                   </div>
-                  <p className="mb-0">
-                    مجرب و باسابقه
-                  </p>
+                  <LoadingSkeleton isLoading={isLoading} Content={() => (
+                    <p className="mb-0">
+                      {data?.stat2_description}
+                    </p>
+                  )} width={100} height={20} />
                 </div>
               </div>
             </div>
@@ -56,17 +88,19 @@ export default function Statistics() {
           </span>
                 <div className="ms-4 h6 fw-normal mb-0">
                   <div className="d-flex">
-                    <h5 className="purecounter mb-0 fw-bold" data-purecounter-start="0"
-                        data-purecounter-end="60" data-purecounter-delay="200" data-purecounter-duration="0">
-                      60
-                    </h5>
-                    <span className="mb-0 h5">
-                هنرجـو
-              </span>
+                    <LoadingSkeleton isLoading={isLoading} Content={() => (
+                        <a href={data?.stat3_link?.url}>
+                            <h5 className="mb-0 fw-bold">
+                                {data?.stat3_title}
+                            </h5>
+                        </a>
+                    )} width={80} height={28} />
                   </div>
-                  <p className="mb-0">
-                    دانشجوی آنلاین
-                  </p>
+                  <LoadingSkeleton isLoading={isLoading} Content={() => (
+                    <p className="mb-0">
+                      {data?.stat3_description}
+                    </p>
+                  )} width={100} height={20} />
                 </div>
               </div>
             </div>
@@ -78,17 +112,19 @@ export default function Statistics() {
           </span>
                 <div className="ms-4 h6 fw-normal mb-0">
                   <div className="d-flex">
-                    <h5 className="purecounter mb-0 fw-bold" data-purecounter-start="0" data-purecounter-end="6"
-                        data-purecounter-delay="300" data-purecounter-duration="0">
-                      6
-                    </h5>
-                    <span className="mb-0 h5">
-                مدرک بین المللی
-              </span>
+                    <LoadingSkeleton isLoading={isLoading} Content={() => (
+                        <a href={data?.stat4_link?.url}>
+                            <h5 className="mb-0 fw-bold">
+                                {data?.stat4_title}
+                            </h5>
+                        </a>
+                    )} width={80} height={28} />
                   </div>
-                  <p className="mb-0">
-                    دوره های گواهی شده
-                  </p>
+                  <LoadingSkeleton isLoading={isLoading} Content={() => (
+                    <p className="mb-0">
+                      {data?.stat4_description}
+                    </p>
+                  )} width={100} height={20} />
                 </div>
               </div>
             </div>
