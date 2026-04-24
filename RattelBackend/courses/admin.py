@@ -70,6 +70,7 @@ class CourseAdmin(admin.ModelAdmin):
                     'difficulty',
                     'age_group',
                     'rating',
+                    'image',
                     'intro_video',
                     'is_visible',
                 ),

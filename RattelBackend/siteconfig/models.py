@@ -304,7 +304,7 @@ class MainPage(models.Model):
     landing_link = models.ForeignKey(Link, on_delete=models.SET_NULL, related_name='is_landing_link', blank=True, null=True, verbose_name='Quick Start Link')
     landing_video = models.FileField(upload_to='landing_contents/video', blank=True, null=True, validators=[video_validator], verbose_name='Video Intro')
 
-    landing_image = ResizedImageField(upload_to='landing_contents/image', size=[386, 603], quality=100, crop=['middle', 'center'], verbose_name='Landing Image')
+    landing_image = models.FileField(upload_to='landing_contents/image', verbose_name='Landing Image', help_text='Recommended: 386 * 603')
     landing_message_title = models.CharField(max_length=60, verbose_name='Message Title')
     landing_message_description = models.CharField(max_length=80, verbose_name='Message Description')
 
@@ -578,6 +578,6 @@ class FAQ(models.Model):
     
     def save(self, *args, **kwargs):
         invalidate_cache('faq')
-        
+
         return super().save(*args, **kwargs)
         

@@ -82,6 +82,7 @@ class CourseListSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
+            'image',
             'price',
             'new_price',
             'difficulty',
@@ -119,6 +120,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'id',
             'content_type',
             'name',
+            'image',
             'teacher',
             'short_description',
             'long_description',

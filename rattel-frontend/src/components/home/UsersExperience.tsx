@@ -68,7 +68,7 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                       {
                         data?.comment1_user?.profile_picture && (
                               <div className="avatar avatar-xl mb-3">
-                                <img className="avatar-img rounded-circle" src={data.comment1_user.profile_picture} alt={data.comment1_user.name}/>
+                                <img className="avatar-img rounded-circle" src={getMediaUrl(data.comment1_user.profile_picture)} alt={data.comment1_user.name}/>
                               </div>
                           )
                       }
@@ -271,7 +271,7 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                     {
                       data?.comment2_user?.profile_picture && (
                             <div className="avatar avatar-xl mb-3">
-                              <img className="avatar-img rounded-circle" src={data.comment2_user.profile_picture}
+                              <img className="avatar-img rounded-circle" src={getMediaUrl(data.comment2_user.profile_picture)}
                                    alt="avatar"/>
                             </div>
                         )

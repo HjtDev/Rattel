@@ -21,10 +21,10 @@ export default function HomePage() {
         advertisementData,
         dualChoicesData,
         userExperienceData,
-        topTeachersData,
         imagedLinksData,
         coursesDemoData,
         informationBoxesData,
+        topTeachersData,
         isLoadingMainPage,
         error
     } = useMainPage();
@@ -48,9 +48,9 @@ export default function HomePage() {
             <Advertisement data={advertisementData} isLoading={isLoadingMainPage} />
             <TrendingCourses />
             <UsersExperience data={userExperienceData} isLoading={isLoadingMainPage} />
-            <TopTeachers />
+            <TopTeachers data={topTeachersData} />
             <ImagedLinks data={imagedLinksData} isLoading={isLoadingMainPage} />
-            <CourseDemo />
+            <CourseDemo data={coursesDemoData} isLoading={isLoadingMainPage} />
             <InformationBoxes data={informationBoxesData} isLoading={isLoadingMainPage} />
             <FAQ />
         </main>
