@@ -22,7 +22,7 @@ export default function LoadingSkeleton({
                 {Array.from({ length: count }).map((_, index) => (
                     <div
                         key={index}
-                        className="skeleton-box"
+                        className="skeleton-box mx-1"
                         style={{
                             width: typeof width === 'number' ? `${width}px` : width,
                             height: typeof height === 'number' ? `${height}px` : height,

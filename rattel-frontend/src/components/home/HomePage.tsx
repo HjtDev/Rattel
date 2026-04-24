@@ -41,7 +41,7 @@ export default function HomePage() {
 
     return (
         <main>
-            <Landing data={landingData} isLoadingMainPage={isLoadingMainPage} />
+            <Landing data={landingData} isLoading={isLoadingMainPage} />
             <Statistics />
             <PopularCourses />
             <DualChoice />
