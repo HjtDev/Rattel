@@ -19,8 +19,7 @@ class Link(models.Model):
     
     name = models.CharField(max_length=255, verbose_name='Internal Name',
                             help_text='Internal reference (e.g., "Contact Page")')
-    logo = ResizedImageField(upload_to='Links/', quality=100, blank=True, null=True,
-                             verbose_name='Link Logo', help_text='Recommended: Maintain square aspect-ratio')
+    logo = models.FileField(upload_to='Links/', blank=True, null=True, verbose_name='Link Logo', help_text='Recommended: Maintain square aspect-ratio')
     url = models.URLField(verbose_name='URL')
     
     def __str__(self):
@@ -266,7 +265,7 @@ class Information(models.Model):
 
     title = models.CharField(max_length=130, verbose_name='Title')
     description = HTMLField(verbose_name='Description')
-    image = ResizedImageField(upload_to='information/images', quality=100, verbose_name='Image', help_text='Recommended: 615 * 435')
+    image = models.FileField(upload_to='information/images', verbose_name='Image', help_text='Recommended: 615 * 435')
 
     order = models.PositiveIntegerField(default=0, verbose_name='Order', help_text='Lower number appear first')
 

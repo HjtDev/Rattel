@@ -51,7 +51,7 @@ export default function HomePage() {
             <TopTeachers />
             <ImagedLinks data={imagedLinksData} isLoading={isLoadingMainPage} />
             <CourseDemo />
-            <InformationBoxes />
+            <InformationBoxes data={informationBoxesData} isLoading={isLoadingMainPage} />
             <FAQ />
         </main>
     );
