@@ -60,7 +60,10 @@ interface DualChoicesSection {
 interface UserExperienceSection {
     title: string;
     description: string;
-    top_users: boolean;
+    top_users: boolean | {
+        title: string;
+        list: User[]
+    };
     comment1_text: string;
     comment1_user: User;
     comment1_rate: number;

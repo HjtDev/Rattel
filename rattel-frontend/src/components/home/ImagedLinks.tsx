@@ -1,4 +1,22 @@
-export default function ImagedLinks() {
+import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
+import {getMediaUrl} from "@/src/core/utils";
+
+interface ImagedLink {
+    name: string;
+    logo: string | null;
+    url: string;
+}
+
+interface ImagedLinksSection {
+    links: ImagedLink[];
+}
+
+interface ImagedLinksProps {
+    data: ImagedLinksSection | null;
+    isLoading: boolean;
+}
+
+export default function ImagedLinks({data, isLoading}: ImagedLinksProps) {
     return (
         <section>
             <div className="container">
@@ -24,313 +42,25 @@ export default function ImagedLinks() {
                                                 data-items="5" data-items-lg="3" data-items-md="2" data-items-xs="1"
                                                 id="tns1"
                                                 style={{transform: 'translate3d(57.6923%, 0px, 0px)'}}>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/21.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            هوش مصنوعی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/24.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بهداشت
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/25.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            استارت آپ
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/26.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            مهندسی عمران
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/22.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بیوشیمی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/23.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            فیزیک
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/21.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            هوش مصنوعی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/24.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بهداشت
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/25.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            استارت آپ
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/26.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            مهندسی عمران
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item" id="tns1-item0" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/22.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بیوشیمی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item" id="tns1-item1" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/23.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            فیزیک
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item" id="tns1-item2" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/21.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            هوش مصنوعی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item" id="tns1-item3" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/24.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بهداشت
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item" id="tns1-item4" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/25.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            استارت آپ
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-active" id="tns1-item5">
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/26.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            مهندسی عمران
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned tns-slide-active">
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/22.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بیوشیمی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned tns-slide-active">
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/23.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            فیزیک
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned tns-slide-active">
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/21.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            هوش مصنوعی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned tns-slide-active">
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/24.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بهداشت
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/25.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            استارت آپ
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/26.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            مهندسی عمران
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/22.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بیوشیمی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/23.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            فیزیک
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/21.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            هوش مصنوعی
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div className="tns-item tns-slide-cloned" aria-hidden="true"
-                                                     tabIndex={-1}>
-                                                    <div
-                                                        className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
-                                                        <img src="assets/images/element/24.svg" className="h-40px"/>
-                                                        <a href="#" className="text-primary-hover stretched-link">
-                          <span className="h6 ms-2">
-                            بهداشت
-                          </span>
-                                                        </a>
-                                                    </div>
-                                                </div>
+                                                <LoadingSkeleton isLoading={isLoading} Content={() => (
+                                                    <>
+                                                        {data?.links.map((link, index) => (
+                                                            <div key={index} className="tns-item">
+                                                                <div
+                                                                    className="bg-body text-center rounded-2 border py-2 px-1 position-relative">
+                                                                    {link.logo && (
+                                                                        <img src={getMediaUrl(link.logo)}
+                                                                             className="h-40px" alt={link.name}/>
+                                                                    )}
+                                                                    <a href={link.url}
+                                                                       className="text-primary-hover stretched-link">
+                                                                        <span className="h6 ms-2">{link.name}</span>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </>
+                                                )} width={120} height={60} count={5}/>
                                             </div>
                                         </div>
                                     </div>

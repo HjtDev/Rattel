@@ -1,4 +1,23 @@
-export default function Advertisement() {
+import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
+
+interface Link {
+    name: string;
+    logo: string | null;
+    url: string;
+}
+
+interface AdvertisementSection {
+    title: string;
+    description: string;
+    link: Link;
+}
+
+interface AdvertisementProps {
+    data: AdvertisementSection | null;
+    isLoading: boolean;
+}
+
+export default function Advertisement({ data, isLoading }: AdvertisementProps) {
   return (
       <section className="pt-0 pt-lg-5">
         <div className="container position-relative">
@@ -32,19 +51,27 @@ export default function Advertisement() {
                   <div className="col-11 mx-auto position-relative">
                     <div className="row align-items-center">
                       <div className="col-lg-7">
-                        <h3 className="text-white">
-                          مدرس شویـد!
-                        </h3>
-                        <p className="text-white mb-3 mb-lg-0">
-                          ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی
-                          دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده
-                          قرار گیرد.
-                        </p>
+                        <LoadingSkeleton isLoading={isLoading} Content={() => (
+                          <h3 className="text-white">
+                            {data?.title}
+                          </h3>
+                        )} width={200} height={36} />
+                        <LoadingSkeleton isLoading={isLoading} Content={() => (
+                          <p className="text-white mb-3 mb-lg-0">
+                            {data?.description}
+                          </p>
+                        )} width={500} height={60} />
                       </div>
                       <div className="col-lg-5 text-lg-end">
-                        <a href="#" className="btn btn-outline-warning mb-0">
-                          ثبت نام
-                        </a>
+                        <LoadingSkeleton isLoading={isLoading} Content={() => (
+                          <>
+                            {data?.link?.url && (
+                              <a href={data.link.url} className="btn btn-outline-warning mb-0">
+                                {data.link.name}
+                              </a>
+                            )}
+                          </>
+                        )} width={100} height={40} />
                       </div>
                     </div>
                   </div>

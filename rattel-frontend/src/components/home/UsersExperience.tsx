@@ -1,4 +1,55 @@
-export default function UsersExperience() {
+import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
+import { getMediaUrl } from "@/src/core/utils";
+
+interface User {
+    name: string;
+    profile_picture: string | null;
+}
+
+interface UserExperienceSection {
+    title: string;
+    description: string;
+    top_users: boolean;
+    comment1_text: string;
+    comment1_user: User;
+    comment1_rate: number;
+    comment2_text: string;
+    comment2_user: User;
+    comment2_rate: number;
+}
+
+interface UsersExperienceProps {
+    data: UserExperienceSection | null;
+    isLoading: boolean;
+}
+
+export default function UsersExperience({ data, isLoading }: UsersExperienceProps) {
+  
+  // Helper function to render star rating
+  const renderStars = (rate: number) => {
+    const fullStars = Math.floor(rate);
+    const hasHalfStar = rate % 1 !== 0;
+    const stars = [];
+    
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(
+        <li key={`full-${i}`} className="list-inline-item me-0 small">
+          <i className="fas fa-star text-warning"></i>
+        </li>
+      );
+    }
+    
+    if (hasHalfStar) {
+      stars.push(
+        <li key="half" className="list-inline-item me-0 small">
+          <i className="fas fa-star-half-alt text-warning"></i>
+        </li>
+      );
+    }
+    
+    return stars;
+  };
+  
   return (
       <section className="bg-light">
         <div className="container">
@@ -14,105 +65,69 @@ export default function UsersExperience() {
                     </svg>
                   </figure>
                   <div className="bg-body shadow text-center p-4 rounded-3 position-relative mb-5 mb-md-0">
-                    <div className="avatar avatar-xl mb-3">
-                      <img className="avatar-img rounded-circle" src="assets/images/avatar/01.jpg"
-                           alt="avatar"/>
-                    </div>
+                      {
+                        data?.comment1_user?.profile_picture && (
+                              <div className="avatar avatar-xl mb-3">
+                                <img className="avatar-img rounded-circle" src={data.comment1_user.profile_picture} alt={data.comment1_user.name}/>
+                              </div>
+                          )
+                      }
                     <blockquote>
-                      <p>
-                  <span className="me-1 small">
-                    <i className="fas fa-quote-left">
-                    </i>
-                  </span>
-                        با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ
-                        پیشرو در زبان فارسی ایجاد کرد
-                        <span className="ms-1 small">
-                    <i className="fas fa-quote-right">
-                    </i>
-                  </span>
-                      </p>
+                      <LoadingSkeleton isLoading={isLoading} Content={() => (
+                          <p>
+                        <span className="me-1 small">
+                          <i className="fas fa-quote-left"></i>
+                        </span>
+                            {data?.comment1_text}
+                            <span className="ms-1 small">
+                          <i className="fas fa-quote-right"></i>
+                        </span>
+                          </p>
+                      )} width={190} height={110} />
                     </blockquote>
-                    <ul className="list-inline mb-2">
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star-half-alt text-warning">
-                        </i>
-                      </li>
-                    </ul>
-                    <h6 className="mb-0">
-                      الهام حسینی
-                    </h6>
+                    <LoadingSkeleton isLoading={isLoading} Content={() => (
+                        <ul className="list-inline mb-2">
+                          {renderStars(data?.comment1_rate)}
+                        </ul>
+                    )} width={192} height={20} />
+                    <LoadingSkeleton isLoading={isLoading} Content={() => (
+                        <h6 className="mb-0">
+                          {data?.comment1_user.name}
+                        </h6>
+                    )} width={192} height={20} />
                   </div>
                 </div>
-                <div className="col-md-5 mt-5 mt-md-0 d-none d-md-block">
-                  <div className="bg-body shadow p-4 rounded-3 d-inline-block position-relative">
-                    <div
-                        className="icon-lg bg-warning rounded-circle position-absolute top-0 start-100 translate-middle">
-                      <i className="bi bi-shield-fill-check text-dark">
-                      </i>
-                    </div>
-                    <h6 className="mb-3">
-                      مدرسین مجرب
-                    </h6>
-                    <div className="d-flex align-items-center mb-3">
-                      <div className="avatar avatar-sm">
-                        <img className="avatar-img rounded-1" src="assets/images/avatar/09.jpg"
-                             alt="avatar"/>
-                      </div>
-                      <div className="ms-2">
-                        <h6 className="mb-0">
-                          نازنین فلاحتی
-                        </h6>
-                        <p className="mb-0 small">
-                          مدرس فیزیک
-                        </p>
-                      </div>
-                    </div>
-                    <div className="d-flex align-items-center mb-3">
-                      <div className="avatar avatar-sm">
-                        <img className="avatar-img rounded-1" src="assets/images/avatar/04.jpg"
-                             alt="avatar"/>
-                      </div>
-                      <div className="ms-2">
-                        <h6 className="mb-0">
-                          مهرداد نوروزی
-                        </h6>
-                        <p className="mb-0 small">
-                          مدرس شیمی
-                        </p>
-                      </div>
-                    </div>
-                    <div className="d-flex align-items-center">
-                      <div className="avatar avatar-sm">
-                        <img className="avatar-img rounded-1" src="assets/images/avatar/02.jpg"
-                             alt="avatar"/>
-                      </div>
-                      <div className="ms-2">
-                        <h6 className="mb-0">
-                          رامین ناصری
-                        </h6>
-                        <p className="mb-0 small">
-                          مدرس ریاضی
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {
+                    data?.top_users != false && (
+                        <div className="col-md-5 mt-5 mt-md-0 d-none d-md-block">
+                          <div className="bg-body shadow p-4 rounded-3 d-inline-block position-relative">
+                            <div
+                                className="icon-lg bg-warning rounded-circle position-absolute top-0 start-100 translate-middle">
+                              <i className="bi bi-shield-fill-check text-dark">
+                              </i>
+                            </div>
+                            <LoadingSkeleton isLoading={isLoading} Content={() => (
+                                <h6 className="mb-3">
+                                  {data?.top_users.title}
+                                </h6>
+                            )} width={130} height={20}/>
+                            <LoadingSkeleton isLoading={isLoading} Content={() => (
+                                data?.top_users.list.map((user: User, index: number) => (
+                                        <div className="d-flex align-items-center mb-3" key={index}>
+                                          <div className="ms-2">
+                                            <h6 className="mb-0">
+                                              {user.name}
+                                            </h6>
+                                          </div>
+                                        </div>
+                                    )
+                                )
+                            )} width={175} height={75}/>
+                          </div>
+                        </div>
+                    )
+                }
+
               </div>
               <div className="row mt-5 mt-xl-0">
                 <div className="col-7 mt-0 mt-xl-5 text-end position-relative z-index-1 d-none d-md-block">
@@ -250,101 +265,56 @@ export default function UsersExperience() {
                       </path>
                     </svg>
                   </figure>
-                  <div className="p-3 bg-primary d-inline-block rounded-4 shadow-lg text-center" style={{
-                    background: 'url(assets/images/pattern/02.png) no-repeat center center',
-                    backgroundSize: 'cover'
-                  }}>
-                    <h5 className="text-white mb-0">
-                      4.5/5.0
-                    </h5>
-                    <ul className="list-inline mb-2">
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star-half-alt text-warning">
-                        </i>
-                      </li>
-                    </ul>
-                    <p className="text-white mb-0">
-                      بر اساس 3265 رتبه بندی
-                    </p>
-                  </div>
                 </div>
                 <div className="col-md-5 mt-n6 mb-0 mb-md-5">
-                  <div className="bg-body shadow text-center p-4 rounded-3">
-                    <div className="avatar avatar-xl mb-3">
-                      <img className="avatar-img rounded-circle" src="assets/images/avatar/03.jpg"
-                           alt="avatar"/>
-                    </div>
+                  <div className="bg-body shadow text-center p-4 rounded-3 mt-7">
+                    {
+                      data?.comment2_user?.profile_picture && (
+                            <div className="avatar avatar-xl mb-3">
+                              <img className="avatar-img rounded-circle" src={data.comment2_user.profile_picture}
+                                   alt="avatar"/>
+                            </div>
+                        )
+                    }
                     <blockquote>
-                      <p>
-                  <span className="me-1 small">
-                    <i className="fas fa-quote-left">
-                    </i>
-                  </span>
-                        با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ
-                        پیشرو در زبان فارسی ایجاد کرد
-                        <span className="ms-1 small">
-                    <i className="fas fa-quote-right">
-                    </i>
-                  </span>
-                      </p>
+
+                      <LoadingSkeleton isLoading={isLoading} Content={() => (
+                          <p>
+                        <span className="me-1 small">
+                          <i className="fas fa-quote-left"></i>
+                        </span>
+                            {data?.comment2_text}
+                            <span className="ms-1 small">
+                          <i className="fas fa-quote-right"></i>
+                        </span>
+                          </p>
+                      )} width={190} height={110} />
                     </blockquote>
-                    <ul className="list-inline mb-2">
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star text-warning">
-                        </i>
-                      </li>
-                      <li className="list-inline-item me-0 small">
-                        <i className="fas fa-star-half-alt text-warning">
-                        </i>
-                      </li>
-                    </ul>
-                    <h6 className="mb-0">
-                      مسعود قهرمانی
-                    </h6>
+                    <LoadingSkeleton isLoading={isLoading} Content={() => (
+                        <ul className="list-inline mb-2">
+                          {renderStars(data?.comment2_rate)}
+                        </ul>
+                    )} width={192} height={20} />
+                    <LoadingSkeleton isLoading={isLoading} Content={() => (
+                        <h6 className="mb-0">
+                          {data?.comment2_user.name}
+                        </h6>
+                    )} width={192} height={20} />
                   </div>
                 </div>
               </div>
             </div>
             <div className="col-xl-5 order-1 text-center text-xl-start">
-              <h2 className="fs-2">
-                دیدگـاه هنرجویـان
-              </h2>
-              <p>
-                با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت
-                فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص
-                طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد.
-              </p>
-              <a href="#" className="btn btn-primary mb-0">
-                سایر دیدگاه
-              </a>
+              <LoadingSkeleton isLoading={isLoading} Content={() => (
+                  <h2 className="fs-2">
+                    {data?.title}
+                  </h2>
+              )} width={435} height={45} />
+              <LoadingSkeleton isLoading={isLoading} Content={() => (
+                  <p>
+                    {data?.description}
+                  </p>
+              )} width={435} height={90} />
             </div>
           </div>
         </div>

@@ -44,12 +44,12 @@ export default function HomePage() {
             <Landing data={landingData} isLoading={isLoadingMainPage} />
             <Statistics data={statsData} isLoading={isLoadingMainPage} />
             <PopularCourses />
-            <DualChoice />
-            <Advertisement />
+            <DualChoice data={dualChoicesData} isLoading={isLoadingMainPage} />
+            <Advertisement data={advertisementData} isLoading={isLoadingMainPage} />
             <TrendingCourses />
-            <UsersExperience />
+            <UsersExperience data={userExperienceData} isLoading={isLoadingMainPage} />
             <TopTeachers />
-            <ImagedLinks />
+            <ImagedLinks data={imagedLinksData} isLoading={isLoadingMainPage} />
             <CourseDemo />
             <InformationBoxes />
             <FAQ />
