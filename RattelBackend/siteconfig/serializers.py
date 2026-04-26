@@ -132,7 +132,10 @@ class FooterSerializer(ModelSerializer):
     
     class Meta:
         model = Footer
-        fields = ('logo', 'description', 'rights', 'columns', 'social_media_items')
+        fields = (
+            'logo', 'description', 'rights', 'columns', 'social_media_items',
+            'contact_address', 'contact_phone', 'contact_email', 'contact_hours'
+        )
         
     def get_logo(self, obj: Footer):
         """

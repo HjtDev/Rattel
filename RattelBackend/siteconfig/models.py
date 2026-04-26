@@ -123,6 +123,11 @@ class Footer(models.Model):
     rights = models.CharField(max_length=300, verbose_name='Copyright Text',
                               help_text='e.g., "All rights reserved. © 2026"')
     
+    contact_address = models.CharField(max_length=500, blank=True, verbose_name='Contact Address')
+    contact_phone = models.CharField(max_length=50, blank=True, verbose_name='Contact Phone')
+    contact_email = models.EmailField(max_length=100, blank=True, verbose_name='Contact Email')
+    contact_hours = models.CharField(max_length=200, blank=True, verbose_name='Contact Hours')
+    
     def __str__(self):
         return 'Footer Configuration'
     
