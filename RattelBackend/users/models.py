@@ -83,6 +83,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     date_joined = models.DateTimeField(default=timezone.now, verbose_name='Date Joined')
     
+    course_history = models.ManyToManyField('courses.Course', blank=True, related_name='viewed_by', verbose_name='Course History')
+    
     objects = UserManager()
     
     USERNAME_FIELD = 'username'
@@ -90,6 +92,28 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     def __str__(self):
         return self.name
+    
+    def add_to_course_history(self, course):
+        """
+        Add a course to user's history, keeping only the last 8 courses.
+        If the course already exists, it will be moved to the most recent position.
+        
+        Args:
+            course: Course instance to add to history
+        """
+        # Remove the course if it already exists (to re-add it as most recent)
+        if self.course_history.filter(pk=course.pk).exists():
+            self.course_history.remove(course)
+        
+        # Add the course to history
+        self.course_history.add(course)
+        
+        # Keep only the last 8 courses (remove oldest if exceeds 8)
+        history_count = self.course_history.count()
+        if history_count > 8:
+            # Get the oldest courses and remove them
+            oldest_courses = self.course_history.all().order_by('coursehistory__id')[:history_count - 8]
+            self.course_history.remove(*oldest_courses)
     
 def validate_national_code(national_code: str):
     if national_code and GetDataMixin.NATIONAL_CODE_REGEX.fullmatch(national_code) is None:
