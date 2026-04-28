@@ -14,7 +14,7 @@ export default function FAQ() {
         <section className="position-relative overflow-hidden pt-0 pt-sm-5">
             <div className="container">
                 <div className="row position-relative z-index-9">
-                    <div className="col-12 text-center mx-auto">
+                    <div className="col-12 text-center mx-auto mt-2">
                         <h2 className="mb-0">
                             پرسش و پاسخ
                         </h2>

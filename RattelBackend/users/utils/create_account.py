@@ -39,7 +39,7 @@ def validate_register_data(**kwargs) -> Tuple[bool, str | None]:
         return False, f'Name {name} is invalid.'
     
     # Checking if email exists and then validating it
-    email = kwargs['email']
+    email = kwargs.get('email')
     if email and not GetDataMixin.validate_email(email):
         return False, f'Email {email} is invalid.'
     

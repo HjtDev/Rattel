@@ -19,7 +19,7 @@ interface AdvertisementProps {
 
 export default function Advertisement({ data, isLoading }: AdvertisementProps) {
   return (
-      <section className="pt-0 pt-lg-5">
+      <section className="pt-0 pt-lg-5 mt-4">
         <div className="container position-relative">
           <figure className="position-absolute top-50 start-50 translate-middle ms-2">
             <svg>
