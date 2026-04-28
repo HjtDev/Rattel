@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/v1/site/', include('siteconfig.urls', namespace='siteconfig')),
     path('api/v1/courses/', include('courses.urls', namespace='courses')),
     path('api/v1/cart/', include('cart.urls', namespace='cart')),
+    path('api/v1/tickets/', include('tickets.urls', namespace='tickets')),
 ]
 
 if settings.DEBUG:

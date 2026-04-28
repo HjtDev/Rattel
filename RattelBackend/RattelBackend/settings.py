@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'siteconfig.apps.SiteconfigConfig',
     'courses.apps.CoursesConfig',
     'cart.apps.CartConfig',
+    'tickets.apps.TicketsConfig'
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
