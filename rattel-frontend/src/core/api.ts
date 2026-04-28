@@ -1,6 +1,7 @@
 import axios from "axios";
 import { setupCache } from "axios-cache-interceptor";
 import { toast } from "react-toastify";
+import { authManager } from "./auth/authManager";
 
 const baseClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL + "/api/v1",
@@ -27,26 +28,47 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (!error.response) {
       toast.error("Network error. Please check your connection.");
       return Promise.reject(error);
     }
 
     const { status } = error.response;
+    const originalRequest = error.config;
+
+    // Handle 401 - try to refresh token once
+    if (status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const refreshed = await authManager.refreshAccessToken();
+      
+      if (refreshed) {
+        const newToken = authManager.getAccessToken();
+        if (newToken) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
+      }
+
+      // Refresh failed - logout user
+      authManager.logout();
+      toast.error("لطفا مجددا وارد حساب خود شوید.");
+      return Promise.reject(error);
+    }
 
     switch (status) {
       case 429:
-        toast.warning("Too many requests. Please slow down.");
+        toast.warning("تعداد درخواست های شما بیش از حد مجاز است لطفا کمی صبر کنید.");
         break;
       case 401:
-        toast.error("Session expired. Please log in again.");
+        toast.error("لطفا مجددا وارد حساب خود شوید.");
         break;
       case 403:
-        toast.error("You do not have permission to perform this action.");
+        toast.error("دسترسی شما محدود شده است.");
         break;
       case 500:
-        toast.error("Server error. Please try again later.");
+        toast.error("مشکلی پیش آمده است لطفا بعدا تلاش کنید.");
         break;
     }
 
