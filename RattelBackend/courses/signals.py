@@ -15,6 +15,7 @@ def invalidate_course_cache(sender, instance, **kwargs):
     # Invalidate all course caches
     invalidate_cache('course_list')
     invalidate_cache('course_detail')
+    invalidate_cache('my_courses')
 
 
 @receiver([post_save, pre_delete], sender=settings.AUTH_USER_MODEL)

@@ -5,7 +5,7 @@ from django.core.paginator import Paginator, EmptyPage
 from django.db.models import QuerySet, Count, Avg
 from django.utils.decorators import method_decorator
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from RattelBackend.cache import drf_cached_response
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
@@ -444,3 +444,75 @@ class TeacherListView(APIView, GetDataMixin, ResponseBuilderMixin):
             message='Successful',
             teachers=data,
         )
+
+
+class MyCoursesView(APIView, ResponseBuilderMixin):
+    """
+    Authenticated endpoint for retrieving user's purchased courses.
+
+    Permissions:
+        - IsAuthenticated: User must be logged in
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Caching:
+        - TTL: 5 minutes (300 seconds)
+        - Cache prefix: 'my_courses'
+        - User-aware caching
+
+    Returns:
+        200 OK:
+            - success=True
+            - message: 'Successful'
+            - courses: List of purchased courses
+            - total: Total number of purchased courses
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    @method_decorator(
+        drf_cached_response(
+            ttl=300,
+            cache_prefix='my_courses',
+            user_aware=True,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        """
+        Return list of courses purchased by the authenticated user.
+
+        Returns:
+            200 OK:
+                - success=True
+                - message: 'Successful'
+                - courses: Serialized list of purchased courses
+                - total: Count of purchased courses
+
+            500 INTERNAL SERVER ERROR:
+                - success=False
+                - error: -1
+                - message: Generic failure message
+        """
+        try:
+            courses = request.user.purchased_courses.select_related('teacher').prefetch_related('chapters').all()
+            serializer = CourseListSerializer(courses, many=True, context={'request': request})
+
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                courses=serializer.data,
+                total=courses.count(),
+            )
+        except Exception as e:
+            logger.error(f'MyCoursesView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-1,
+                message='Something went wrong while fetching your courses.'
+            )
