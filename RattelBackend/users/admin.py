@@ -46,7 +46,7 @@ class UserAdmin(UserAdmin):
     
     fieldsets = (
         ('General', {'fields': ('username', 'password')}),
-        ('Personal Info', {'fields': ('name', 'phone', 'email', 'profile_picture')}),
+        ('Personal Info', {'fields': ('name', 'phone', 'email', 'profile_picture', 'course_history')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
         ('Dates', {'fields': ('last_login', 'date_joined')}),
     )

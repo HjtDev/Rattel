@@ -349,6 +349,10 @@ class CourseDetailView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message='Something went wrong while fetching the course.'
             )
 
+        # Add course to user's history if authenticated
+        if request.user.is_authenticated:
+            request.user.add_to_course_history(course)
+        
         serializer = CourseDetailSerializer(course, context={'request': request})
         return self.build_response(
             status.HTTP_200_OK,
