@@ -19,8 +19,7 @@ class Link(models.Model):
     
     name = models.CharField(max_length=255, verbose_name='Internal Name',
                             help_text='Internal reference (e.g., "Contact Page")')
-    logo = ResizedImageField(upload_to='Links/', quality=100, blank=True, null=True,
-                             verbose_name='Link Logo', help_text='Recommended: Maintain square aspect-ratio')
+    logo = models.FileField(upload_to='Links/', blank=True, null=True, verbose_name='Link Logo', help_text='Recommended: Maintain square aspect-ratio')
     url = models.URLField(verbose_name='URL')
     
     def __str__(self):
@@ -123,6 +122,11 @@ class Footer(models.Model):
     description = models.TextField(max_length=600, verbose_name='Short Description')
     rights = models.CharField(max_length=300, verbose_name='Copyright Text',
                               help_text='e.g., "All rights reserved. © 2026"')
+    
+    contact_address = models.CharField(max_length=500, blank=True, verbose_name='Contact Address')
+    contact_phone = models.CharField(max_length=50, blank=True, verbose_name='Contact Phone')
+    contact_email = models.EmailField(max_length=100, blank=True, verbose_name='Contact Email')
+    contact_hours = models.CharField(max_length=200, blank=True, verbose_name='Contact Hours')
     
     def __str__(self):
         return 'Footer Configuration'
@@ -266,7 +270,7 @@ class Information(models.Model):
 
     title = models.CharField(max_length=130, verbose_name='Title')
     description = HTMLField(verbose_name='Description')
-    image = ResizedImageField(upload_to='information/images', quality=100, verbose_name='Image', help_text='Recommended: 615 * 435')
+    image = models.FileField(upload_to='information/images', verbose_name='Image', help_text='Recommended: 615 * 435')
 
     order = models.PositiveIntegerField(default=0, verbose_name='Order', help_text='Lower number appear first')
 
@@ -305,7 +309,7 @@ class MainPage(models.Model):
     landing_link = models.ForeignKey(Link, on_delete=models.SET_NULL, related_name='is_landing_link', blank=True, null=True, verbose_name='Quick Start Link')
     landing_video = models.FileField(upload_to='landing_contents/video', blank=True, null=True, validators=[video_validator], verbose_name='Video Intro')
 
-    landing_image = ResizedImageField(upload_to='landing_contents/image', size=[386, 603], quality=100, crop=['middle', 'center'], verbose_name='Landing Image')
+    landing_image = models.FileField(upload_to='landing_contents/image', verbose_name='Landing Image', help_text='Recommended: 386 * 603')
     landing_message_title = models.CharField(max_length=60, verbose_name='Message Title')
     landing_message_description = models.CharField(max_length=80, verbose_name='Message Description')
 
@@ -576,3 +580,9 @@ class FAQ(models.Model):
 
     def __str__(self):
         return f'FAQ: {self.question[:19] + '...' if len(self.question) > 20 else self.question}'
+    
+    def save(self, *args, **kwargs):
+        invalidate_cache('faq')
+
+        return super().save(*args, **kwargs)
+        

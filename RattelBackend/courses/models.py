@@ -42,6 +42,7 @@ class Course(models.Model):
     long_description = HTMLField(verbose_name='Long Description')
 
     intro_video = models.FileField(upload_to='courses/intros/', blank=True, null=True, verbose_name='Course Intro Video')
+    image = models.FileField(upload_to='courses/images/', blank=True, null=True, verbose_name='Course Image/Banner')
 
     price = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name='Price (Toman)')
     new_price = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)], verbose_name='Discounted Price (0 = no discount)')

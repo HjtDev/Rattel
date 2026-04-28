@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
 from RattelBackend.cache import drf_cached_response, invalidate_cache
-from .models import Footer, SiteNavbar, MainPage
-from .serializers import FooterSerializer, SiteNavbarSerializer
+from .models import Footer, SiteNavbar, MainPage, FAQ
+from .serializers import FooterSerializer, SiteNavbarSerializer, FAQSerializer
 from rest_framework import status
 import logging
 
@@ -311,3 +311,78 @@ class MainPageView(APIView, GetDataMixin, ResponseBuilderMixin):
             message='Successful',
             mainpage=data
         )
+
+
+class FAQView(APIView, ResponseBuilderMixin):
+    """
+    Public API endpoint for retrieving FAQ (Frequently Asked Questions) data.
+    
+    Provides a read-only GET endpoint that returns all visible FAQs ordered by
+    their order field, typically used for rendering FAQ sections on the site.
+    
+    Permissions:
+        - AllowAny: No authentication required
+    
+    Throttling:
+        - Uses the `main-throttle` -> 500/min
+    
+    Caching:
+        - TTL: 30 minutes (1800 seconds)
+        - Cache prefix: 'faq'
+        - User-agnostic caching
+    """
+    
+    permission_classes = (AllowAny,)
+    throttle_scope = 'main-throttle'
+    
+    @method_decorator(
+        drf_cached_response(
+            ttl=1800,
+            cache_prefix='faq',
+            user_aware=False,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        """
+        Retrieve all visible FAQs.
+        
+        Fetches all FAQ instances where is_visible=True, ordered by the order field,
+        serializes them, and returns the structured FAQ data for client-side consumption.
+        
+        Returns:
+            200 OK:
+                - success=True
+                - faqs: List of serialized FAQ data
+                - message: 'Successful'
+            
+            500 INTERNAL SERVER ERROR:
+                - success=False
+                - message: Generic failure message when FAQ retrieval or
+                  serialization fails
+        """
+        try:
+            # Retrieve all visible FAQs ordered by order field
+            faqs = FAQ.objects.filter(is_visible=True)
+            
+            # Serialize FAQ data
+            serializer = FAQSerializer(faqs, many=True)
+            
+            # Return successful response
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                faqs=serializer.data,
+            )
+        except Exception as e:
+            # Log unexpected errors during retrieval or serialization
+            logger.error(f'Something went wrong while trying to get FAQs: {e}')
+            
+            # Return generic error response
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                message='Something went wrong while trying to fetch FAQs.'
+            )

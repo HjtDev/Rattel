@@ -123,6 +123,11 @@ class FooterAdmin(admin.ModelAdmin):
             'fields': ['rights'],
             'description': 'Footer copyright and rights information',
             'classes': ['wide']
+        }),
+        ('Contact Us', {
+            'fields': ['contact_phone', 'contact_email', 'contact_address', 'contact_hours'],
+            'description': 'Footer Contact Us column information',
+            'classes': ['wide']
         })
     ]
     
