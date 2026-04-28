@@ -1,8 +1,11 @@
 from django.utils.module_loading import import_string
+from django.utils.decorators import method_decorator
 from RattelBackend.mixins import ResponseBuilderMixin, GetDataMixin
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Transaction
+from .serializers import TransactionSerializer
+from RattelBackend.cache import drf_cached_response
 from django.urls import reverse
 from django.shortcuts import redirect
 from django.conf import settings
@@ -182,4 +185,63 @@ class PaymentCallbackView(APIView, ResponseBuilderMixin, GetDataMixin):
         
         # Redirecting user to success_url with transaction_id and identifier
         return redirect(f'{success_url}?identifier={metadata.get('identifier')}&transaction_id={metadata.get('transaction')}')
+
+
+class MyTransactionsView(APIView, ResponseBuilderMixin):
+    """
+    API endpoint for retrieving authenticated user's transaction history.
+    
+    Permissions:
+        - Requires authentication
+    
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+    
+    Caching:
+        - TTL: 5 minutes (300 seconds)
+        - Cache prefix: 'my_transactions'
+        - User-aware caching
+    """
+    
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+    
+    @method_decorator(
+        drf_cached_response(
+            ttl=300,
+            cache_prefix='my_transactions',
+            user_aware=True,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        """
+        Retrieve the authenticated user's transaction history.
+        
+        Returns transactions ordered by creation date (newest first).
+        
+        Returns:
+            200 OK:
+                - success=True
+                - message: 'Successful'
+                - transactions: List of serialized transaction data
+        """
+        # Get user's transactions ordered by newest first
+        transactions = (
+            Transaction.objects
+            .filter(user=request.user)
+            .order_by('-created_at')
+        )
+        
+        # Serialize the transactions
+        serializer = TransactionSerializer(transactions, many=True)
+        
+        # Return success response
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True,
+            message='Successful',
+            transactions=serializer.data,
+        )
     
