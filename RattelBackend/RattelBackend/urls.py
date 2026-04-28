@@ -30,6 +30,5 @@ urlpatterns = [
     path('api/v1/cart/', include('cart.urls', namespace='cart')),
     path('api/v1/tickets/', include('tickets.urls', namespace='tickets')),
 ]
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
