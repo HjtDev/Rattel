@@ -240,7 +240,7 @@ CIPHER = Fernet(Fernet.generate_key())
 # OTP Config
 
 OTP_SETTING = {
-    'TIMEOUT': timedelta(minutes=2),
+    'TIMEOUT': timedelta(seconds=30),
     'ATTEMPTS': 3,  # -1 to disable
     'TOKEN_TYPE': 'int',  # int, str, alphanumeric / Used for token generator
     'TOKEN_LENGTH': 4,  # Or any digits bigger than 1 / Used for token generator
