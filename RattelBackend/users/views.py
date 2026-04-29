@@ -1,6 +1,7 @@
 from typing import Tuple, Any, Dict
 
 from django.db.models.functions import Trunc
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin, FieldValidator
@@ -572,3 +573,51 @@ class UserInfoView(APIView, ResponseBuilderMixin, FieldValidator):
         
         # Return success response with updated user data
         return self.build_success_response(updated_user, message='Updated user successfully.')
+
+
+class UserDashboardView(APIView, ResponseBuilderMixin):
+    """
+    Returns quick dashboard information for the authenticated user.
+    Includes: number of tickets, number of purchased courses, and time since registration.
+    """
+    
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+    
+    def get(self, request):
+        """
+        GET method to retrieve dashboard information.
+        
+        Returns:
+            - tickets_count: Total number of tickets created by the user
+            - courses_count: Total number of courses purchased by the user
+            - days_since_registration: Number of days since user registration
+        """
+        
+        user = request.user
+        
+        # Count tickets
+        tickets_count = user.tickets.count()
+        
+        # Count purchased courses
+        courses_count = user.purchased_courses.count()
+        
+        # Calculate days since registration
+        now = timezone.now()
+        time_delta = now - user.date_joined
+        days_since_registration = time_delta.days
+        
+        # Build dashboard data
+        dashboard_data = {
+            'tickets_count': tickets_count,
+            'courses_count': courses_count,
+            'days_since_registration': days_since_registration,
+            'date_joined': user.date_joined.isoformat(),
+        }
+        
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True,
+            message='Dashboard information retrieved successfully.',
+            data=dashboard_data
+        )
