@@ -28,7 +28,7 @@ export function useDashboard() {
 
     return {
         dashboardData,
-        isLoading,
+        isLoadingDashboard: isLoading,
         fetchDashboard: dashboardManager.fetchDashboard.bind(dashboardManager),
         reset: dashboardManager.reset.bind(dashboardManager),
     };

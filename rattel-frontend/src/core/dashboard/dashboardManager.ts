@@ -1,6 +1,6 @@
 "use client";
 
-import api from "@/src/core/api";
+import { api } from "@/src/core/api";
 import { toast } from "react-toastify";
 
 // Types
@@ -77,7 +77,7 @@ class DashboardManager {
         this.notify();
 
         try {
-            const response = await api.get<DashboardResult>("/api/v1/users/dashboard/", {
+            const response = await api.get<DashboardResult>("/users/dashboard/", {
                 cache: false, // Bypass cache for fresh data
             });
 
