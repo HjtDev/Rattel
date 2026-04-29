@@ -1,7 +1,8 @@
+"use client"
+
 import {ReactNode, useEffect} from "react";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
-import {useDashboard} from "@/src/core/hooks/useDashboard";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import {useRouter} from "next/navigation";
 
@@ -10,7 +11,6 @@ interface DashboardContent {
 }
 
 export default function DashboardBase({Content}: DashboardContent) {
-    const {dashboardData, isLoadingDashboard} = useDashboard();
     const {user, isAuthenticated, isLoading, logout} = useAuth();
     const router = useRouter();
 
@@ -18,9 +18,9 @@ export default function DashboardBase({Content}: DashboardContent) {
         if (!isLoading && !isAuthenticated) {
             router.push("/auth/login/");
         }
-    }, []);
+    }, [isLoading, isAuthenticated, router]);
 
-    return (!isLoading && !isLoadingDashboard) && (
+    return !isLoading  && (
         <>
             <Navbar/>
             <main>

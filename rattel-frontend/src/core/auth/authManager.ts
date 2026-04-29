@@ -332,6 +332,58 @@ class AuthManager {
     }
 
     /**
+     * Update user information (name, username, email, profile_picture)
+     * Calls the PATCH /api/v1/users/info/ endpoint
+     */
+    public async updateUserInfo(data: {
+        name?: string;
+        username?: string;
+        email?: string;
+        profile_picture?: File;
+    }): Promise<{ success: boolean; message?: string; error?: number; usernameChanged?: boolean }> {
+        try {
+            const formData = new FormData();
+            
+            // Add string fields if provided
+            if (data.name !== undefined) formData.append('name', data.name);
+            if (data.username !== undefined) formData.append('username', data.username);
+            if (data.email !== undefined) formData.append('email', data.email);
+            
+            // Add profile picture if provided
+            if (data.profile_picture) {
+                formData.append('profile_picture', data.profile_picture);
+            }
+
+            const response = await api.patch("/users/info/", formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                cache: false,
+            });
+
+            if (response.data.success && response.data.user) {
+                // Check if username was changed
+                const usernameChanged = data.username !== undefined && data.username !== this.user?.username;
+                
+                // Update local user data
+                this.user = response.data.user;
+                this.saveToStorage();
+                this.notifyListeners();
+
+                return {
+                    success: true,
+                    message: response.data.message,
+                    usernameChanged,
+                };
+            }
+
+            return { success: false, message: response.data.message, error: response.data.error };
+        } catch (error: any) {
+            return { success: false, message: error.response?.data?.message || "خطا در به‌روزرسانی اطلاعات", error: error.response?.data?.error };
+        }
+    }
+
+    /**
      * Logout user and clear all data
      */
     public logout(): void {

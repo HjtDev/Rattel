@@ -42,5 +42,6 @@ export function useAuth() {
         refreshProfile: authManager.refreshProfile.bind(authManager),
         refreshSettings: authManager.refreshSettings.bind(authManager),
         updateUser: authManager.updateUser.bind(authManager),
+        updateUserInfo: authManager.updateUserInfo.bind(authManager),
     };
 }

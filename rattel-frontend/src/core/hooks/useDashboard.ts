@@ -20,6 +20,15 @@ export function useDashboard() {
             setIsLoading(dashboardManager.getIsLoading());
         });
 
+        // Initial load - fetch dashboard data if not already loaded
+        const initDashboard = async () => {
+            if (!dashboardManager.getDashboardData()) {
+                await dashboardManager.fetchDashboard();
+            }
+        };
+
+        initDashboard();
+
         // Cleanup subscription on unmount
         return () => {
             unsubscribe();
