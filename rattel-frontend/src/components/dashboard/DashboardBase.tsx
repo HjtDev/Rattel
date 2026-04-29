@@ -4,7 +4,8 @@ import {ReactNode, useEffect} from "react";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import {useAuth} from "@/src/core/hooks/useAuth";
-import {useRouter} from "next/navigation";
+import {useRouter, usePathname} from "next/navigation";
+import {isLinkActive} from "@/src/core/utils";
 
 interface DashboardContent {
     Content: ReactNode;
@@ -13,6 +14,7 @@ interface DashboardContent {
 export default function DashboardBase({Content}: DashboardContent) {
     const {user, isAuthenticated, isLoading, logout} = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -103,32 +105,32 @@ export default function DashboardBase({Content}: DashboardContent) {
                                         <div className="bg-dark border rounded-3 p-3 w-100">
                                             <div
                                                 className="list-group list-group-dark list-group-borderless collapse-list">
-                                                <a className="list-group-item active" href="/dashboard">
+                                                <a className={`list-group-item ${isLinkActive("/dashboard", pathname) ? "active" : ""}`} href="/dashboard">
                                                     <i className="bi bi-ui-checks-grid fa-fw me-2">
                                                     </i>
                                                     داشبورد
                                                 </a>
-                                                <a className="list-group-item" href="/dashboard/personal-information/">
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/personal-information", pathname) ? "active" : ""}`} href="/dashboard/personal-information">
                                                     <i className="bi bi-card-checklist fa-fw me-2">
                                                     </i>
                                                     اطلاعات شخصی
                                                 </a>
-                                                <a className="list-group-item" href="/dashboard/profile/">
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/profile", pathname) ? "active" : ""}`} href="/dashboard/profile">
                                                     <i className="bi bi-basket fa-fw me-2">
                                                     </i>
                                                     پروفایل
                                                 </a>
-                                                <a className="list-group-item" href="/dashboard/settings/">
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/settings", pathname) ? "active" : ""}`} href="/dashboard/settings">
                                                     <i className="far fa-fw fa-file-alt me-2">
                                                     </i>
                                                     تنظیمات
                                                 </a>
-                                                <a className="list-group-item" href="/dashboard/tickets/">
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/tickets", pathname) ? "active" : ""}`} href="/dashboard/tickets">
                                                     <i className="bi bi-question-diamond fa-fw me-2">
                                                     </i>
                                                     تیکت ها
                                                 </a>
-                                                <a className="list-group-item" href="/dashboard/transactions/">
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/transactions", pathname) ? "active" : ""}`} href="/dashboard/transactions">
                                                     <i className="bi bi-credit-card-2-front fa-fw me-2">
                                                     </i>
                                                     تراکنش ها
