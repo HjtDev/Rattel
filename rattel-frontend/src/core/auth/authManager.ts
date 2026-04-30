@@ -430,6 +430,45 @@ class AuthManager {
     }
 
     /**
+     * Update user settings (profile_visible, email_on_login, email_on_payment, sms_on_payment)
+     * Calls the PATCH /users/settings/ endpoint
+     */
+    public async updateSettings(data: {
+        profile_visible?: boolean;
+        email_on_login?: boolean;
+        email_on_payment?: boolean;
+        sms_on_payment?: boolean;
+    }): Promise<{ success: boolean; message?: string; error?: number }> {
+        try {
+            const response = await api.patch("/users/settings/", data, {
+                cache: false,
+            });
+
+            if (response.data.success && response.data.settings) {
+                // Update local user settings data
+                if (this.user) {
+                    this.user.settings = response.data.settings;
+                    this.saveToStorage();
+                    this.notifyListeners();
+                }
+
+                return {
+                    success: true,
+                    message: response.data.message,
+                };
+            }
+
+            return { success: false, message: response.data.message, error: response.data.error };
+        } catch (error: any) {
+            return { 
+                success: false, 
+                message: error.response?.data?.message || "خطا در به‌روزرسانی تنظیمات", 
+                error: error.response?.data?.error 
+            };
+        }
+    }
+
+    /**
      * Logout user and clear all data
      */
     public logout(): void {

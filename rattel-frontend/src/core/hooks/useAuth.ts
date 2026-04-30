@@ -47,5 +47,6 @@ export function useAuth() {
         updateUser: authManager.updateUser.bind(authManager),
         updateUserInfo: authManager.updateUserInfo.bind(authManager),
         updateProfile: authManager.updateProfile.bind(authManager),
+        updateSettings: authManager.updateSettings.bind(authManager),
     };
 }
