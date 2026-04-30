@@ -279,7 +279,7 @@ class TicketManager {
                 {
                     subject: payload.subject,
                     body: payload.body,
-                    category: payload.category ?? "other",
+                    category: payload.category ?? "technical",
                     priority: payload.priority ?? "medium",
                 },
                 payload.attachment

@@ -24,7 +24,7 @@ class TicketListCreateView(APIView, GetDataMixin, ResponseBuilderMixin, FieldVal
         - IsAuthenticated: Must be logged in.
 
     Throttling:
-        - Uses the `main-throttle` scope -> 500/min.
+        - Uses the `tickets` scope -> 200/min.
 
     GET:
         Returns a paginated list of the user's own tickets, newest first.
@@ -63,7 +63,7 @@ class TicketListCreateView(APIView, GetDataMixin, ResponseBuilderMixin, FieldVal
     """
 
     permission_classes = (IsAuthenticated,)
-    throttle_scope = 'main-throttle'
+    throttle_scope = 'tickets'
 
     valid_fields = ('subject', 'body')
     validators = {
@@ -202,7 +202,7 @@ class TicketDetailView(APIView, ResponseBuilderMixin):
         - Users can only access their own tickets.
 
     Throttling:
-        - Uses the `main-throttle` scope -> 500/min.
+        - Uses the `tickets` scope -> 200/min.
 
     GET:
         Returns the full ticket detail including the message thread.
@@ -222,7 +222,7 @@ class TicketDetailView(APIView, ResponseBuilderMixin):
     """
 
     permission_classes = (IsAuthenticated,)
-    throttle_scope = 'main-throttle'
+    throttle_scope = 'tickets'
 
     def _get_ticket(self, ticket_id, user):
         """Fetch and authorise access to a ticket.
@@ -288,7 +288,7 @@ class TicketCloseView(APIView, ResponseBuilderMixin):
         - IsAuthenticated: Must be logged in.
 
     Throttling:
-        - Uses the `main-throttle` scope -> 500/min.
+        - Uses the `tickets` scope -> 200/min.
 
     POST:
         Returns:
@@ -310,7 +310,7 @@ class TicketCloseView(APIView, ResponseBuilderMixin):
     """
 
     permission_classes = (IsAuthenticated,)
-    throttle_scope = 'main-throttle'
+    throttle_scope = 'tickets'
 
     def post(self, request, ticket_id):
         """Close the specified ticket."""
@@ -361,7 +361,7 @@ class TicketReopenView(APIView, ResponseBuilderMixin):
         - IsAuthenticated: Must be logged in.
 
     Throttling:
-        - Uses the `main-throttle` scope -> 500/min.
+        - Uses the `tickets` scope -> 200/min.
 
     POST:
         Returns:
@@ -383,7 +383,7 @@ class TicketReopenView(APIView, ResponseBuilderMixin):
     """
 
     permission_classes = (IsAuthenticated,)
-    throttle_scope = 'main-throttle'
+    throttle_scope = 'tickets'
 
     def post(self, request, ticket_id):
         """Reopen a closed ticket."""
@@ -437,7 +437,7 @@ class TicketMessageCreateView(APIView, GetDataMixin, ResponseBuilderMixin, Field
         - IsAuthenticated: Must be logged in.
 
     Throttling:
-        - Uses the `main-throttle` scope -> 500/min.
+        - Uses the `tickets` scope -> 200/min.
 
     POST:
         Expects multipart/form-data.
@@ -468,7 +468,7 @@ class TicketMessageCreateView(APIView, GetDataMixin, ResponseBuilderMixin, Field
     """
 
     permission_classes = (IsAuthenticated,)
-    throttle_scope = 'main-throttle'
+    throttle_scope = 'tickets'
 
     valid_fields = ('body',)
     validators = {

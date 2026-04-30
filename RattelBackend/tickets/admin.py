@@ -22,7 +22,6 @@ class TicketAdmin(admin.ModelAdmin):
         'priority_badge',
         'category',
         'message_count',
-        'created_at',
         'updated_at',
     )
 
