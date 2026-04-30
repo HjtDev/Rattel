@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Transaction
 from .serializers import TransactionSerializer
-from RattelBackend.cache import drf_cached_response
+from RattelBackend.cache import drf_cached_response, invalidate_cache
 from django.urls import reverse
 from django.shortcuts import redirect
 from django.conf import settings
@@ -182,6 +182,9 @@ class PaymentCallbackView(APIView, ResponseBuilderMixin, GetDataMixin):
         # Adding / to final url to prevent issues with older devices
         if not success_url.endswith('/'):
             success_url += '/'
+
+        # Invalidate Cached Transactions
+        invalidate_cache('my_transactions', request)
         
         # Redirecting user to success_url with transaction_id and identifier
         return redirect(f'{success_url}?identifier={metadata.get('identifier')}&transaction_id={metadata.get('transaction')}')

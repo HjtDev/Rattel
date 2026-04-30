@@ -10,7 +10,7 @@ class TransactionSerializer(ModelSerializer):
     class Meta:
         model = Transaction
         fields = (
-            'id',
+            'tracking_id',
             'amount',
             'currency',
             'transaction_status',
