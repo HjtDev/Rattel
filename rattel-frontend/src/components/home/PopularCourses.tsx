@@ -34,7 +34,6 @@ function StarRating({ rating }: { rating: number }) {
 function CourseCard({ course }: { course: Course }) {
     const effectivePrice = course.new_price > 0 ? course.new_price : course.price;
     const hasDiscount = course.new_price > 0;
-    console.log('Cart: ', course);
 
     return (
         <div className="col-sm-6 col-lg-4 col-xl-3">

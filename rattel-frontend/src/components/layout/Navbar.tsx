@@ -1,11 +1,7 @@
 'use client'
 import {useNavbar} from "@/src/core/hooks/useNavbar";
-import {toast} from "react-toastify";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
-import {indexOf} from "eslint-config-next";
 import {useAuth} from "@/src/core/hooks/useAuth";
-import {useEffect} from "react";
-import {router} from "next/client";
 import {useRouter} from "next/navigation";
 
 export default function Navbar() {
