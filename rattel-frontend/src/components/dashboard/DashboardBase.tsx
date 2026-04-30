@@ -47,7 +47,7 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     alt={user?.name || "Default Profile"}
                                                 />
                                                 <span className="badge text-bg-success rounded-pill position-absolute top-50 start-100 translate-middle mt-4 mt-md-5 ms-n3 px-md-3">
-                                                    {user?.profile?.role}
+                                                    {user?.profile?.role == 'student' ? 'دانش آموز' : 'استاد'}
                                                 </span>
                                             </div>
                                         </div>
