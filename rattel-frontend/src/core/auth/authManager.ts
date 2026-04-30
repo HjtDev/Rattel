@@ -384,6 +384,52 @@ class AuthManager {
     }
 
     /**
+     * Update user profile (gender, national_code, education, etc.)
+     * Calls the PATCH /users/profile/?target=me endpoint
+     */
+    public async updateProfile(data: {
+        gender?: string;
+        national_code?: string;
+        education?: string;
+        had_other_classes?: string;
+        memorized?: string;
+        invited_by?: string;
+        birthday?: string;
+        city?: string;
+        telegram_id?: string;
+        eitaa_id?: string;
+        instagram_id?: string;
+    }): Promise<{ success: boolean; message?: string; error?: number }> {
+        try {
+            const response = await api.patch("/users/profile/?target=me", data, {
+                cache: false,
+            });
+
+            if (response.data.success && response.data.profile) {
+                // Update local user profile data
+                if (this.user) {
+                    this.user.profile = response.data.profile;
+                    this.saveToStorage();
+                    this.notifyListeners();
+                }
+
+                return {
+                    success: true,
+                    message: response.data.message,
+                };
+            }
+
+            return { success: false, message: response.data.message, error: response.data.error };
+        } catch (error: any) {
+            return { 
+                success: false, 
+                message: error.response?.data?.message || "خطا در به‌روزرسانی پروفایل", 
+                error: error.response?.data?.error 
+            };
+        }
+    }
+
+    /**
      * Logout user and clear all data
      */
     public logout(): void {

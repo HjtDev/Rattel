@@ -17,7 +17,10 @@ export function useAuth() {
 
         // Initial load - check if we have tokens and fetch user info if needed
         const initAuth = async () => {
-            if (authManager.getAccessToken() && !authManager.getUser()) {
+            const token = authManager.getAccessToken();
+            const user = authManager.getUser();
+            
+            if (token && (!user || !user.profile || !user.settings)) {
                 await authManager.fetchUserInfo();
             }
             setIsLoading(false);
@@ -43,5 +46,6 @@ export function useAuth() {
         refreshSettings: authManager.refreshSettings.bind(authManager),
         updateUser: authManager.updateUser.bind(authManager),
         updateUserInfo: authManager.updateUserInfo.bind(authManager),
+        updateProfile: authManager.updateProfile.bind(authManager),
     };
 }
