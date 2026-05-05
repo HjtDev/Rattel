@@ -15,6 +15,7 @@ export interface Course {
     price: number;
     new_price: number;
     difficulty: string;
+    category: string;
     short_description: string;
     number_of_episodes: number;
     total_time: number;

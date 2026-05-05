@@ -42,9 +42,14 @@ function TrendingCourseCard({ course }: { course: Course }) {
                 )}
                 <div className="card-body pb-0">
                     <div className="d-flex justify-content-between mb-3">
-                        <span className="hstack gap-2">
-                            <span className="badge bg-primary bg-opacity-10 text-primary">{course.difficulty}</span>
-                        </span>
+                        <div className="d-flex justify-content-start gap-1">
+                            <span className="badge bg-purple bg-opacity-10 text-purple">
+                                {course.category}
+                            </span>
+                                <span className="badge bg-purple bg-opacity-10 text-purple">
+                                {course.difficulty}
+                            </span>
+                        </div>
                         <a href="#" className="h6 fw-light mb-0">
                             <i className="far fa-bookmark"></i>
                         </a>

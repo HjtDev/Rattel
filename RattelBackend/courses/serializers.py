@@ -86,6 +86,7 @@ class CourseListSerializer(serializers.ModelSerializer):
             'price',
             'new_price',
             'difficulty',
+            'category',
             'short_description',
             'number_of_episodes',
             'total_time',

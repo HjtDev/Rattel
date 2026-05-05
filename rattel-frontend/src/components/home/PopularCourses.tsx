@@ -46,7 +46,10 @@ function CourseCard({ course }: { course: Course }) {
                     />
                 )}
                 <div className="card-body pb-0">
-                    <div className="d-flex justify-content-between mb-2">
+                    <div className="d-flex justify-content-start gap-1 mb-2">
+                        <span className="badge bg-purple bg-opacity-10 text-purple">
+                            {course.category}
+                        </span>
                         <span className="badge bg-purple bg-opacity-10 text-purple">
                             {course.difficulty}
                         </span>
