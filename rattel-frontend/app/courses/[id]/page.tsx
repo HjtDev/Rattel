@@ -1,12 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useCourseDetail } from "@/src/core/hooks/useCourseDetail";
 import { getMediaUrl } from "@/src/core/utils";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import { toast } from "react-toastify";
+import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 
 export default function CourseDetail() {
     const params = useParams();
@@ -118,18 +119,59 @@ export default function CourseDetail() {
         }
     };
 
+    useEffect(() => {
+        if(courseDetailError) {
+            toast.error(courseDetailError);
+            setTimeout(() => router.back(), 3000);
+        }
+    }, [courseDetailError]);
+
     if (isLoadingCourseDetail) {
         return (
             <>
                 <Navbar />
                 <main>
-                    <section className="pt-5">
+                    <section className="pt-3 pt-xl-5">
                         <div className="container">
-                            <div className="text-center">
-                                <div className="spinner-border text-primary" role="status">
-                                    <span className="visually-hidden">در حال بارگزاری...</span>
+                            <div className="row g-4">
+                                <div className="col-xl-8">
+                                    <div className="row g-4">
+                                        {/* Image Skeleton */}
+                                        <div className="col-12">
+                                            <LoadingSkeleton width="100%" height="400px" isLoading={true} Content={() => <></>} />
+                                        </div>
+                                        {/* Title Skeleton */}
+                                        <div className="col-12">
+                                            <LoadingSkeleton width="60%" height="32px" isLoading={true} Content={() => <></>} />
+                                            <div className="mt-2">
+                                                <LoadingSkeleton width="80%" height="20px" isLoading={true} Content={() => <></>} />
+                                            </div>
+                                        </div>
+                                        {/* Description Card Skeleton */}
+                                        <div className="col-12">
+                                            <div className="card border">
+                                                <div className="card-header border-bottom">
+                                                    <LoadingSkeleton width="150px" height="24px" isLoading={true} Content={() => <></>} />
+                                                </div>
+                                                <div className="card-body">
+                                                    <LoadingSkeleton width="100%" height="20px" isLoading={true} Content={() => <></>} count={5} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="mt-3">در حال بارگزاری...</p>
+                                {/* Sidebar Skeleton */}
+                                <div className="col-xl-4">
+                                    <div className="card card-body border p-4">
+                                        <LoadingSkeleton width="100%" height="40px" isLoading={true} Content={() => <></>} />
+                                        <div className="mt-3">
+                                            <LoadingSkeleton width="100%" height="45px" isLoading={true} Content={() => <></>} />
+                                        </div>
+                                        <div className="mt-3">
+                                            <LoadingSkeleton width="100%" height="30px" isLoading={true} Content={() => <></>} count={5} />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -139,29 +181,7 @@ export default function CourseDetail() {
         );
     }
 
-    if (courseDetailError || !courseDetail) {
-        return (
-            <>
-                <Navbar />
-                <main>
-                    <section className="pt-5">
-                        <div className="container">
-                            <div className="text-center">
-                                <h3>دوره‌ای یافت نشد</h3>
-                                <p className="text-muted">{courseDetailError || "دوره مورد نظر یافت نشد"}</p>
-                                <button onClick={() => router.push('/courses')} className="btn btn-primary">
-                                    بازگشت به لیست دوره‌ها
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-                </main>
-                <Footer />
-            </>
-        );
-    }
-
-    return (
+    return courseDetail && (
         <>
             <Navbar />
             <main>

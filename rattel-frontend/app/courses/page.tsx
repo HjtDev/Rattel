@@ -232,7 +232,7 @@ export default function Courses() {
                                                             </div>
                                                         </div>
                                                         <h5 className="card-title fw-normal">
-                                                            <a href="/">
+                                                            <a href={`/courses/${course.id}/`}>
                                                                 {course.name}
                                                             </a>
                                                         </h5>
