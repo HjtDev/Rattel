@@ -47,6 +47,7 @@ export interface CoursesParams {
     difficulty?: DifficultyOption;
     category?: CategoryOption;
     teacher_name?: string;
+    search?: string;
 }
 
 export function useCourses(params: CoursesParams = {}) {
@@ -62,6 +63,7 @@ export function useCourses(params: CoursesParams = {}) {
         difficulty,
         category,
         teacher_name,
+        search,
     } = params;
 
     useEffect(() => {
@@ -76,6 +78,7 @@ export function useCourses(params: CoursesParams = {}) {
         if (difficulty) query.set("difficulty", difficulty);
         if (category) query.set("category", category);
         if (teacher_name) query.set("teacher_name", teacher_name);
+        if (search) query.set("search", search);
 
         api
             .get(`/courses/?${query.toString()}`)
@@ -121,7 +124,7 @@ export function useCourses(params: CoursesParams = {}) {
             .finally(() => {
                 setIsLoadingCourses(false);
             });
-    }, [page, count, sort, age_group, difficulty, category, teacher_name]);
+    }, [page, count, sort, age_group, difficulty, category, teacher_name, search]);
 
     return { coursesData, isLoadingCourses, coursesError };
 }

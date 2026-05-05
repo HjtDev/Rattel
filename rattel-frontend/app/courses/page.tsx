@@ -17,6 +17,7 @@ export default function Courses() {
     const [category, setCategory] = useState<CategoryOption | undefined>(searchParams.get('category') as CategoryOption || undefined);
     const [difficulty, setDifficulty] = useState<DifficultyOption | undefined>(searchParams.get('difficulty') as DifficultyOption || undefined);
     const [ageGroup, setAgeGroup] = useState<AgeGroupOption | undefined>(searchParams.get('age_group') as AgeGroupOption || undefined);
+    const [search, setSearch] = useState<string | undefined>(searchParams.get('search') || undefined);
 
     const { coursesData, isLoadingCourses } = useCourses({
         page,
@@ -25,6 +26,7 @@ export default function Courses() {
         category,
         difficulty,
         age_group: ageGroup,
+        search,
     });
 
     // Update URL when filters change
@@ -35,10 +37,11 @@ export default function Courses() {
         if (category) params.set('category', category);
         if (difficulty) params.set('difficulty', difficulty);
         if (ageGroup) params.set('age_group', ageGroup);
+        if (search) params.set('search', search);
         
         const queryString = params.toString();
         router.push(`/courses${queryString ? `?${queryString}` : ''}`, { scroll: false });
-    }, [page, sort, category, difficulty, ageGroup, router]);
+    }, [page, sort, category, difficulty, ageGroup, search, router]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);
@@ -204,12 +207,12 @@ export default function Courses() {
                                                 <div className="col-md-5 overflow-hidden">
                                                     <img src={course.image ? getMediaUrl(course.image) : '/assets/images/courses/4by3/06.jpg'} className="rounded-2"
                                                          alt={course.name}/>
-                                                    {course.new_price === 0 && (
-                                                    <div className="card-img-overlay">
-                                                        <div className="ribbon">
-                                                            <span>رایگان</span>
+                                                    {course.new_price !== 0 && (
+                                                        <div className="card-img-overlay">
+                                                            <div className="ribbon">
+                                                                <span>تخفیف</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
                                                     )}
                                                 </div>
                                                 <div className="col-md-7">
@@ -233,9 +236,7 @@ export default function Courses() {
                                                                 {course.name}
                                                             </a>
                                                         </h5>
-                                                        <p className="text-truncate-2 d-none d-lg-block">
-                                                            {course.short_description}
-                                                        </p>
+                                                        <p className="text-truncate-2 d-none d-lg-block" dangerouslySetInnerHTML={{__html: course.short_description}}></p>
                                                         <ul className="list-inline">
                                                             <li className="list-inline-item h6 fw-light mb-1 mb-sm-0">
                                                                 <i className="far fa-clock text-danger me-2"></i>
@@ -276,7 +277,7 @@ export default function Courses() {
                                                                         </span>
                                                                     </div>
                                                                 ) : (
-                                                                    <span className="h5 mb-0 text-success">رایگان</span>
+                                                                    <span className="h5 mb-0 text-success">{formatPrice(course.price)} تومان</span>
                                                                 )}
                                                             </div>
                                                         </div>

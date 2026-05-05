@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Dict, Optional, Tuple
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import QuerySet, Count, Avg
 from django.utils.decorators import method_decorator
@@ -51,6 +52,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
         - difficulty (str):    Filter by difficulty
         - category (str):      Filter by category
         - teacher_name (str):  Filter by teacher name (partial match)
+        - search (str):        Search in course name and description
     """
 
     permission_classes = (AllowAny,)
@@ -85,6 +87,15 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
             qs = qs.filter(category=category)
         if teacher_name := params.get('teacher_name'):
             qs = qs.filter(teacher__name__icontains=teacher_name)
+        if search := params.get('search'):
+            # Use PostgreSQL full-text search
+            search_vector = SearchVector('name', weight='A') + SearchVector('short_description', weight='B')
+            search_query = SearchQuery(search)
+            qs = qs.annotate(
+                search=search_vector,
+                rank=SearchRank(search_vector, search_query)
+            ).filter(search=search_query).order_by('-rank')
+        
         return qs
 
     def _apply_sort(self, qs, sort: Optional[str]) -> Tuple[QuerySet, bool]:
@@ -144,6 +155,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
             difficulty (str):   Filter by DifficultyChoices value
             category (str):     Filter by CategoryChoices value
             teacher_name (str): Partial match on teacher name
+            search (str):       Search in course name and description
 
         Returns:
             200 OK:
@@ -200,6 +212,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
 
         try:
             qs = Course.objects.select_related('teacher').prefetch_related('chapters', 'bought_by').filter(is_visible=True)
+            # Pass query_params as dict to _apply_filters
             qs = self._apply_filters(qs, request.query_params)
             qs, needs_python_sort = self._apply_sort(qs, sort)
 
