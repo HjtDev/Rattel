@@ -91,10 +91,30 @@ export function useCourses(params: CoursesParams = {}) {
                         has_previous: response.data.has_previous,
                     });
                 } else {
+                    // Set empty data when API returns success: false
+                    setCoursesData({
+                        courses: [],
+                        total: 0,
+                        page: page,
+                        page_size: count,
+                        total_pages: 0,
+                        has_next: false,
+                        has_previous: false,
+                    });
                     setCoursesError("Failed to load courses");
                 }
             })
             .catch((err) => {
+                // Set empty data on error (404, network error, etc.)
+                setCoursesData({
+                    courses: [],
+                    total: 0,
+                    page: page,
+                    page_size: count,
+                    total_pages: 0,
+                    has_next: false,
+                    has_previous: false,
+                });
                 console.log(err.message);
                 setCoursesError(err.message || "Failed to load courses");
             })
