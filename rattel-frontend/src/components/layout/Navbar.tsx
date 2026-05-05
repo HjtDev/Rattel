@@ -239,6 +239,12 @@ export default function Navbar() {
                                             </a>
                                         </li>
                                         <li>
+                                            <a className="dropdown-item" href="/dashboard/saved-courses/">
+                                                <i className="bi bi-bookmark fa-fw me-2"></i>
+                                                دوره های نشان شده
+                                            </a>
+                                        </li>
+                                        <li>
                                             <a className="dropdown-item" href="#" onClick={(e) => {
                                                 e.preventDefault();
                                                 logout();

@@ -76,6 +76,7 @@ class ChapterSerializer(serializers.ModelSerializer):
 class CourseListSerializer(serializers.ModelSerializer):
     teacher = QuickUserSerializer(read_only=True)
     number_of_episodes = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -93,6 +94,7 @@ class CourseListSerializer(serializers.ModelSerializer):
             'rating',
             'total_sell',
             'teacher',
+            'is_saved',
         )
 
     def get_number_of_episodes(self, obj):
@@ -106,6 +108,19 @@ class CourseListSerializer(serializers.ModelSerializer):
         """
         return sum(ch.number_of_videos + ch.number_of_files for ch in obj.chapters.all())
 
+    def get_is_saved(self, obj):
+        """Check if the requesting user has saved this course.
+
+        Args:
+            obj: Course instance.
+
+        Returns:
+            bool: True if user has saved the course, False otherwise.
+        """
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.saved_by.filter(pk=request.user.pk).exists()
+        return False
 
 class CourseDetailSerializer(serializers.ModelSerializer):
     content_type = serializers.SerializerMethodField()
@@ -114,6 +129,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     discount = serializers.IntegerField(read_only=True)
     total_sell = serializers.IntegerField(read_only=True)
     number_of_episodes = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -137,6 +153,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'total_sell',
             'number_of_episodes',
             'chapters',
+            'is_saved',
             'created_at',
             'updated_at',
         )
@@ -157,3 +174,17 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             int: Total number of episodes.
         """
         return sum(ch.number_of_videos + ch.number_of_files for ch in obj.chapters.filter(is_visible=True))
+
+    def get_is_saved(self, obj):
+        """Check if the requesting user has saved this course.
+
+        Args:
+            obj: Course instance.
+
+        Returns:
+            bool: True if user has saved the course, False otherwise.
+        """
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.saved_by.filter(pk=request.user.pk).exists()
+        return False

@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
-from RattelBackend.cache import drf_cached_response
+from RattelBackend.cache import drf_cached_response, invalidate_cache
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
 from users.serializers import QuickUserSerializer
 from .models import Course
@@ -526,6 +526,177 @@ class MyCoursesView(APIView, ResponseBuilderMixin):
             return self.build_response(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 success=False,
+            error=-1,
+            message='Something went wrong while fetching your courses.'
+        )
+
+
+class ToggleSaveCourseView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    API endpoint for toggling save/unsave status of a course.
+
+    Permissions:
+        - IsAuthenticated: User must be logged in
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Returns:
+        200 OK:
+            - success=True
+            - message: 'Course saved' or 'Course removed from saved list'
+            - is_saved: Boolean indicating current save status
+
+        404 NOT FOUND:
+            - success=False
+            - error: -1
+            - message: 'Course not found'
+
+        500 INTERNAL SERVER ERROR:
+            - success=False
+            - error: -2
+            - message: Generic failure message
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    def post(self, request, course_id):
+        """
+        Toggle save status for a course.
+
+        Path Params:
+            course_id (UUID): The primary key of the course.
+
+        Returns:
+            200 OK:
+                - success=True
+                - message: Status message
+                - is_saved: Current save status
+
+            404 NOT FOUND:
+                - success=False
+                - error: -1
+                - message: Course not found
+
+            500 INTERNAL SERVER ERROR:
+                - success=False
+                - error: -2
+                - message: Generic failure message
+        """
+        try:
+            course = Course.objects.get(pk=course_id, is_visible=True)
+        except Course.DoesNotExist:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False,
                 error=-1,
-                message='Something went wrong while fetching your courses.'
+                message='Course not found'
+            )
+        except Exception as e:
+            logger.error(f'ToggleSaveCourseView failed to fetch course: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-2,
+                message='Something went wrong'
+            )
+
+        try:
+            if course.saved_by.filter(pk=request.user.pk).exists():
+                course.saved_by.remove(request.user)
+                is_saved = False
+                message = 'Course removed from saved list'
+            else:
+                course.saved_by.add(request.user)
+                is_saved = True
+                message = 'Course saved'
+
+            invalidate_cache('my_saved_courses', request)
+
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message=message,
+                is_saved=is_saved,
+            )
+        except Exception as e:
+            logger.error(f'ToggleSaveCourseView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-2,
+                message='Something went wrong'
+            )
+
+
+class MySavedCoursesView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    API endpoint for retrieving saved courses for authenticated user.
+
+    Permissions:
+        - IsAuthenticated: User must be logged in
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Caching:
+        - TTL: 5 minutes (300 seconds)
+        - Cache prefix: 'my_saved_courses'
+        - User-aware caching
+
+    Returns:
+        200 OK:
+            - success=True
+            - message: 'Successful'
+            - courses: List of saved courses
+            - total: Total number of saved courses
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    @method_decorator(
+        drf_cached_response(
+            ttl=300,
+            cache_prefix='my_saved_courses',
+            user_aware=True,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        """
+        Return list of courses saved by the authenticated user.
+
+        Returns:
+            200 OK:
+                - success=True
+                - message: 'Successful'
+                - courses: Serialized list of saved courses
+                - total: Count of saved courses
+
+            500 INTERNAL SERVER ERROR:
+                - success=False
+                - error: -1
+                - message: Generic failure message
+        """
+        try:
+            courses = request.user.saved_courses.select_related('teacher').prefetch_related('chapters').filter(is_visible=True)
+            serializer = CourseListSerializer(courses, many=True, context={'request': request})
+
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                courses=serializer.data,
+                total=courses.count(),
+            )
+        except Exception as e:
+            logger.error(f'MySavedCoursesView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-1,
+                message='Something went wrong while fetching your saved courses.'
             )

@@ -6,10 +6,15 @@ import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import { useCourses, type SortOption, type DifficultyOption, type CategoryOption, type AgeGroupOption } from "@/src/core/hooks/useCourses";
 import { getMediaUrl } from "@/src/core/utils";
+import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
+import { toast } from "react-toastify";
+import {useAuth} from "@/src/core/hooks/useAuth";
 
 export default function Courses() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    const {isAuthenticated} = useAuth();
     
     // Get initial values from URL
     const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
@@ -18,6 +23,7 @@ export default function Courses() {
     const [difficulty, setDifficulty] = useState<DifficultyOption | undefined>(searchParams.get('difficulty') as DifficultyOption || undefined);
     const [ageGroup, setAgeGroup] = useState<AgeGroupOption | undefined>(searchParams.get('age_group') as AgeGroupOption || undefined);
     const [search, setSearch] = useState<string | undefined>(searchParams.get('search') || undefined);
+    const [savedStates, setSavedStates] = useState<Record<string, boolean>>({});
 
     const { coursesData, isLoadingCourses } = useCourses({
         page,
@@ -29,6 +35,31 @@ export default function Courses() {
         search,
     });
 
+    // Initialize saved states when courses load
+    useEffect(() => {
+        if (coursesData?.courses) {
+            const initialStates: Record<string, boolean> = {};
+            coursesData.courses.forEach(course => {
+                initialStates[course.id] = course.is_saved || false;
+            });
+            setSavedStates(initialStates);
+        }
+    }, [coursesData]);
+
+    const handleToggleSave = async (courseId: string, e: React.MouseEvent) => {
+        e.preventDefault();
+        if(!isAuthenticated) {
+            toast.warning("ابتدا وارد حساب کاربری خود شوید.");
+            return;
+        }
+        const result = await toggleSaveCourse(courseId);
+        if (result.success) {
+            setSavedStates(prev => ({ ...prev, [courseId]: result.is_saved }));
+            toast.success(result.is_saved ? "دوره ذخیره شد" : "دوره از ذخیره‌شده‌ها حذف شد");
+        } else {
+            toast.error(result.message);
+        }
+    };
     // Update URL when filters change
     useEffect(() => {
         const params = new URLSearchParams();
@@ -226,9 +257,13 @@ export default function Courses() {
                                                                     <i className="fas fa-star text-warning me-1"></i>
                                                                     {course.rating.toFixed(1)}
                                                                 </span>
-                                                                <a href="#" className="text-danger">
-                                                                    <i className="fas fa-heart"></i>
-                                                                </a>
+                                                                <button 
+                                                                    onClick={(e) => handleToggleSave(course.id, e)} 
+                                                                    className="btn btn-link p-0 text-danger"
+                                                                    style={{ border: "none", background: "none" }}
+                                                                >
+                                                                    <i className={`${savedStates[course.id] ? 'fas' : 'far'} fa-heart`}></i>
+                                                                </button>
                                                             </div>
                                                         </div>
                                                         <h5 className="card-title fw-normal">
@@ -240,11 +275,11 @@ export default function Courses() {
                                                         <ul className="list-inline">
                                                             <li className="list-inline-item h6 fw-light mb-1 mb-sm-0">
                                                                 <i className="far fa-clock text-danger me-2"></i>
-                                                                {formatTime(course.total_time)}
+                                                                {course.total_time} ساعت
                                                             </li>
                                                             <li className="list-inline-item h6 fw-light mb-1 mb-sm-0">
                                                                 <i className="fas fa-table text-orange me-2"></i>
-                                                                {course.number_of_episodes} ویدیو
+                                                                {course.number_of_episodes} فایل
                                                             </li>
                                                             <li className="list-inline-item h6 fw-light">
                                                                 <i className="fas fa-signal text-success me-2"></i>

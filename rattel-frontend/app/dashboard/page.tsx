@@ -163,7 +163,7 @@ function DashboardContent() {
                                     دوره
                                 </th>
                                 <th scope="col" className="border-0">
-                                    قسمت ها
+                                    فایل ها
                                 </th>
                                 <th scope="col" className="border-0">
                                     کیفیت
@@ -188,7 +188,7 @@ function DashboardContent() {
                                         </div>
                                         <div className="mb-0 ms-2">
                                             <h6>
-                                                <a href="/">
+                                                <a href={`/courses/${course.id}`}>
                                                     {course.name}
                                                 </a>
                                             </h6>
@@ -228,7 +228,7 @@ function DashboardContent() {
                                     {course.rating}/5
                                 </td>
                                 <td>
-                                    <a href="/"
+                                    <a href={`courses/${course.id}`}
                                        className="btn btn-sm btn-primary-soft me-1 mb-1 mb-md-0">
                                         <i className="bi bi-play-circle me-1">
                                         </i>

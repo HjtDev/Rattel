@@ -22,6 +22,7 @@ export interface Course {
     rating: number;
     total_sell: number;
     teacher: CourseTeacher;
+    is_saved: boolean;
 }
 
 export interface CoursesResponse {

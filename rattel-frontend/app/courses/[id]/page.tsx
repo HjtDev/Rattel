@@ -8,17 +8,20 @@ import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import { toast } from "react-toastify";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
+import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
+import {useAuth} from "@/src/core/hooks/useAuth";
 
 export default function CourseDetail() {
     const params = useParams();
     const router = useRouter();
     const courseId = params.id as string;
+
+    const {isAuthenticated} = useAuth();
     
     const { courseDetail, isLoadingCourseDetail, courseDetailError } = useCourseDetail(courseId);
     const [videoModalOpen, setVideoModalOpen] = useState(false);
     const [currentVideoUrl, setCurrentVideoUrl] = useState<string>("");
-
-    // Helper functions
+    const [isSaved, setIsSaved] = useState(false);
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('fa-IR').format(price);
     };
@@ -118,6 +121,31 @@ export default function CourseDetail() {
             document.body.removeChild(link);
         }
     };
+
+    const handleToggleSave = async () => {
+        if(!isAuthenticated) {
+            toast.warning("ابتدا وارد حساب کاربری خود شوید.");
+            return;
+        }
+        const result = await toggleSaveCourse(courseId);
+        if (result.success) {
+            setIsSaved(result.is_saved);
+            if (result.is_saved) {
+                toast.success("دوره به لیست ذخیره‌شده‌ها اضافه شد");
+            } else {
+                toast.info("دوره از لیست ذخیره‌شده‌ها حذف شد");
+            }
+        } else {
+            toast.error(result.message);
+        }
+    };
+
+    // Update isSaved when courseDetail loads
+    useEffect(() => {
+        if (courseDetail) {
+            setIsSaved(courseDetail.is_saved);
+        }
+    }, [courseDetail]);
 
     useEffect(() => {
         if(courseDetailError) {
@@ -424,14 +452,14 @@ export default function CourseDetail() {
                                             <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                                                 <span className="h6 fw-light mb-0">
                                                     <i className="fas fa-clock text-primary me-2"></i>
-                                                    مدت زمان
+                                                    زمان مورد نیاز
                                                 </span>
-                                                <span>{formatTime(courseDetail.total_time)}</span>
+                                                <span>{courseDetail.total_time} ساعت</span>
                                             </li>
                                             <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                                                 <span className="h6 fw-light mb-0">
                                                     <i className="fas fa-play-circle text-primary me-2"></i>
-                                                    تعداد ویدیوها
+                                                    فایل هاّ
                                                 </span>
                                                 <span>{new Intl.NumberFormat('fa-IR').format(courseDetail.number_of_episodes)}</span>
                                             </li>
@@ -454,7 +482,7 @@ export default function CourseDetail() {
                                                     <i className="fas fa-user-graduate text-primary me-2"></i>
                                                     دانشجویان
                                                 </span>
-                                                <span>{new Intl.NumberFormat('fa-IR').format(courseDetail.total_sell)}</span>
+                                                <span>{new Intl.NumberFormat('fa-IR').format(courseDetail.total_sell)} نفر</span>
                                             </li>
                                         </ul>
 
@@ -463,6 +491,14 @@ export default function CourseDetail() {
                                             <button onClick={handleShare} className="btn btn-outline-primary mb-0">
                                                 <i className="fas fa-share-alt me-2"></i>
                                                 اشتراک‌گذاری
+                                            </button>
+                                        </div>
+
+                                        {/* Save Button */}
+                                        <div className="d-grid mt-2">
+                                            <button onClick={handleToggleSave} className={`btn ${isSaved ? 'btn-danger' : 'btn-outline-danger'} mb-0`}>
+                                                <i className={`${isSaved ? 'fas' : 'far'} fa-heart me-2`}></i>
+                                                {isSaved ? 'حذف از علاقه مندی ها' : 'ذخیره در علاقه مندی ها'}
                                             </button>
                                         </div>
 

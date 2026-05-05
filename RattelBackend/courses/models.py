@@ -37,6 +37,7 @@ class Course(models.Model):
     name = models.CharField(max_length=255, verbose_name='Title')
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='courses_taught', verbose_name='Teacher')
     bought_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='purchased_courses', blank=True, verbose_name='Bought By')
+    saved_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_courses', blank=True, verbose_name='Saved By')
 
     short_description = HTMLField(verbose_name='Short Description')
     long_description = HTMLField(verbose_name='Long Description')

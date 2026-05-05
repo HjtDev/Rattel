@@ -49,6 +49,7 @@ export interface CourseDetail {
     chapters: CourseChapter[];
     created_at: string;
     updated_at: string;
+    is_saved: boolean;
 }
 
 export function useCourseDetail(courseId: string | null) {
