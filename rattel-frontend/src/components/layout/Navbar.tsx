@@ -201,15 +201,39 @@ export default function Navbar() {
                                             <hr className="dropdown-divider"/>
                                         </li>
                                         <li>
-                                            <a className="dropdown-item" href="#">
+                                            <a className="dropdown-item" href="/dashboard/">
                                                 <i className="bi bi-person fa-fw me-2"></i>
-                                                پروفایل
+                                                داشبورد
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a className="dropdown-item" href="/dashboard/personal-information/">
+                                                <i className="bi bi-person-check fa-fw me-2"></i>
+                                                اطلاعات شخصی
                                             </a>
                                         </li>
                                         <li>
                                             <a className="dropdown-item" href="#">
+                                                <i className="bi bi-person-add fa-fw me-2"></i>
+                                                پروفایل
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a className="dropdown-item" href="/dashboard/settings/">
                                                 <i className="bi bi-gear fa-fw me-2"></i>
                                                 تنظیمات
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a className="dropdown-item" href="/dashboard/tickets/">
+                                                <i className="bi bi-ticket-detailed fa-fw me-2"></i>
+                                                تیکت های شما
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a className="dropdown-item" href="/dashboard/transactions/">
+                                                <i className="bi bi-wallet fa-fw me-2"></i>
+                                                تراکنش های شما
                                             </a>
                                         </li>
                                         <li>
