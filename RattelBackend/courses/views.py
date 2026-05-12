@@ -1,13 +1,14 @@
 import logging
 from typing import Any, Dict, Optional, Tuple
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import QuerySet, Count, Avg
 from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
-from RattelBackend.cache import drf_cached_response
+from RattelBackend.cache import drf_cached_response, invalidate_cache
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
 from users.serializers import QuickUserSerializer
 from .models import Course
@@ -51,6 +52,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
         - difficulty (str):    Filter by difficulty
         - category (str):      Filter by category
         - teacher_name (str):  Filter by teacher name (partial match)
+        - search (str):        Search in course name and description
     """
 
     permission_classes = (AllowAny,)
@@ -85,6 +87,15 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
             qs = qs.filter(category=category)
         if teacher_name := params.get('teacher_name'):
             qs = qs.filter(teacher__name__icontains=teacher_name)
+        if search := params.get('search'):
+            # Use PostgreSQL full-text search
+            search_vector = SearchVector('name', weight='A') + SearchVector('short_description', weight='B')
+            search_query = SearchQuery(search)
+            qs = qs.annotate(
+                search=search_vector,
+                rank=SearchRank(search_vector, search_query)
+            ).filter(search=search_query).order_by('-rank')
+        
         return qs
 
     def _apply_sort(self, qs, sort: Optional[str]) -> Tuple[QuerySet, bool]:
@@ -144,6 +155,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
             difficulty (str):   Filter by DifficultyChoices value
             category (str):     Filter by CategoryChoices value
             teacher_name (str): Partial match on teacher name
+            search (str):       Search in course name and description
 
         Returns:
             200 OK:
@@ -200,6 +212,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
 
         try:
             qs = Course.objects.select_related('teacher').prefetch_related('chapters', 'bought_by').filter(is_visible=True)
+            # Pass query_params as dict to _apply_filters
             qs = self._apply_filters(qs, request.query_params)
             qs, needs_python_sort = self._apply_sort(qs, sort)
 
@@ -513,6 +526,475 @@ class MyCoursesView(APIView, ResponseBuilderMixin):
             return self.build_response(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 success=False,
+            error=-1,
+            message='Something went wrong while fetching your courses.'
+        )
+
+
+class ToggleSaveCourseView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    API endpoint for toggling save/unsave status of a course.
+
+    Permissions:
+        - IsAuthenticated: User must be logged in
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Returns:
+        200 OK:
+            - success=True
+            - message: 'Course saved' or 'Course removed from saved list'
+            - is_saved: Boolean indicating current save status
+
+        404 NOT FOUND:
+            - success=False
+            - error: -1
+            - message: 'Course not found'
+
+        500 INTERNAL SERVER ERROR:
+            - success=False
+            - error: -2
+            - message: Generic failure message
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    def post(self, request, course_id):
+        """
+        Toggle save status for a course.
+
+        Path Params:
+            course_id (UUID): The primary key of the course.
+
+        Returns:
+            200 OK:
+                - success=True
+                - message: Status message
+                - is_saved: Current save status
+
+            404 NOT FOUND:
+                - success=False
+                - error: -1
+                - message: Course not found
+
+            500 INTERNAL SERVER ERROR:
+                - success=False
+                - error: -2
+                - message: Generic failure message
+        """
+        try:
+            course = Course.objects.get(pk=course_id, is_visible=True)
+        except Course.DoesNotExist:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False,
                 error=-1,
-                message='Something went wrong while fetching your courses.'
+                message='Course not found'
+            )
+        except Exception as e:
+            logger.error(f'ToggleSaveCourseView failed to fetch course: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-2,
+                message='Something went wrong'
+            )
+
+        try:
+            if course.saved_by.filter(pk=request.user.pk).exists():
+                course.saved_by.remove(request.user)
+                is_saved = False
+                message = 'Course removed from saved list'
+            else:
+                course.saved_by.add(request.user)
+                is_saved = True
+                message = 'Course saved'
+
+            invalidate_cache('my_saved_courses', request)
+
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message=message,
+                is_saved=is_saved,
+            )
+        except Exception as e:
+            logger.error(f'ToggleSaveCourseView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-2,
+                message='Something went wrong'
+            )
+
+
+class MySavedCoursesView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    API endpoint for retrieving saved courses for authenticated user.
+
+    Permissions:
+        - IsAuthenticated: User must be logged in
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Caching:
+        - TTL: 5 minutes (300 seconds)
+        - Cache prefix: 'my_saved_courses'
+        - User-aware caching
+
+    Returns:
+        200 OK:
+            - success=True
+            - message: 'Successful'
+            - courses: List of saved courses
+            - total: Total number of saved courses
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    @method_decorator(
+        drf_cached_response(
+            ttl=300,
+            cache_prefix='my_saved_courses',
+            user_aware=True,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        """
+        Return list of courses saved by the authenticated user.
+
+        Returns:
+            200 OK:
+                - success=True
+                - message: 'Successful'
+                - courses: Serialized list of saved courses
+                - total: Count of saved courses
+
+            500 INTERNAL SERVER ERROR:
+                - success=False
+                - error: -1
+                - message: Generic failure message
+        """
+        try:
+            courses = request.user.saved_courses.select_related('teacher').prefetch_related('chapters').filter(is_visible=True)
+            serializer = CourseListSerializer(courses, many=True, context={'request': request})
+
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                courses=serializer.data,
+                total=courses.count(),
+            )
+        except Exception as e:
+            logger.error(f'MySavedCoursesView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-1,
+                message='Something went wrong while fetching your saved courses.'
+            )
+
+
+class MarkEpisodeWatchedView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    API endpoint for marking an episode as watched.
+
+    Permissions:
+        - IsAuthenticated: User must be logged in
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Returns:
+        200 OK:
+            - success=True
+            - message: 'Episode marked as watched'
+            - is_completed: Boolean indicating if episode is completed
+            - progress: Course progress information
+
+        403 FORBIDDEN:
+            - success=False
+            - error: -1
+            - message: 'You do not have access to this course'
+
+        404 NOT FOUND:
+            - success=False
+            - error: -2
+            - message: 'Episode not found'
+
+        500 INTERNAL SERVER ERROR:
+            - success=False
+            - error: -3
+            - message: Generic failure message
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    def post(self, request, course_id, episode_id):
+        """
+        Mark an episode as watched and update progress.
+
+        Path Params:
+            course_id (UUID): The primary key of the course.
+            episode_id (int): The primary key of the episode.
+
+        Body Params (optional):
+            is_completed (bool): Whether episode is completed (default: True)
+            watch_duration (int): Seconds watched (default: 0)
+
+        Returns:
+            200 OK with progress information or error response
+        """
+        from .models import Episode
+        from .progress_models import EpisodeProgress
+
+        try:
+            course = Course.objects.get(pk=course_id, is_visible=True)
+        except Course.DoesNotExist:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False,
+                error=-2,
+                message='Course not found'
+            )
+
+        # Check if user has access to the course
+        if not course.has_access_to_course(request.user):
+            return self.build_response(
+                status.HTTP_403_FORBIDDEN,
+                success=False,
+                error=-1,
+                message='You do not have access to this course'
+            )
+
+        try:
+            episode = Episode.objects.select_related('chapter').get(
+                pk=episode_id,
+                chapter__course=course,
+                chapter__is_visible=True
+            )
+        except Episode.DoesNotExist:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False,
+                error=-2,
+                message='Episode not found'
+            )
+
+        try:
+            # Get or create progress record
+            progress, created = EpisodeProgress.objects.get_or_create(
+                user=request.user,
+                episode=episode,
+                course=course,
+                defaults={
+                    'is_completed': request.data.get('is_completed', True),
+                    'watch_duration': request.data.get('watch_duration', 0),
+                }
+            )
+
+            if not created:
+                # Update existing progress
+                progress.is_completed = request.data.get('is_completed', True)
+                progress.watch_count += 1
+                progress.watch_duration = request.data.get('watch_duration', progress.watch_duration)
+                progress.save()
+
+            # Get updated course progress
+            course_progress = course.get_user_progress(request.user)
+
+            # Invalidate MyCourses cache to prevent progress conflict
+            invalidate_cache('my_courses')
+
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Episode marked as watched',
+                is_completed=progress.is_completed,
+                progress=course_progress,
+            )
+
+        except Exception as e:
+            logger.error(f'MarkEpisodeWatchedView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-3,
+                message='Something went wrong'
+            )
+
+
+class CourseProgressView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    API endpoint for retrieving user's progress for a specific course.
+
+    Permissions:
+        - IsAuthenticated: User must be logged in
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Returns:
+        200 OK:
+            - success=True
+            - message: 'Successful'
+            - progress: Progress information
+
+        403 FORBIDDEN:
+            - success=False
+            - error: -1
+            - message: 'You do not have access to this course'
+
+        404 NOT FOUND:
+            - success=False
+            - error: -2
+            - message: 'Course not found'
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    def get(self, request, course_id):
+        """
+        Get user's progress for a course.
+
+        Path Params:
+            course_id (UUID): The primary key of the course.
+
+        Returns:
+            200 OK with progress information or error response
+        """
+        try:
+            course = Course.objects.get(pk=course_id, is_visible=True)
+        except Course.DoesNotExist:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False,
+                error=-2,
+                message='Course not found'
+            )
+
+        # Check if user has access to the course
+        if not course.has_access_to_course(request.user):
+            return self.build_response(
+                status.HTTP_403_FORBIDDEN,
+                success=False,
+                error=-1,
+                message='You do not have access to this course'
+            )
+
+        try:
+            progress = course.get_user_progress(request.user)
+
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                progress=progress,
+            )
+
+        except Exception as e:
+            logger.error(f'CourseProgressView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-3,
+                message='Something went wrong'
+            )
+
+
+class ContinueWatchingView(APIView, GetDataMixin, ResponseBuilderMixin):
+    """
+    API endpoint for retrieving list of courses user is currently watching.
+
+    Permissions:
+        - IsAuthenticated: User must be logged in
+
+    Throttling:
+        - Uses the `main-throttle` scope -> 500/min
+
+    Returns:
+        200 OK:
+            - success=True
+            - message: 'Successful'
+            - courses: List of courses with progress
+            - total: Total number of courses
+    """
+
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'main-throttle'
+
+    def get(self, request):
+        """
+        Return list of courses user is currently watching with progress.
+
+        Returns:
+            200 OK with courses list or error response
+        """
+        from .progress_models import EpisodeProgress
+
+        try:
+            # Get distinct courses user has started watching
+            course_ids = EpisodeProgress.objects.filter(
+                user=request.user
+            ).values_list('course_id', flat=True).distinct()
+
+            courses = Course.objects.filter(
+                id__in=course_ids,
+                is_visible=True
+            ).select_related('teacher').prefetch_related('chapters')
+
+            # Build response with progress for each course
+            courses_with_progress = []
+            for course in courses:
+                progress = course.get_user_progress(request.user)
+                
+                # Skip completed courses
+                if progress['percentage'] >= 100:
+                    continue
+
+                course_data = CourseListSerializer(course, context={'request': request}).data
+                course_data['progress'] = {
+                    'completed': progress['completed'],
+                    'total': progress['total'],
+                    'percentage': progress['percentage'],
+                }
+
+                courses_with_progress.append(course_data)
+
+            # Sort by last watched (most recent first)
+            courses_with_progress.sort(
+                key=lambda x: EpisodeProgress.objects.filter(
+                    user=request.user,
+                    course_id=x['id']
+                ).order_by('-last_watched_at').first().last_watched_at,
+                reverse=True
+            )
+
+            # Limit to 8 most recent
+            courses_with_progress = courses_with_progress[:8]
+
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                courses=courses_with_progress,
+                total=len(courses_with_progress),
+            )
+
+        except Exception as e:
+            logger.error(f'ContinueWatchingView failed: {e.__class__.__name__}: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                error=-1,
+                message='Something went wrong while fetching continue watching list.'
             )

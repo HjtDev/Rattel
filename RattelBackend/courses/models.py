@@ -37,6 +37,7 @@ class Course(models.Model):
     name = models.CharField(max_length=255, verbose_name='Title')
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='courses_taught', verbose_name='Teacher')
     bought_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='purchased_courses', blank=True, verbose_name='Bought By')
+    saved_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_courses', blank=True, verbose_name='Saved By')
 
     short_description = HTMLField(verbose_name='Short Description')
     long_description = HTMLField(verbose_name='Long Description')
@@ -108,6 +109,99 @@ class Course(models.Model):
             bool: True if user has access to course, False otherwise.
         """
         return self.teacher == user or self.bought_by.filter(pk=user.pk).exists()
+
+    def get_user_progress(self, user):
+        """
+        Calculate user's progress for this course.
+        
+        Args:
+            user: User instance
+            
+        Returns:
+            dict: Progress information including:
+                - completed: Number of completed episodes
+                - total: Total number of episodes
+                - percentage: Completion percentage (0-100)
+                - last_episode: Last watched episode object or None
+                - next_episode: Next episode to watch or None
+        """
+        from .progress_models import EpisodeProgress
+        
+        # Get all episode IDs for this course
+        all_episodes = Episode.objects.filter(
+            chapter__course=self,
+            chapter__is_visible=True
+        ).order_by('chapter__order', 'id')
+        
+        total_episodes = all_episodes.count()
+        
+        if total_episodes == 0:
+            return {
+                'completed': 0,
+                'total': 0,
+                'percentage': 0,
+                'last_episode': None,
+                'next_episode': None,
+            }
+        
+        # Get completed episodes
+        completed_count = EpisodeProgress.objects.filter(
+            course=self,
+            user=user,
+            is_completed=True
+        ).count()
+        
+        # Get last watched episode
+        last_progress = EpisodeProgress.objects.filter(
+            course=self,
+            user=user
+        ).order_by('-last_watched_at').first()
+        
+        last_episode = last_progress.episode if last_progress else None
+        
+        # Find next episode to watch
+        next_episode = None
+        if last_episode:
+            # Get all episodes after the last watched one
+            try:
+                last_episode_index = list(all_episodes).index(last_episode)
+                if last_episode_index + 1 < total_episodes:
+                    next_episode = all_episodes[last_episode_index + 1]
+            except (ValueError, IndexError):
+                pass
+        
+        # If no next episode found or no last episode, start from beginning
+        if not next_episode and completed_count < total_episodes:
+            # Find first unwatched episode
+            watched_episode_ids = EpisodeProgress.objects.filter(
+                course=self,
+                user=user,
+                is_completed=True
+            ).values_list('episode_id', flat=True)
+            
+            for episode in all_episodes:
+                if episode.id not in watched_episode_ids:
+                    next_episode = episode
+                    break
+        
+        percentage = round((completed_count / total_episodes) * 100, 1) if total_episodes > 0 else 0
+        
+        return {
+            'completed': completed_count,
+            'total': total_episodes,
+            'percentage': percentage,
+            'last_episode': {
+                'id': last_episode.id,
+                'title': last_episode.title,
+                'type': last_episode.type,
+            } if last_episode else None,
+            'next_episode': {
+                'id': next_episode.id,
+                'title': next_episode.title,
+                'type': next_episode.type,
+            } if next_episode else None,
+        }
+
 
 
 

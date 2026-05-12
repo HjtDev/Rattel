@@ -19,6 +19,11 @@ export interface Course {
     rating: number;
     total_sell: number;
     teacher: CourseTeacher;
+    progress?: {
+        completed: number;
+        total: number;
+        percentage: number;
+    } | null;
 }
 
 export interface MyCoursesResponse {
@@ -39,7 +44,9 @@ export const useMyCourses = (autoFetch: boolean = true) => {
         setError(null);
 
         try {
-            const response = await api.get<MyCoursesResponse>('/courses/my-courses/');
+            const response = await api.get<MyCoursesResponse>('/courses/my-courses/', {
+                cache: false
+            });
 
             if (response.data.success) {
                 setCoursesData(response.data.courses);

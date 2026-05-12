@@ -3,10 +3,12 @@ import {useNavbar} from "@/src/core/hooks/useNavbar";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import {useRouter} from "next/navigation";
+import {useState} from "react";
 
 export default function Navbar() {
     const {isLoadingNavbar, navbarData, navbarError} = useNavbar();
     const {user, logout, isLoading, isAuthenticated} = useAuth();
+    const [searchQuery, setSearchQuery] = useState<string>("");
     const router = useRouter();
 
     return (
@@ -142,9 +144,9 @@ export default function Navbar() {
                             </ul>
                             <div className="nav my-3 my-xl-0 px-4 flex-nowrap align-items-center">
                                 <div className="nav-item w-100">
-                                    <form className="position-relative">
-                                        <input className="form-control pe-5 bg-transparent" type="search"
-                                               placeholder="جستجو..." aria-label="Search"/>
+                                    <form className="position-relative" action={"/courses/"}>
+                                        <input className="form-control pe-5 bg-transparent"
+                                               type="search" name={"search"} placeholder="جستجو..." aria-label="Search"/>
                                         <button
                                             className="bg-transparent p-2 position-absolute top-50 end-0 translate-middle-y border-0 text-primary-hover text-reset"
                                             type="submit">
@@ -234,6 +236,12 @@ export default function Navbar() {
                                             <a className="dropdown-item" href="/dashboard/transactions/">
                                                 <i className="bi bi-wallet fa-fw me-2"></i>
                                                 تراکنش های شما
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a className="dropdown-item" href="/dashboard/saved-courses/">
+                                                <i className="bi bi-bookmark fa-fw me-2"></i>
+                                                دوره های نشان شده
                                             </a>
                                         </li>
                                         <li>

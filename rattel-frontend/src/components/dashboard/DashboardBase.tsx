@@ -135,6 +135,11 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     </i>
                                                     تراکنش ها
                                                 </a>
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/saved-courses", pathname) ? "active" : ""}`} href="/dashboard/saved-courses">
+                                                    <i className="bi bi-credit-card-2-front fa-fw me-2">
+                                                    </i>
+                                                    دوره های نشان شده
+                                                </a>
                                                 <a className="list-group-item text-danger bg-danger-soft-hover"
                                                    href="#" onClick={(e) => {
                                                     e.preventDefault();
