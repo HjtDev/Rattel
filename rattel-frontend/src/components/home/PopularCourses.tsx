@@ -2,7 +2,7 @@
 
 import { useCourses, Course } from "@/src/core/hooks/useCourses";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
-import { getMediaUrl } from "@/src/core/utils";
+import {getCategoryLabel, getDifficultyLabel, getMediaUrl} from "@/src/core/utils";
 
 function StarRating({ rating }: { rating: number }) {
     const full = Math.floor(rating);
@@ -48,10 +48,10 @@ function CourseCard({ course }: { course: Course }) {
                 <div className="card-body pb-0">
                     <div className="d-flex justify-content-start gap-1 mb-2">
                         <span className="badge bg-purple bg-opacity-10 text-purple">
-                            {course.category}
+                            {getCategoryLabel(course.category)}
                         </span>
                         <span className="badge bg-purple bg-opacity-10 text-purple">
-                            {course.difficulty}
+                            {getDifficultyLabel(course.difficulty)}
                         </span>
                     </div>
                     <h5 className="card-title fw-normal">

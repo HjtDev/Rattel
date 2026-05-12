@@ -11,6 +11,7 @@ import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import { markEpisodeWatched, useCourseProgress } from "@/src/core/hooks/useCourseProgress";
+import { getDifficultyLabel, getCategoryLabel } from "@/src/core/utils";
 
 export default function CourseDetail() {
     const params = useParams();
@@ -23,7 +24,7 @@ export default function CourseDetail() {
     const [videoModalOpen, setVideoModalOpen] = useState(false);
     const [currentVideoUrl, setCurrentVideoUrl] = useState<string>("");
     const [isSaved, setIsSaved] = useState(false);
-    const [currentEpisodeId, setCurrentEpisodeId] = useState<number | null>(null);
+    const [currentEpisodeId, setCurrentEpisodeId] = useState<string | null>(null);
     const { progress, refetchProgress } = useCourseProgress(courseId);
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('fa-IR').format(price);
@@ -32,24 +33,6 @@ export default function CourseDetail() {
     const formatTime = (minutes: number) => {
         const hours = Math.floor(minutes / 60);
         return `${hours} ساعت`;
-    };
-
-    const getDifficultyLabel = (difficulty: string) => {
-        const labels: Record<string, string> = {
-            beginner: "مبتدی",
-            intermediate: "متوسط",
-            advanced: "پیشرفته"
-        };
-        return labels[difficulty] || difficulty;
-    };
-
-    const getCategoryLabel = (category: string) => {
-        const labels: Record<string, string> = {
-            naghme: "نغمه",
-            hafeze: "حافظه",
-            andishe: "اندیشه"
-        };
-        return labels[category] || category;
     };
 
     const getAgeGroupLabel = (ageGroup: string) => {
@@ -110,7 +93,7 @@ export default function CourseDetail() {
         setCurrentVideoUrl("");
     };
 
-    const handleEpisodeClick = async (episodeId: number, episodeType: string, fileUrl: string) => {
+    const handleEpisodeClick = async (episodeId: string, episodeType: string, fileUrl: string) => {
         if (episodeType === 'video') {
             setCurrentEpisodeId(episodeId);
             openVideoModal(fileUrl);
@@ -458,7 +441,7 @@ export default function CourseDetail() {
 
                                         {/* Add to Cart Button */}
                                         <div className="d-grid mb-3">
-                                            <button className="btn btn-primary mb-0">
+                                            <button className="btn btn-primary mb-0" onClick={(e) => toast.info("درگاه پرداخت غیرفعال است.")}>
                                                 افزودن به سبد خرید
                                             </button>
                                         </div>

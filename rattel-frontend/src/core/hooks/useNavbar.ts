@@ -25,15 +25,15 @@ interface Col3Items extends Col2Items {
 
 interface NavbarMegaMenuCol1 {
     title: string;
-    items: Col1Items;
+    items: Col1Items[];
 }
 
 interface NavbarMegaMenuCol2 extends NavbarMegaMenuCol1 {
-    items: Col2Items;
+    items: Col2Items[];
 }
 
 interface NavbarMegaMenuCol3 extends NavbarMegaMenuCol2 {
-    items: Col3Items;
+    items: Col3Items[];
 }
 
 interface NavbarMegaMenuBanner {
@@ -45,9 +45,9 @@ interface NavbarMegaMenuBanner {
 interface NavbarData {
     navbar_logo: string;
     navbar_links: NavbarLink[];
-    col1: NavbarMegaMenuCol1[];
-    col2: NavbarMegaMenuCol2[];
-    col3: NavbarMegaMenuCol3[];
+    col1: NavbarMegaMenuCol1;
+    col2: NavbarMegaMenuCol2;
+    col3: NavbarMegaMenuCol3;
     banner: NavbarMegaMenuBanner;
     notification: string;
 }

@@ -22,8 +22,10 @@ interface FooterColumn {
 }
 
 interface SocialMediaLink {
-    platform: string;
-    url: string;
+    social_link: {
+        platform: string;
+        url: string;
+    }
     order: number;
 }
 

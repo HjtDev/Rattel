@@ -43,8 +43,14 @@ export default function Footer() {
                                         footerData?.social_media_items.map((social_media, index) => (
                                             <li className="list-inline-item" key={index}>
                                                 <a className="btn btn-white btn-sm shadow px-2 text-facebook" href={social_media.social_link.url}>
-                                                    <i className={"fab fa-fw fa-" + social_media.social_link.platform}>
-                                                    </i>
+                                                    {
+                                                        ["telegram", "linkedin"].includes(social_media.social_link.platform) ? (
+                                                            <i className={"fab fa-fw fa-" + social_media.social_link.platform}>
+                                                            </i>
+                                                        ) : (
+                                                            <img src={`/assets/images/social_media/${social_media.social_link.platform}.ico`} alt={social_media.social_link.platform} width={15} height={15} />
+                                                        )
+                                                    }
                                                 </a>
                                             </li>
                                         ))

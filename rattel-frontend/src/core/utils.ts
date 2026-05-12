@@ -35,3 +35,31 @@ export function isLinkActive(href: string, pathname: string): boolean {
     // This handles nested routes like /dashboard/personal-information
     return pathname.startsWith(href);
 }
+
+/**
+ * Converts backend course difficulty value to a user-friendly label
+ * @param difficulty - Course Difficulty value
+ * @returns Course Difficulty Label
+ */
+export const getDifficultyLabel = (difficulty: string) => {
+    const labels: Record<string, string> = {
+        beginner: "مبتدی",
+        intermediate: "متوسط",
+        advanced: "پیشرفته"
+    };
+    return labels[difficulty] || difficulty;
+};
+
+/**
+ * Converts backend course category value to a user-friendly label
+ * @param category - Course Category value
+ * @returns Course Category Label
+ */
+export const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+        naghme: "نغمه",
+        hafeze: "حافظه",
+        andishe: "اندیشه"
+    };
+    return labels[category] || category;
+};

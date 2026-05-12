@@ -131,7 +131,7 @@ export function useContinueWatching() {
  */
 export async function markEpisodeWatched(
     courseId: string, 
-    episodeId: number, 
+    episodeId: string,
     isCompleted: boolean = true,
     watchDuration: number = 0
 ): Promise<{ success: boolean; progress?: CourseProgress; message: string }> {
