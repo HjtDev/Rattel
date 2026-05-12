@@ -77,6 +77,7 @@ class CourseListSerializer(serializers.ModelSerializer):
     teacher = QuickUserSerializer(read_only=True)
     number_of_episodes = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
+    progress = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -95,6 +96,7 @@ class CourseListSerializer(serializers.ModelSerializer):
             'total_sell',
             'teacher',
             'is_saved',
+            'progress',
         )
 
     def get_number_of_episodes(self, obj):
@@ -122,6 +124,25 @@ class CourseListSerializer(serializers.ModelSerializer):
             return obj.saved_by.filter(pk=request.user.pk).exists()
         return False
 
+
+    def get_progress(self, obj):
+        """Get user's progress for this course if authenticated.
+
+        Args:
+            obj: Course instance.
+
+        Returns:
+            dict or None: Progress information or None if not authenticated.
+        """
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            # Only calculate progress if user has access to the course
+            if obj.has_access_to_course(request.user):
+                progress = obj.get_user_progress(request.user)
+                return progress
+        return None
+
+
 class CourseDetailSerializer(serializers.ModelSerializer):
     content_type = serializers.SerializerMethodField()
     teacher = QuickUserSerializer(read_only=True)
@@ -130,6 +151,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     total_sell = serializers.IntegerField(read_only=True)
     number_of_episodes = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
+    progress = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -154,6 +176,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'number_of_episodes',
             'chapters',
             'is_saved',
+            'progress',
             'created_at',
             'updated_at',
         )
@@ -188,3 +211,20 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.saved_by.filter(pk=request.user.pk).exists()
         return False
+
+    def get_progress(self, obj):
+        """Get user's progress for this course if authenticated.
+
+        Args:
+            obj: Course instance.
+
+        Returns:
+            dict or None: Progress information or None if not authenticated.
+        """
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            # Only calculate progress if user has access to the course
+            if obj.has_access_to_course(request.user):
+                progress = obj.get_user_progress(request.user)
+                return progress
+        return None

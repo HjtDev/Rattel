@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import Course, Chapter, Episode
+from .progress_admin import *  # Import progress admin
 
 
 class ChapterInline(admin.StackedInline):

@@ -50,6 +50,17 @@ export interface CourseDetail {
     created_at: string;
     updated_at: string;
     is_saved: boolean;
+    progress?: {
+        completed: number;
+        total: number;
+        percentage: number;
+        last_episode?: {
+            id: number;
+            title: string;
+            type: string;
+        } | null;
+        next_episode?: any;
+    } | null;
 }
 
 export function useCourseDetail(courseId: string | null) {

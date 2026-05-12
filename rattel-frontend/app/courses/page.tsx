@@ -286,6 +286,20 @@ export default function Courses() {
                                                                 {getDifficultyLabel(course.difficulty)}
                                                             </li>
                                                         </ul>
+                                                        {/* Progress Bar - Only show if user has progress */}
+                                                        {course.progress && course.progress.total > 0 && (
+                                                            <div className="mb-2">
+                                                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                                                    <small className="text-muted">پیشرفت: {course.progress.percentage}%</small>
+                                                                </div>
+                                                                <div className="progress" style={{ height: '5px' }}>
+                                                                    <div 
+                                                                        className="progress-bar bg-success" 
+                                                                        style={{ width: `${course.progress.percentage}%` }}
+                                                                    ></div>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <div className="d-sm-flex justify-content-sm-between align-items-center">
                                                             <div className="d-flex align-items-center">
                                                                 <div className="avatar">

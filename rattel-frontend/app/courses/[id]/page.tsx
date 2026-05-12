@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
 import {useAuth} from "@/src/core/hooks/useAuth";
+import { markEpisodeWatched, useCourseProgress } from "@/src/core/hooks/useCourseProgress";
 
 export default function CourseDetail() {
     const params = useParams();
@@ -22,6 +23,8 @@ export default function CourseDetail() {
     const [videoModalOpen, setVideoModalOpen] = useState(false);
     const [currentVideoUrl, setCurrentVideoUrl] = useState<string>("");
     const [isSaved, setIsSaved] = useState(false);
+    const [currentEpisodeId, setCurrentEpisodeId] = useState<number | null>(null);
+    const { progress, refetchProgress } = useCourseProgress(courseId);
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('fa-IR').format(price);
     };
@@ -107,11 +110,24 @@ export default function CourseDetail() {
         setCurrentVideoUrl("");
     };
 
-    const handleEpisodeClick = (episodeType: string, fileUrl: string) => {
+    const handleEpisodeClick = async (episodeId: number, episodeType: string, fileUrl: string) => {
         if (episodeType === 'video') {
+            setCurrentEpisodeId(episodeId);
             openVideoModal(fileUrl);
+            
+            // Mark episode as watched after opening
+            if (isAuthenticated) {
+                const result = await markEpisodeWatched(courseId, episodeId, true);
+                if (result.success) {
+                    refetchProgress();
+                }
+            }
         } else {
             // Download file for note or attachment
+            if (isAuthenticated) {
+                await markEpisodeWatched(courseId, episodeId, true);
+                refetchProgress();
+            }
             const link = document.createElement('a');
             link.href = fileUrl;
             link.download = '';
@@ -357,13 +373,13 @@ export default function CourseDetail() {
                                                                                             <i className="fas fa-lock text-muted me-2"></i>
                                                                                             <span className="text-muted">{episode.title}</span>
                                                                                         </>
-                                                                                    ) : (
-                                                                                        <>
-                                                                                            <button
-                                                                                                onClick={() => handleEpisodeClick(episode.type, episode.file)}
-                                                                                                className="btn btn-danger-soft btn-round btn-sm mb-0"
-                                                                                            >
-                                                                                                {episode.type === 'video' ? (
+                                                                                   ) : (
+                                                                                       <>
+                                                                                           <button
+                                                                                                onClick={() => handleEpisodeClick(episode.id, episode.type, episode.file)}
+                                                                                               className="btn btn-danger-soft btn-round btn-sm mb-0"
+                                                                                           >
+                                                                                               {episode.type === 'video' ? (
                                                                                                     <i className="fas fa-play me-0"></i>
                                                                                                 ) : (
                                                                                                     <i className="fas fa-download me-0"></i>
@@ -449,6 +465,26 @@ export default function CourseDetail() {
 
                                         {/* Course Features */}
                                         <ul className="list-group list-group-borderless">
+                                            {/* Progress Bar - Only show if user has access and progress exists */}
+                                            {progress && progress.total > 0 && (
+                                                <li className="list-group-item px-0 mb-3">
+                                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                                        <span className="h6 fw-light mb-0">پیشرفت دوره</span>
+                                                        <span className="h6 fw-light mb-0">{progress.percentage}%</span>
+                                                    </div>
+                                                    <div className="progress" style={{ height: '8px' }}>
+                                                        <div 
+                                                            className="progress-bar bg-success" 
+                                                            role="progressbar" 
+                                                            style={{ width: `${progress.percentage}%` }}
+                                                            aria-valuenow={progress.percentage} 
+                                                            aria-valuemin={0} 
+                                                            aria-valuemax={100}
+                                                        ></div>
+                                                    </div>
+                                                    <small className="text-muted mt-1 d-block">{progress.completed} از {progress.total} قسمت تکمیل شده</small>
+                                                </li>
+                                            )}
                                             <li className="list-group-item d-flex justify-content-between align-items-center px-0">
                                                 <span className="h6 fw-light mb-0">
                                                     <i className="fas fa-clock text-primary me-2"></i>

@@ -6,6 +6,7 @@ import {useDashboard} from "@/src/core/hooks/useDashboard";
 import {useMyCourses} from "@/src/core/hooks/useMyCourses";
 import {getMediaUrl} from "@/src/core/utils";
 import {useRouter} from "next/navigation";
+import {useCourseProgress} from "@/src/core/hooks/useCourseProgress";
 
 function DashboardContent() {
     const {dashboardData, isLoadingDashboard} = useDashboard();
@@ -42,9 +43,13 @@ function DashboardContent() {
         e.preventDefault();
     };
 
-    // Calculate progress percentage (placeholder - update when you have real progress tracking)
-    const calculateProgress = () => {
-        return 0; // Placeholder
+    const calculateProgress = (courseID: string | null) => {
+        const { progress } = useCourseProgress(courseID);
+        return {
+            progress: progress?.percentage,
+            completed: progress?.completed,
+            total: progress?.total
+        };
     };
 
     return !isLoadingDashboard && (
@@ -175,8 +180,6 @@ function DashboardContent() {
                             </thead>
                             <tbody>
                             {filteredCourses.map((course) => {
-                                const progress = calculateProgress();
-                                const completedEpisodes = Math.floor((progress / 100) * course.number_of_episodes);
                                 return (
                             <tr key={course.id}>
                                 <td>
@@ -201,7 +204,7 @@ function DashboardContent() {
                                                 <p className="h6 fw-light mb-0 small">
                                                     <i className="fas fa-check-circle text-success me-2">
                                                     </i>
-                                                    {completedEpisodes} از {course.number_of_episodes}
+                                                    {course.progress?.completed} از {course.progress?.total}
                                                 </p>
                                             </div>
                                             <div className="overflow-hidden">
@@ -211,8 +214,8 @@ function DashboardContent() {
                                                         role={"progressbar"} data-aos={"slide-left"}
                                                         data-aos-delay={200} data-aos-duration={1000}
                                                         data-aos-easing={"ease-in-out"}
-                                                        style={{width: `${progress}%`}}
-                                                        aria-valuenow={progress} aria-valuemin={0}
+                                                        style={{width: `${course.progress?.percentage}%`}}
+                                                        aria-valuenow={course.progress?.percentage} aria-valuemin={0}
                                                         aria-valuemax={100}
                                                     >
                                                     </div>

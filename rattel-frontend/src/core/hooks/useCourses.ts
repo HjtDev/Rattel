@@ -23,6 +23,11 @@ export interface Course {
     total_sell: number;
     teacher: CourseTeacher;
     is_saved: boolean;
+    progress?: {
+        completed: number;
+        total: number;
+        percentage: number;
+    } | null;
 }
 
 export interface CoursesResponse {

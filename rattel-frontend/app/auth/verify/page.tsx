@@ -113,7 +113,7 @@ export default function VerifyPage() {
                                                 <input
                                                     type="text"
                                                     className="form-control border-0 bg-light rounded-end ps-1"
-                                                    placeholder="123456"
+                                                    placeholder="1234"
                                                     id="code"
                                                     value={code}
                                                     onChange={(e) => setCode(e.target.value.trim())}
