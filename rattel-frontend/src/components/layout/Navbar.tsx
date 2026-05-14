@@ -18,7 +18,7 @@ export default function Navbar() {
                     <div className="container-fluid px-3 px-xl-5">
                         <a className="navbar-brand" href="/">
                             <LoadingSkeleton isLoading={isLoadingNavbar} width={"126px"} height={"36px"} Content={() => (
-                                <img className="light-mode-item navbar-brand-item" src={navbarData?.navbar_logo || null}
+                                <img className="light-mode-item navbar-brand-item" src={navbarData?.navbar_logo}
                                      alt="navbar logo"/>
                             )}
                             />
@@ -215,7 +215,7 @@ export default function Navbar() {
                                             </a>
                                         </li>
                                         <li>
-                                            <a className="dropdown-item" href="#">
+                                            <a className="dropdown-item" href="/dashboard/profile/">
                                                 <i className="bi bi-person-add fa-fw me-2"></i>
                                                 پروفایل
                                             </a>

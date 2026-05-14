@@ -129,20 +129,18 @@ async function fetchNavbarData(): Promise<NavbarData> {
 
 export function useNavbar() {
     clearNavbarCacheOnReload();
-
-    const initialCache = navbarMemoryCache ?? readNavbarStorageCache();
-
-    if (!navbarMemoryCache && initialCache) {
-        navbarMemoryCache = initialCache;
-    }
-
-    const [navbarData, setNavbarData] = useState<NavbarData | null>(initialCache?.data ?? null);
-    const [isLoadingNavbar, setIsLoadingNavbar] = useState(!initialCache);
+    const [navbarData, setNavbarData] = useState<NavbarData | null>(null);
+    const [isLoadingNavbar, setIsLoadingNavbar] = useState(true);
     const [navbarError, setNavbarError] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
-        const cache = navbarMemoryCache;
+        const cache = navbarMemoryCache ?? readNavbarStorageCache();
+
+        if (!navbarMemoryCache && cache) {
+            navbarMemoryCache = cache;
+        }
+
         const hasFreshCache = !!cache && Date.now() - cache.updatedAt < NAVBAR_TTL_MS;
 
         if (cache && isMounted) {

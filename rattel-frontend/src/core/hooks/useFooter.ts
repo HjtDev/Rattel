@@ -118,20 +118,18 @@ async function fetchFooterData(): Promise<FooterData> {
 
 export function useFooter() {
     clearFooterCacheOnReload();
-
-    const initialCache = footerMemoryCache ?? readFooterStorageCache();
-
-    if (!footerMemoryCache && initialCache) {
-        footerMemoryCache = initialCache;
-    }
-
-    const [footerData, setFooterData] = useState<FooterData | null>(initialCache?.data ?? null);
-    const [isLoadingFooter, setIsLoadingFooter] = useState(!initialCache);
+    const [footerData, setFooterData] = useState<FooterData | null>(null);
+    const [isLoadingFooter, setIsLoadingFooter] = useState(true);
     const [footerError, setFooterError] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
-        const cache = footerMemoryCache;
+        const cache = footerMemoryCache ?? readFooterStorageCache();
+
+        if (!footerMemoryCache && cache) {
+            footerMemoryCache = cache;
+        }
+
         const hasFreshCache = !!cache && Date.now() - cache.updatedAt < FOOTER_TTL_MS;
 
         if (cache && isMounted) {
