@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {getMediaUrl} from "@/src/core/utils";
 
@@ -18,7 +21,11 @@ interface LandingProps {
 }
 
 export default function Landing({ data, isLoading }: LandingProps) {
+    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    const videoUrl = getMediaUrl(data?.video);
+
     return (
+        <>
         <section className="position-relative overflow-hidden pt-5 pt-lg-3">
             <figure className="position-absolute top-50 start-0 translate-middle-y ms-n7 d-none d-xxl-block">
                 <svg className="rotate-74 fill-danger opacity-1">
@@ -318,15 +325,17 @@ export default function Landing({ data, isLoading }: LandingProps) {
                                 </>
                             )} width={80} height={50}/>
                             <div className="d-flex align-items-center justify-content-center py-2 ms-0 ms-sm-4">
-                                <a data-glightbox data-gallery="office-tour"
-                                   href={data?.video}
-                                   className="btn btn-round btn-primary-shadow mb-0 overflow-visible me-7">
+                                <button
+                                    type="button"
+                                    className="btn btn-round btn-primary-shadow mb-0 overflow-visible me-7"
+                                    onClick={() => setIsVideoModalOpen(true)}
+                                >
                                     <i className="fas fa-play">
                                     </i>
                                     <h6 className="mb-0 ms-3 fw-normal position-absolute start-100 top-50 translate-middle-y">
                                         مشاهده ویدیو
                                     </h6>
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -434,5 +443,35 @@ export default function Landing({ data, isLoading }: LandingProps) {
                 </div>
             </div>
         </section>
+            {isVideoModalOpen && !!videoUrl && (
+                <>
+                    <div
+                        className="modal fade show d-block"
+                        tabIndex={-1}
+                        role="dialog"
+                        aria-modal="true"
+                        style={{ backgroundColor: "rgba(0, 0, 0, 0.65)" }}
+                    >
+                        <div className="modal-dialog modal-dialog-centered modal-xl" role="document">
+                            <div className="modal-content">
+                                <div className="modal-header justify-content-start">
+                                    <button
+                                        type="button"
+                                        className="btn-close"
+                                        aria-label="Close"
+                                        onClick={() => setIsVideoModalOpen(false)}
+                                        style={{marginRight: 0}}
+                                    />
+                                </div>
+                                <div className="modal-body p-0">
+                                    <video src={videoUrl} controls autoPlay className="w-100" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="modal-backdrop fade show end-0" onClick={() => setIsVideoModalOpen(false)} />
+                </>
+            )}
+        </>
     );
 }
