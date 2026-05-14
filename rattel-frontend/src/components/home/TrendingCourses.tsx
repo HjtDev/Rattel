@@ -50,9 +50,6 @@ function TrendingCourseCard({ course }: { course: Course }) {
                                 {getDifficultyLabel(course.difficulty)}
                             </span>
                         </div>
-                        <a href="#" className="h6 fw-light mb-0">
-                            <i className="far fa-bookmark"></i>
-                        </a>
                     </div>
                     <h5 className="card-title fw-normal">
                         <a href={`/courses/${course.id}`}>{course.name}</a>
