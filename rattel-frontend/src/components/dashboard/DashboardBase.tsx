@@ -24,7 +24,6 @@ export default function DashboardBase({Content}: DashboardContent) {
 
     return !isLoading  && (
         <>
-            <Navbar/>
             <main>
                 <section className="pt-0">
                     <div className="container-fluid px-0">
@@ -162,7 +161,6 @@ export default function DashboardBase({Content}: DashboardContent) {
                     </div>
                 </section>
             </main>
-            <Footer/>
         </>
     )
 }

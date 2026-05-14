@@ -147,7 +147,6 @@ export default function Courses() {
 
     return (
         <>
-            <Navbar />
             <main>
                 <section className="bg-dark align-items-center d-flex"
                          style={{
@@ -473,7 +472,6 @@ export default function Courses() {
                     </div>
                 </section>
             </main>
-            <Footer />
         </>
     );
 }
