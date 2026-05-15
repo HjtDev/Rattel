@@ -236,9 +236,14 @@ function CoursesContent() {
                                             <div className="row g-0">
                                                 <div className="col-md-5 overflow-hidden">
                                                     <img src={course.image ? getMediaUrl(course.image) : '/assets/images/courses/4by3/06.jpg'} className="rounded-2"
-                                                         alt={course.name}/>
+                                                         alt={course.name}
+                                                         onClick={(e) => {e.preventDefault(); router.push(`/courses/${course.id}`)}}
+                                                    />
                                                     {course.new_price !== 0 && (
-                                                        <div className="card-img-overlay">
+                                                        <div
+                                                            className="card-img-overlay"
+                                                            onClick={(e) => {e.preventDefault(); router.push(`/courses/${course.id}`)}}
+                                                        >
                                                             <div className="ribbon">
                                                                 <span>تخفیف</span>
                                                             </div>

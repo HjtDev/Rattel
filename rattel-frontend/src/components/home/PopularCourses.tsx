@@ -3,6 +3,7 @@
 import { useCourses, Course } from "@/src/core/hooks/useCourses";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {getCategoryLabel, getDifficultyLabel, getMediaUrl} from "@/src/core/utils";
+import {useRouter} from "next/navigation";
 
 function StarRating({ rating }: { rating: number }) {
     const full = Math.floor(rating);
@@ -34,6 +35,7 @@ function StarRating({ rating }: { rating: number }) {
 function CourseCard({ course }: { course: Course }) {
     const effectivePrice = course.new_price > 0 ? course.new_price : course.price;
     const hasDiscount = course.new_price > 0;
+    const router = useRouter();
 
     return (
         <div className="col-sm-6 col-lg-4 col-xl-3">
@@ -43,6 +45,7 @@ function CourseCard({ course }: { course: Course }) {
                         src={getMediaUrl(course.image)}
                         className="card-img-top"
                         alt={course.name}
+                        onClick={(e) => {e.preventDefault(); router.push(`/courses/${course.id}`)}}
                     />
                 )}
                 <div className="card-body pb-0">
