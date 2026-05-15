@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
@@ -10,7 +10,7 @@ import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
 import { toast } from "react-toastify";
 import {useAuth} from "@/src/core/hooks/useAuth";
 
-export default function Courses() {
+function CoursesContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -473,5 +473,13 @@ export default function Courses() {
                 </section>
             </main>
         </>
+    );
+}
+
+export default function Courses() {
+    return (
+        <Suspense fallback={null}>
+            <CoursesContent />
+        </Suspense>
     );
 }

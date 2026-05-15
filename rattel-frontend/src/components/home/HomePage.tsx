@@ -48,7 +48,7 @@ export default function HomePage() {
             <Advertisement data={advertisementData} isLoading={isLoadingMainPage} />
             <TrendingCourses />
             <UsersExperience data={userExperienceData} isLoading={isLoadingMainPage} />
-            <TopTeachers data={topTeachersData} />
+            <TopTeachers data={topTeachersData} isLoading={isLoadingMainPage} />
             <ImagedLinks data={imagedLinksData} isLoading={isLoadingMainPage} />
             <CourseDemo data={coursesDemoData} isLoading={isLoadingMainPage} />
             <InformationBoxes data={informationBoxesData} isLoading={isLoadingMainPage} />
