@@ -9,7 +9,10 @@ interface User {
 interface UserExperienceSection {
     title: string;
     description: string;
-    top_users: boolean;
+    top_users: boolean | {
+      title: string;
+      list: User[];
+    };
     comment1_text: string;
     comment1_user: User;
     comment1_rate: number;
@@ -24,6 +27,7 @@ interface UsersExperienceProps {
 }
 
 export default function UsersExperience({ data, isLoading }: UsersExperienceProps) {
+  const topUsers = data?.top_users && typeof data.top_users === "object" ? data.top_users : null;
   
   // Helper function to render star rating
   const renderStars = (rate: number) => {
@@ -87,7 +91,7 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                     </blockquote>
                     <LoadingSkeleton isLoading={isLoading} Content={() => (
                         <ul className="list-inline mb-2">
-                          {renderStars(data?.comment1_rate)}
+                          {renderStars(data?.comment1_rate ?? 0)}
                         </ul>
                     )} width={192} height={20} />
                     <LoadingSkeleton isLoading={isLoading} Content={() => (
@@ -98,7 +102,7 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                   </div>
                 </div>
                 {
-                    data?.top_users != false && (
+                    topUsers && (
                         <div className="col-md-5 mt-5 mt-md-0 d-none d-md-block">
                           <div className="bg-body shadow p-4 rounded-3 d-inline-block position-relative">
                             <div
@@ -108,11 +112,11 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                             </div>
                             <LoadingSkeleton isLoading={isLoading} Content={() => (
                                 <h6 className="mb-3">
-                                  {data?.top_users.title}
+                                  {topUsers?.title ?? ""}
                                 </h6>
                             )} width={130} height={20}/>
                             <LoadingSkeleton isLoading={isLoading} Content={() => (
-                                data?.top_users.list.map((user: User, index: number) => (
+                                (topUsers?.list ?? []).map((user: User, index: number) => (
                                         <div className="d-flex align-items-center mb-3" key={index}>
                                           <div className="ms-2">
                                             <h6 className="mb-0">
@@ -292,7 +296,7 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                     </blockquote>
                     <LoadingSkeleton isLoading={isLoading} Content={() => (
                         <ul className="list-inline mb-2">
-                          {renderStars(data?.comment2_rate)}
+                          {renderStars(data?.comment2_rate ?? 0)}
                         </ul>
                     )} width={192} height={20} />
                     <LoadingSkeleton isLoading={isLoading} Content={() => (

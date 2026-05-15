@@ -66,7 +66,6 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.cache',
     'health_check.storage',
-    'health_check.contrib.celery',
     'drf_spectacular',
     'tinymce',
 ]
