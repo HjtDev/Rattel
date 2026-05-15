@@ -98,6 +98,7 @@ celerybeat-schedule
 
 # Environments
 .env
+.env.*
 .venv
 env/
 venv/
@@ -130,3 +131,10 @@ rattel-frontend/.idea/
 RattelBackend/http-client.env.json
 
 rattel-frontend/public
+
+# Docker Production
+#Dockerfile.prod
+#docker-compose.prod.yml
+
+# Deploy
+deploy/*.*.env*
