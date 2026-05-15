@@ -343,15 +343,33 @@ class AuthManager {
     }): Promise<{ success: boolean; message?: string; error?: number; usernameChanged?: boolean }> {
         try {
             const formData = new FormData();
+            let hasDataToUpdate = false;
             
-            // Add string fields if provided
-            if (data.name !== undefined) formData.append('name', data.name);
-            if (data.username !== undefined) formData.append('username', data.username);
-            if (data.email !== undefined) formData.append('email', data.email);
+            // Add only non-empty string fields.
+            if (typeof data.name === "string" && data.name.trim() !== "") {
+                formData.append("name", data.name);
+                hasDataToUpdate = true;
+            }
+            if (typeof data.username === "string" && data.username.trim() !== "") {
+                formData.append("username", data.username);
+                hasDataToUpdate = true;
+            }
+            if (typeof data.email === "string" && data.email.trim() !== "") {
+                formData.append("email", data.email);
+                hasDataToUpdate = true;
+            }
             
             // Add profile picture if provided
             if (data.profile_picture) {
-                formData.append('profile_picture', data.profile_picture);
+                formData.append("profile_picture", data.profile_picture);
+                hasDataToUpdate = true;
+            }
+
+            if (!hasDataToUpdate) {
+                return {
+                    success: false,
+                    message: "هیچ فیلد معتبری برای به‌روزرسانی ارسال نشده است.",
+                };
             }
 
             const response = await api.patch("/users/info/", formData, {
@@ -401,7 +419,23 @@ class AuthManager {
         instagram_id?: string;
     }): Promise<{ success: boolean; message?: string; error?: number }> {
         try {
-            const response = await api.patch("/users/profile/?target=me", data, {
+            const payload: Record<string, string> = {};
+
+            // PATCH should include only provided non-empty values.
+            Object.entries(data).forEach(([key, value]) => {
+                if (typeof value === "string" && value.trim() !== "") {
+                    payload[key] = value;
+                }
+            });
+
+            if (Object.keys(payload).length === 0) {
+                return {
+                    success: false,
+                    message: "هیچ فیلد معتبری برای به‌روزرسانی ارسال نشده است.",
+                };
+            }
+
+            const response = await api.patch("/users/profile/?target=me", payload, {
                 cache: false,
             });
 
