@@ -245,7 +245,7 @@ class OTP:
                     # Update cache with new attempt count
                     try:
                         redis_conn = get_redis_connection('default')  # Establishes a connection with redis database
-                        cache_key_in_redis = f'{settings.CACHES['default'].get('KEY_PREFIX')}:1:{self.cache_key}'  # Builds the actual key that is used in redis database
+                        cache_key_in_redis = f"{settings.CACHES['default'].get('KEY_PREFIX')}:1:{self.cache_key}"  # Builds the actual key that is used in redis database
                         remaining_time = redis_conn.ttl(cache_key_in_redis)  # Uses the cache_key_in_redis to gets the remaining time
                         cache.set(self.cache_key, otp, timeout=remaining_time)  # Updates the cache with the remaining_time and attempts
                     except Exception as e:
@@ -384,9 +384,9 @@ class OTP:
         
         try:
             if isinstance(token, str):
+                token = token.encode()
+            if isinstance(token, bytes):
                 decrypted_token = self._encryptor.decrypt(token).decode()
-            elif isinstance(token, bytes):
-                decrypted_token = self._encryptor.decrypt(token.decode()).decode()
             else:
                 raise TypeError('Token must be an instance of string or bytes to be decrypted.')
         except Exception as e:

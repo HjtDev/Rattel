@@ -14,6 +14,7 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 from cryptography.fernet import Fernet
+from django.core.exceptions import ImproperlyConfigured
 from notifications.handlers.sms import SMSHandler
 from notifications.providers.sms.local import LocalSMSProvider
 from notifications.handlers.email import EmailHandler
@@ -237,8 +238,19 @@ SIMPLE_JWT = {
 }
 
 # CIPHER
-
-CIPHER = Fernet(Fernet.generate_key())
+#
+# IMPORTANT:
+# The Fernet key must be stable across all processes/containers. Generating a new
+# key at startup causes intermittent decryption failures when OTP start/verify
+# requests are handled by different workers.
+FERNET_KEY = config('FERNET_KEY', default='')
+if FERNET_KEY:
+    CIPHER = Fernet(FERNET_KEY.encode())
+elif DEBUG:
+    logging.warning('FERNET_KEY is not set. Using a process-local random key because DEBUG=True.')
+    CIPHER = Fernet(Fernet.generate_key())
+else:
+    raise ImproperlyConfigured('FERNET_KEY must be set when DEBUG=False.')
 
 # OTP Config
 
