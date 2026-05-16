@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { getMediaUrl } from "@/src/core/utils";
 
 interface CoursesDemoSection {
@@ -12,6 +13,8 @@ interface CourseDemoProps {
 }
 
 export default function CourseDemo({ data, isLoading }: CourseDemoProps) {
+    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
     if (isLoading || !data?.video) return null;
 
     const videoUrl = getMediaUrl(data.video);
@@ -23,21 +26,57 @@ export default function CourseDemo({ data, isLoading }: CourseDemoProps) {
                     <div className="col-md-8 text-center mx-auto">
                         <div className="card card-body shadow p-2">
                             <div className="position-relative">
+                                <video
+                                    src={videoUrl}
+                                    preload="metadata"
+                                    muted
+                                    playsInline
+                                    className="w-100 rounded"
+                                    style={{ maxHeight: "460px", objectFit: "cover" }}
+                                />
                                 <div className="card-img-overlay d-flex align-items-center justify-content-center">
-                                    <a
-                                        href={videoUrl}
+                                    <button
+                                        type="button"
                                         className="btn btn-lg text-danger btn-round btn-white-shadow mb-0"
-                                        data-glightbox
-                                        data-gallery="video-tour"
+                                        onClick={() => setIsVideoModalOpen(true)}
                                     >
                                         <i className="fas fa-play"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            {isVideoModalOpen && (
+                <>
+                    <div
+                        className="modal fade show d-block"
+                        tabIndex={-1}
+                        role="dialog"
+                        aria-modal="true"
+                        style={{ backgroundColor: "rgba(0, 0, 0, 0.65)" }}
+                    >
+                        <div className="modal-dialog modal-dialog-centered modal-xl" role="document">
+                            <div className="modal-content">
+                                <div className="modal-header justify-content-start">
+                                    <button
+                                        type="button"
+                                        className="btn-close"
+                                        aria-label="Close"
+                                        onClick={() => setIsVideoModalOpen(false)}
+                                        style={{marginRight: 0}}
+                                    />
+                                </div>
+                                <div className="modal-body p-0">
+                                    <video src={videoUrl} controls autoPlay className="w-100" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="modal-backdrop fade show" onClick={() => setIsVideoModalOpen(false)} />
+                </>
+            )}
         </section>
     );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
@@ -10,7 +10,7 @@ import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
 import { toast } from "react-toastify";
 import {useAuth} from "@/src/core/hooks/useAuth";
 
-export default function Courses() {
+function CoursesContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -147,7 +147,6 @@ export default function Courses() {
 
     return (
         <>
-            <Navbar />
             <main>
                 <section className="bg-dark align-items-center d-flex"
                          style={{
@@ -237,9 +236,14 @@ export default function Courses() {
                                             <div className="row g-0">
                                                 <div className="col-md-5 overflow-hidden">
                                                     <img src={course.image ? getMediaUrl(course.image) : '/assets/images/courses/4by3/06.jpg'} className="rounded-2"
-                                                         alt={course.name}/>
+                                                         alt={course.name}
+                                                         onClick={(e) => {e.preventDefault(); router.push(`/courses/${course.id}`)}}
+                                                    />
                                                     {course.new_price !== 0 && (
-                                                        <div className="card-img-overlay">
+                                                        <div
+                                                            className="card-img-overlay"
+                                                            onClick={(e) => {e.preventDefault(); router.push(`/courses/${course.id}`)}}
+                                                        >
                                                             <div className="ribbon">
                                                                 <span>تخفیف</span>
                                                             </div>
@@ -473,7 +477,14 @@ export default function Courses() {
                     </div>
                 </section>
             </main>
-            <Footer />
         </>
+    );
+}
+
+export default function Courses() {
+    return (
+        <Suspense fallback={null}>
+            <CoursesContent />
+        </Suspense>
     );
 }

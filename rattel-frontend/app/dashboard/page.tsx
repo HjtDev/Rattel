@@ -187,7 +187,9 @@ function DashboardContent() {
                                         <div className="w-100px">
                                             <img
                                                 src={course.image ? getMediaUrl(course.image) : '/assets/images/courses/4by3/08.jpg'}
-                                                className="rounded" alt=""/>
+                                                className="rounded" alt={course.name}
+                                                onClick={(e) => {e.preventDefault(); router.push(`/courses/${course.id}`)}}
+                                            />
                                         </div>
                                         <div className="mb-0 ms-2">
                                             <h6>

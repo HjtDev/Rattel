@@ -14,6 +14,7 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 from cryptography.fernet import Fernet
+from django.core.exceptions import ImproperlyConfigured
 from notifications.handlers.sms import SMSHandler
 from notifications.providers.sms.local import LocalSMSProvider
 from notifications.handlers.email import EmailHandler
@@ -34,6 +35,8 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this')
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost,http://127.0.0.1').split(',')
+# SECURE_PROXY_SSL_HEADER = config('SECURE_PROXY_SSL_HEADER', default='').split(',')
 
 
 # Application definition
@@ -64,7 +67,6 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.cache',
     'health_check.storage',
-    'health_check.contrib.celery',
     'drf_spectacular',
     'tinymce',
 ]
@@ -236,8 +238,19 @@ SIMPLE_JWT = {
 }
 
 # CIPHER
-
-CIPHER = Fernet(Fernet.generate_key())
+#
+# IMPORTANT:
+# The Fernet key must be stable across all processes/containers. Generating a new
+# key at startup causes intermittent decryption failures when OTP start/verify
+# requests are handled by different workers.
+FERNET_KEY = config('FERNET_KEY', default='')
+if FERNET_KEY:
+    CIPHER = Fernet(FERNET_KEY.encode())
+elif DEBUG:
+    logging.warning('FERNET_KEY is not set. Using a process-local random key because DEBUG=True.')
+    CIPHER = Fernet(Fernet.generate_key())
+else:
+    raise ImproperlyConfigured('FERNET_KEY must be set when DEBUG=False.')
 
 # OTP Config
 

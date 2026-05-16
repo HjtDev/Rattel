@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import AuthMessage from "@/src/components/auth/AuthMessage";
 import { toast } from "react-toastify";
 
-export default function VerifyPage() {
+function VerifyPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { verifyOTP } = useAuth();
@@ -161,5 +161,13 @@ export default function VerifyPage() {
                 </div>
             </section>
         </main>
+    );
+}
+
+export default function VerifyPage() {
+    return (
+        <Suspense fallback={null}>
+            <VerifyPageContent />
+        </Suspense>
     );
 }

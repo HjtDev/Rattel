@@ -3,6 +3,7 @@
 import { useCourses, Course } from "@/src/core/hooks/useCourses";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { getCategoryLabel, getDifficultyLabel, getMediaUrl } from "@/src/core/utils";
+import {useRouter} from "next/navigation";
 
 function StarRating({ rating }: { rating: number }) {
     const full = Math.floor(rating);
@@ -33,12 +34,18 @@ function StarRating({ rating }: { rating: number }) {
 function TrendingCourseCard({ course }: { course: Course }) {
     const effectivePrice = course.new_price > 0 ? course.new_price : course.price;
     const hasDiscount = course.new_price > 0;
+    const router = useRouter();
 
     return (
         <div className="col-sm-6 col-lg-4 col-xl-3">
             <div className="card action-trigger-hover border bg-transparent">
                 {course.image && (
-                    <img src={getMediaUrl(course.image)} className="card-img-top" alt={course.name} />
+                    <img
+                        src={getMediaUrl(course.image)}
+                        className="card-img-top"
+                        alt={course.name}
+                        onClick={(e) => {e.preventDefault(); router.push(`/courses/${course.id}`)}}
+                    />
                 )}
                 <div className="card-body pb-0">
                     <div className="d-flex justify-content-between mb-3">
@@ -50,9 +57,6 @@ function TrendingCourseCard({ course }: { course: Course }) {
                                 {getDifficultyLabel(course.difficulty)}
                             </span>
                         </div>
-                        <a href="#" className="h6 fw-light mb-0">
-                            <i className="far fa-bookmark"></i>
-                        </a>
                     </div>
                     <h5 className="card-title fw-normal">
                         <a href={`/courses/${course.id}`}>{course.name}</a>

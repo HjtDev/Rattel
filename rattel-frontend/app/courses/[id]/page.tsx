@@ -156,7 +156,6 @@ export default function CourseDetail() {
     if (isLoadingCourseDetail) {
         return (
             <>
-                <Navbar />
                 <main>
                     <section className="pt-3 pt-xl-5">
                         <div className="container">
@@ -203,14 +202,12 @@ export default function CourseDetail() {
                         </div>
                     </section>
                 </main>
-                <Footer />
             </>
         );
     }
 
     return courseDetail && (
         <>
-            <Navbar />
             <main>
                 <section className="pt-3 pt-xl-5">
                     <div className="container" data-sticky-container>
@@ -546,7 +543,6 @@ export default function CourseDetail() {
                     </div>
                 </section>
             </main>
-            <Footer />
 
             {/* Video Modal */}
             {videoModalOpen && (

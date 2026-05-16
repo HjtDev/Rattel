@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./globals.css";
 
 // Vendor CSS
 import "../public/assets/vendor/font-awesome/css/all.min.css";
@@ -14,6 +15,8 @@ import "../public/assets/vendor/overlay-scrollbar/css/overlayscrollbars.min.css"
 
 // Template CSS
 import "../public/assets/css/style-rtl.css";
+import Navbar from "@/src/components/layout/Navbar";
+import Footer from "@/src/components/layout/Footer";
 
 export const metadata: Metadata = {
   title: "Rattel",
@@ -28,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl">
       <body>
+        {<Navbar />}
         {children}
+        {<Footer />}
         <ToastContainer
           position="top-center"
           autoClose={4000}

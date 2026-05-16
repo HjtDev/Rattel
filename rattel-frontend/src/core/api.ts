@@ -16,6 +16,8 @@ export const api = setupCache(baseClient, {
   methods: ["get"],
 });
 
+let refreshPromise: Promise<boolean> | null = null;
+
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("access_token");
@@ -36,16 +38,35 @@ api.interceptors.response.use(
 
     const { status } = error.response;
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || "";
+    const isRefreshRequest = requestUrl.includes("/auth/refresh/");
+
+    // Never try to refresh if refresh endpoint itself failed (prevents recursive retry loop).
+    if (status === 401 && isRefreshRequest) {
+      authManager.logout();
+      toast.error("لطفا مجددا وارد حساب خود شوید.");
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth/login/";
+      }
+      return Promise.reject(error);
+    }
 
     // Handle 401 - try to refresh token once
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const refreshed = await authManager.refreshAccessToken();
+      if (!refreshPromise) {
+        refreshPromise = authManager.refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+      }
+
+      const refreshed = await refreshPromise;
       
       if (refreshed) {
         const newToken = authManager.getAccessToken();
         if (newToken) {
+          originalRequest.headers = originalRequest.headers || {};
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return api(originalRequest);
         }
@@ -54,6 +75,9 @@ api.interceptors.response.use(
       // Refresh failed - logout user
       authManager.logout();
       toast.error("لطفا مجددا وارد حساب خود شوید.");
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth/login/";
+      }
       return Promise.reject(error);
     }
 

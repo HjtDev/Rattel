@@ -138,7 +138,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
         drf_cached_response(
             ttl=900,
             cache_prefix='course_list',
-            user_aware=False,
+            user_aware=True,
             response_codes=[200],
             cache_headers=False,
         )
@@ -258,7 +258,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message='Empty Page.'
             )
 
-        serializer = CourseListSerializer(courses_data, many=True)
+        serializer = CourseListSerializer(courses_data, many=True, context={'request': request})
 
         return self.build_response(
             status.HTTP_200_OK,
@@ -612,6 +612,8 @@ class ToggleSaveCourseView(APIView, GetDataMixin, ResponseBuilderMixin):
                 is_saved = True
                 message = 'Course saved'
 
+            invalidate_cache('course_detail', request)
+            invalidate_cache('course_list', request)
             invalidate_cache('my_saved_courses', request)
 
             return self.build_response(
