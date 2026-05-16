@@ -4,13 +4,25 @@ import { useState } from "react";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {getMediaUrl} from "@/src/core/utils";
 
+interface Link {
+    name: string;
+    logo: string | null;
+    url: string;
+}
+
 interface LandingSection {
     title: string;
     brushed_title: string;
     description: string;
-    link: { name: string; logo: string | null; url: string } | null;
-    video: string;
+    link: Link | null;
+    video: string | null;
     image: string;
+    icon1: string | null;
+    icon2: string | null;
+    icon3: string | null;
+    feature1: string;
+    feature2: string;
+    feature3: string;
     message_title: string;
     message_description: string;
 }
@@ -301,17 +313,17 @@ export default function Landing({ data, isLoading }: LandingProps) {
                             <li className="list-inline-item me-2">
                                 <i className="bi bi-patch-check-fill h6 me-1">
                                 </i>
-                                مدرس مجرب
+                                {data?.feature1}
                             </li>
                             <li className="list-inline-item me-2">
                                 <i className="bi bi-patch-check-fill h6 me-1">
                                 </i>
-                                ارائه مدرک
+                                {data?.feature2}
                             </li>
                             <li className="list-inline-item">
                                 <i className="bi bi-patch-check-fill h6 me-1">
                                 </i>
-                                جذب مدرس
+                                {data?.feature3}
                             </li>
                         </ul>
                         <div className="d-sm-flex align-items-center justify-content-center justify-content-lg-start">
@@ -401,17 +413,29 @@ export default function Landing({ data, isLoading }: LandingProps) {
                                 </path>
                             </svg>
                         </figure>
-                        <div
-                            className="p-2 bg-white shadow rounded-3 position-absolute top-50 start-0 translate-middle-y mt-n7 d-none d-sm-block">
-                            <img src="assets/images/client/science.svg" alt="Icon"/>
-                        </div>
-                        <div className="p-2 bg-white shadow rounded-3 position-absolute top-0 end-0 me-5">
-                            <img src="assets/images/client/angular.svg" alt="Icon"/>
-                        </div>
-                        <div
-                            className="p-2 bg-white shadow rounded-3 position-absolute top-50 end-0 translate-middle-y mt-5 ms-5 d-none d-lg-block z-index-9">
-                            <img src="assets/images/client/figma.svg" alt="Icon"/>
-                        </div>
+                        {
+                            data?.icon1 && (
+                                <div
+                                    className="p-2 bg-white shadow rounded-3 position-absolute top-50 start-0 translate-middle-y mt-n7 d-none d-sm-block">
+                                    <img src={getMediaUrl(data.icon1)} width={60} alt="Landing Feature Icon"/>
+                                </div>
+                            )
+                        }
+                        {
+                            data?.icon1 && (
+                                <div className="p-2 bg-white shadow rounded-3 position-absolute top-0 end-0 me-5">
+                                    <img src={getMediaUrl(data.icon2)} width={60} alt="Landing Feature Icon"/>
+                                </div>
+                            )
+                        }
+                        {
+                            data?.icon1 && (
+                                <div
+                                    className="p-2 bg-white shadow rounded-3 position-absolute top-50 end-0 translate-middle-y mt-5 ms-5 d-none d-lg-block z-index-9">
+                                    <img src={getMediaUrl(data.icon3)} width={60} alt="Landing Feature Icon"/>
+                                </div>
+                            )
+                        }
                         <div
                             className="p-3 bg-blur border border-light shadow rounded-4 position-absolute bottom-0 start-0 z-index-9 d-none d-xl-block mb-5 ms-5">
                             <div className="d-flex justify-content-between align-items-center">

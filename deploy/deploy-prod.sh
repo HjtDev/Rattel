@@ -4,7 +4,21 @@ set -euo pipefail
 # Usage:
 #   1) cp deploy/deploy.prod.env.example deploy/deploy.prod.env
 #   2) fill deploy/deploy.prod.env
-#   3) ./deploy/deploy-prod.sh
+#   3) ./deploy/deploy-prod.sh [--follow]
+
+FOLLOW=0
+for arg in "$@"; do
+  case "$arg" in
+    --follow)
+      FOLLOW=1
+      ;;
+    *)
+      echo "ERROR: unknown argument: $arg"
+      echo "Usage: $0 [--follow]"
+      exit 1
+      ;;
+  esac
+done
 
 DEPLOY_ENV_FILE="${DEPLOY_ENV_FILE:-deploy/deploy.prod.env}"
 if [[ ! -f "${DEPLOY_ENV_FILE}" ]]; then
@@ -43,7 +57,12 @@ if [[ -n "${SSH_KEY_PATH}" ]]; then
 fi
 
 echo "==> Syncing project to ${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}"
-rsync -az --delete \
+RSYNC_FLAGS=(-az --delete)
+if [[ "${FOLLOW}" -eq 1 ]]; then
+  RSYNC_FLAGS+=(-v)
+fi
+
+rsync "${RSYNC_FLAGS[@]}" \
   --exclude='.git' \
   --exclude='.idea' \
   --exclude='.vscode' \
@@ -60,7 +79,7 @@ rsync -az --delete \
   ./ "${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}/"
 
 echo "==> Running remote deployment steps"
-"${SSH_CMD[@]}" "${SERVER_USER}@${SERVER_HOST}" "SERVER_PATH='${SERVER_PATH}' bash -s" <<'REMOTE'
+"${SSH_CMD[@]}" "${SERVER_USER}@${SERVER_HOST}" "SERVER_PATH='${SERVER_PATH}' FOLLOW='${FOLLOW}' bash -s" <<'REMOTE'
 set -euo pipefail
 
 cd "${SERVER_PATH}"
@@ -78,30 +97,63 @@ if [[ ! -f rattel-frontend/.env.prod ]]; then
   exit 1
 fi
 
+if [[ "$(id -u)" -eq 0 ]]; then
+  SUDO=""
+else
+  if ! command -v sudo >/dev/null 2>&1; then
+    echo "ERROR: current user is not root and sudo is not available"
+    exit 1
+  fi
+  SUDO="sudo"
+fi
+
+SETTINGS_FILE="RattelBackend/settings.py"
+ensure_setting() {
+  local key="$1"
+  local value="$2"
+  if grep -Eq "^${key}[[:space:]]*=" "${SETTINGS_FILE}"; then
+    sed -i "s|^${key}[[:space:]]*=.*|${key} = ${value}|" "${SETTINGS_FILE}"
+  else
+    printf "%s = %s\n" "${key}" "${value}" >> "${SETTINGS_FILE}"
+  fi
+}
+
+ensure_setting "SECURE_PROXY_SSL_HEADER" "('HTTP_X_FORWARDED_PROTO', 'https')"
+ensure_setting "SECURE_SSL_REDIRECT" "True"
+ensure_setting "SESSION_COOKIE_SECURE" "True"
+ensure_setting "CSRF_COOKIE_SECURE" "True"
+
 mkdir -p RattelBackend/staticfiles RattelBackend/media
 
 # Start core infra first
-sudo docker compose --env-file .env.prod -f docker-compose.prod.yml up -d db redis
+${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml up -d db redis
 
 # Wait for db/redis to be healthy before Django management commands
-until [ "$(sudo docker inspect -f '{{.State.Health.Status}}' rattel_db 2>/dev/null)" = "healthy" ]; do
+until [ "$(${SUDO} docker inspect -f '{{.State.Health.Status}}' rattel_db 2>/dev/null)" = "healthy" ]; do
   echo "Waiting for rattel_db to become healthy..."
   sleep 2
 done
-until [ "$(sudo docker inspect -f '{{.State.Health.Status}}' rattel_redis 2>/dev/null)" = "healthy" ]; do
+until [ "$(${SUDO} docker inspect -f '{{.State.Health.Status}}' rattel_redis 2>/dev/null)" = "healthy" ]; do
   echo "Waiting for rattel_redis to become healthy..."
   sleep 2
 done
 
 # Run Django finalization before backend health checks rely on migrated tables
-sudo docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm backend python manage.py migrate --noinput
-sudo docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm backend python manage.py collectstatic --noinput
+${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm backend python manage.py migrate --noinput
+${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm backend python manage.py collectstatic --noinput
+
+# Ensure services are stopped before build/start to avoid stale containers.
+${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml stop backend celery celery-beat flower frontend || true
 
 # Start/update app services
-sudo docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build backend celery celery-beat flower frontend
+${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build backend celery celery-beat flower frontend
 
 # Show status
-sudo docker compose --env-file .env.prod -f docker-compose.prod.yml ps
+${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml ps
+
+if [[ "${FOLLOW:-0}" -eq 1 ]]; then
+  ${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml logs -f
+fi
 REMOTE
 
 echo "==> Deploy finished"
