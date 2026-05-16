@@ -1,0 +1,144 @@
+networks:
+  rattel_network:
+    driver: bridge
+
+services:
+  db:
+    image: postgres:18.1-alpine
+    container_name: rattel_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - rattel_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.4-alpine
+    container_name: rattel_redis
+    command: redis-server --appendonly yes --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - rattel_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./RattelBackend
+      dockerfile: Dockerfile.prod
+    image: rattel_backend:prod
+    container_name: rattel_backend
+    env_file:
+      - ./RattelBackend/.env.prod
+    command: ["gunicorn", "RattelBackend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+    volumes:
+      - ./RattelBackend/staticfiles:/app/staticfiles
+      - ./RattelBackend/media:/app/media
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - rattel_network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./rattel-frontend
+      dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    image: rattel_frontend:prod
+    container_name: rattel_frontend
+    env_file:
+      - ./rattel-frontend/.env.prod
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - rattel_network
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  celery:
+    image: rattel_backend:prod
+    container_name: rattel_celery
+    command: celery -A RattelBackend worker -l info --concurrency=6 --max-tasks-per-child=1000
+    env_file:
+      - ./RattelBackend/.env.prod
+    volumes:
+      - ./RattelBackend/media:/app/media
+    networks:
+      - rattel_network
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  celery-beat:
+    image: rattel_backend:prod
+    container_name: rattel_celery_beat
+    command: celery -A RattelBackend beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file:
+      - ./RattelBackend/.env.prod
+    volumes:
+      - ./RattelBackend/media:/app/media
+    networks:
+      - rattel_network
+    depends_on:
+      backend:
+        condition: service_healthy
+      celery:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  flower:
+    image: rattel_backend:prod
+    container_name: rattel_flower
+    command: celery -A RattelBackend flower --port=5555 --max_tasks=10000
+    env_file:
+      - ./RattelBackend/.env.prod
+    ports:
+      - "127.0.0.1:5555:5555"
+    networks:
+      - rattel_network
+    depends_on:
+      backend:
+        condition: service_healthy
+      celery:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

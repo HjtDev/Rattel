@@ -13,7 +13,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
-import dj_database_url, os
+from cryptography.fernet import Fernet
+from django.core.exceptions import ImproperlyConfigured
+from notifications.handlers.sms import SMSHandler
+from notifications.providers.sms.local import LocalSMSProvider
+from notifications.handlers.email import EmailHandler
+from notifications.providers.email.smtp import SMTPEmailProvider
+import dj_database_url, os, logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +35,8 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this')
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost,http://127.0.0.1').split(',')
+# SECURE_PROXY_SSL_HEADER = config('SECURE_PROXY_SSL_HEADER', default='').split(',')
 
 
 # Application definition
@@ -41,8 +49,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users.apps.UsersConfig',
+    'notifications.apps.NotificationsConfig',
+    'payment.apps.PaymentConfig',
+    'authentication.apps.AuthenticationConfig',
+    'siteconfig.apps.SiteconfigConfig',
+    'courses.apps.CoursesConfig',
+    'cart.apps.CartConfig',
+    'tickets.apps.TicketsConfig',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_celery_beat',
     'django_celery_results',
@@ -50,8 +67,8 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.cache',
     'health_check.storage',
-    'health_check.contrib.celery',
     'drf_spectacular',
+    'tinymce',
 ]
 
 MIDDLEWARE = [
@@ -71,7 +88,7 @@ ROOT_URLCONF = 'RattelBackend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templatesz']
+        'DIRS': [BASE_DIR / 'templates']
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -99,14 +116,13 @@ DATABASES = {
 
 # Cache
 
-REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+REDIS_URL = config('REDIS_URL', default='redis://redis:6379/0')
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'PARSER_CLASS': 'redis.connection.HiredisParser',
         },
         'KEY_PREFIX': 'rattel',
         'TIMEOUT': 300,
@@ -179,6 +195,25 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.ScopedRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'payment-start': '3/min',
+        'payment-callback': '600/min',
+        'register': '10/min',
+        'login': '10/min',
+        'verify': '10/min',
+        'refresh': '50/min',
+        'user-profile': '100/min',
+        'user-profile-edit': '15/min',
+        'user-settings': '50/min',
+        'user-settings-edit': '15/min',
+        'user-info': '100/min',
+        'user-info-edit': '15/min',
+        'main-throttle': '500/min',
+        'tickets': '200/min'
+    },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -187,16 +222,65 @@ REST_FRAMEWORK = {
 # JWT
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'LEEWAY': 0,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'username',
+    'USER_ID_CLAIM': 'username',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+}
+
+# CIPHER
+#
+# IMPORTANT:
+# The Fernet key must be stable across all processes/containers. Generating a new
+# key at startup causes intermittent decryption failures when OTP start/verify
+# requests are handled by different workers.
+FERNET_KEY = config('FERNET_KEY', default='')
+if FERNET_KEY:
+    CIPHER = Fernet(FERNET_KEY.encode())
+elif DEBUG:
+    logging.warning('FERNET_KEY is not set. Using a process-local random key because DEBUG=True.')
+    CIPHER = Fernet(Fernet.generate_key())
+else:
+    raise ImproperlyConfigured('FERNET_KEY must be set when DEBUG=False.')
+
+# OTP Config
+
+OTP_SETTING = {
+    'TIMEOUT': timedelta(seconds=30),
+    'ATTEMPTS': 3,  # -1 to disable
+    'TOKEN_TYPE': 'int',  # int, str, alphanumeric / Used for token generator
+    'TOKEN_LENGTH': 4,  # Or any digits bigger than 1 / Used for token generator
+    'ENCRYPTOR': CIPHER,
 }
 
 # CORS
 
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000').split(',')
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'cache-control',
+    'x-axios-cache-request',
+    'pragma',
+    'expires'
+]
 
 # Jazzmin
 
@@ -204,11 +288,14 @@ JAZZMIN_SETTINGS = {
     'site_title': 'Rattel',
     'site_header': 'Rattel',
     'site_brand': 'Rattel',
-    'welcome_sign': 'Welcome to Rattel'
+    'welcome_sign': 'Welcome to Rattel',
+    'show_ui_builder': True,
+    'changeform_format': 'tabs',
 }
 
 # Logging
 
+os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -218,7 +305,7 @@ LOGGING = {
             'format': '%(log_color)s%(levelname)-8s%(reset)s %(message)s',
         },
         'json': {
-            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            '()': 'pythonjsonlogger.json.JsonFormatter',
         },
     },
     'handlers': {
@@ -239,4 +326,94 @@ LOGGING = {
         'level': 'INFO',
     },
 }
-os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+logger = logging.getLogger(__name__)
+
+# Health Check
+
+HEALTH_CHECK = {
+    'ALLOWED_HOSTS': ['127.0.0.1', 'localhost']
+}
+
+# Django Resized
+
+DJANGORESIZED_DEFAULT_SIZE = [200, 200]
+# DJANGORESIZED_DEFAULT_SCALE = 0.5
+DJANGORESIZED_DEFAULT_QUALITY = 100
+DJANGORESIZED_DEFAULT_KEEP_META = True
+# DJANGORESIZED_DEFAULT_FORCE_FORMAT = 'JPEG'
+DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP': '.webp'}
+# DJANGORESIZED_DEFAULT_NORMALIZE_ROTATION = False
+ALLOWED_MIMETYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp']
+MAXIMUM_PROFILE_IMAGE_SIZE = 2097152  # 2MB
+# User Mode
+
+AUTH_USER_MODEL = 'users.User'
+
+# Email Settings
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+EMAIL_HANDLER = EmailHandler
+EMAIL_PROVIDER = SMTPEmailProvider
+EMAIL_USE_CELERY = True
+
+# SMS Settings
+
+SMS_API_KEY = config('SMS_API_KEY')
+SMS_API_USERNAME = config('SMS_API_USERNAME')
+SMS_API_PASSWORD = config('SMS_API_PASSWORD')
+SMS_API_WARN_ON_LOW_CREDIT = config('SMS_API_WARN_ON_LOW_CREDIT')
+SMS_HANDLER = SMSHandler
+SMS_PROVIDER = LocalSMSProvider
+SMS_SETTINGS = {
+    'sender': 'Local SMS Provider',
+    'output': logger.info
+}
+
+# Gateway Settings
+
+MERCHANT = config('MERCHANT')
+GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
+
+# Cart
+CART_ALLOWED_CONTENT_TYPES = [
+    'courses.course',
+]
+
+# Site Settings
+SITE_NAME = config('SITE_NAME')
+
+# TinyMCE
+
+TINYMCE_DEFAULT_CONFIG = {
+    'height': 500,
+    'width': '100%',
+    'menubar': True,
+    'plugins': (
+        'advlist anchor autolink autosave charmap code codesample directionality emoticons fullscreen help '
+        'image insertdatetime link lists media nonbreaking pagebreak paste preview print quickbars save searchreplace '
+        'table template visualblocks visualchars wordcount'
+    ),
+    'toolbar': (
+        'undo redo | bold italic underline strikethrough | fontselect fontsizeselect formatselect | '
+        'alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor '
+        'removeformat | pagebreak | charmap emoticons | fullscreen preview save print | '
+        'insertfile image media template link anchor codesample | ltr rtl | code'
+    ),
+    'contextmenu': 'link image imagetools table',
+    'images_upload_url': '/api/blog/editor/upload/',
+    'automatic_uploads': True,
+    'image_advtab': True,
+    'image_caption': True,
+    'file_picker_types': 'file image media',
+    'quickbars_selection_toolbar': 'bold italic | quicklink h2 h3 blockquote quickimage quicktable',
+    'nonbreaking_force_tab': True,
+    'toolbar_mode': 'sliding',
+}
