@@ -1,6 +1,14 @@
-import Navbar from "@/src/components/layout/Navbar";
-import Footer from "@/src/components/layout/Footer";
 import HomePage from "@/src/components/home/HomePage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "خانه",
+  description:
+    "اکسیر قرآن؛ سامانه آموزش جامع قرآن با دوره های حفظ، روخوانی، تجوید، مسابقات قرآنی و مسیر پیشرفت آموزشی.",
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default function Home() {
     return (
