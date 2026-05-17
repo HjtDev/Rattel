@@ -18,9 +18,113 @@ import "../public/assets/css/style-rtl.css";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 
+const siteName = "ExireQuran | اکسیر قرآن";
+const siteUrl = "https://exirequran.ir";
+const siteDescription =
+  "سامانه آموزش جامع قرآن، برنامه های حفظ، مسابقات قرآنی و مسیر یادگیری مرحله به مرحله برای کودکان، نوجوانان و بزرگسالان.";
+const siteKeywords = [
+  "اکسیر قرآن",
+  "ExireQuran",
+  "آموزش قرآن",
+  "سامانه آموزش قرآن",
+  "حفظ قرآن",
+  "تلاوت قرآن",
+  "مسابقات قرآنی",
+  "آموزش تجوید",
+  "آموزش صوت و لحن",
+  "آموزش روخوانی قرآن",
+  "آموزش روانخوانی قرآن",
+  "کلاس آنلاین قرآن",
+  "دوره قرآن آنلاین",
+  "Quran learning platform",
+  "Online Quran classes",
+  "Quran memorization program",
+  "Quran competitions",
+  "Tajweed course",
+  "Quran recitation training",
+  "Hifz program",
+];
+const organizationProfiles = [
+  "https://eitaa.com/Rattel",
+  "https://ble.ir/Rattel",
+  "https://www.aparat.com/Rattel",
+  "https://t.me/Rattel",
+  "https://instagram.com/Rattel",
+  "https://x.com/Rattel",
+  "https://youtube.com/@Rattel",
+  "https://www.linkedin.com/company/Rattel",
+  "https://facebook.com/Rattel",
+  "https://www.tiktok.com/@Rattel",
+  "https://www.pinterest.com/Rattel",
+  "https://wa.me/Rattel",
+];
+
 export const metadata: Metadata = {
-  title: "Rattel",
-  description: "Rattel learning platform",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: siteName,
+    template: `%s | ${siteName}`,
+  },
+  description: siteDescription,
+  applicationName: "ExireQuran",
+  authors: [{ name: "Hossein Esfahanian" }],
+  creator: "Hossein Esfahanian",
+  publisher: "ExireQuran",
+  category: "Education",
+  generator: "Next.js",
+  referrer: "origin-when-cross-origin",
+  keywords: siteKeywords,
+  alternates: {
+    canonical: "/",
+    languages: {
+      fa: "/",
+      "en-US": "/en",
+    },
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "fa_IR",
+    alternateLocale: "en_US",
+    url: siteUrl,
+    siteName: "ExireQuran",
+    title: siteName,
+    description: siteDescription,
+    emails: ["info@exirequran.ir"],
+    countryName: "IR",
+    images: [
+      {
+        url: "/favicon.ico",
+        width: 256,
+        height: 256,
+        alt: "ExireQuran Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description: siteDescription,
+    creator: "@Rattel",
+    site: "@Rattel",
+    images: ["/favicon.ico"],
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -54,6 +158,29 @@ export default function RootLayout({
         
         {/* Template JS - must load after vendors */}
         <Script src="/assets/js/functions.js" strategy="lazyOnload" />
+        <Script
+          id="organization-jsonld"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "EducationalOrganization",
+              name: "ExireQuran",
+              alternateName: "اکسیر قرآن",
+              url: siteUrl,
+              email: "info@exirequran.ir",
+              founder: {
+                "@type": "Person",
+                name: "Hossein Esfahanian",
+              },
+              sameAs: organizationProfiles,
+              description: siteDescription,
+              inLanguage: ["fa", "en"],
+              keywords: siteKeywords.join(", "),
+            }),
+          }}
+        />
       </body>
     </html>
   );
