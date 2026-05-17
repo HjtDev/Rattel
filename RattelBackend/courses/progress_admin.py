@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from .progress_models import EpisodeProgress
 
@@ -36,13 +37,13 @@ class EpisodeProgressAdmin(admin.ModelAdmin):
     )
     
     fieldsets = (
-        ('User & Content', {
+        (_('User & Content'), {
             'fields': ('user', 'course', 'episode')
         }),
-        ('Progress', {
+        (_('Progress'), {
             'fields': ('is_completed', 'watch_count', 'watch_duration')
         }),
-        ('Timestamps', {
+        (_('Timestamps'), {
             'fields': ('created_at', 'last_watched_at')
         }),
     )
@@ -54,7 +55,7 @@ class EpisodeProgressAdmin(admin.ModelAdmin):
             obj.user.id,
             obj.user.username
         )
-    user_link.short_description = 'User'
+    user_link.short_description = _('User')
     user_link.admin_order_field = 'user__username'
     
     def course_link(self, obj):
@@ -64,25 +65,27 @@ class EpisodeProgressAdmin(admin.ModelAdmin):
             obj.course.id,
             obj.course.name
         )
-    course_link.short_description = 'Course'
+    course_link.short_description = _('Course')
     course_link.admin_order_field = 'course__name'
     
     def episode_title(self, obj):
         """Display episode title."""
         return obj.episode.title
-    episode_title.short_description = 'Episode'
+    episode_title.short_description = _('Episode')
     episode_title.admin_order_field = 'episode__title'
     
     def completion_status(self, obj):
         """Display completion status with icon."""
         if obj.is_completed:
             return format_html(
-                '<span style="color: green; font-weight: bold;">✓ Completed</span>'
+                '<span style="color: green; font-weight: bold;">✓ {}</span>',
+                _('Completed'),
             )
         return format_html(
-            '<span style="color: orange;">○ In Progress</span>'
+            '<span style="color: orange;">○ {}</span>',
+            _('In Progress'),
         )
-    completion_status.short_description = 'Status'
+    completion_status.short_description = _('Status')
     completion_status.admin_order_field = 'is_completed'
     
     def has_add_permission(self, request):

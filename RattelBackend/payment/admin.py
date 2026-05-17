@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from .models import Transaction
 
@@ -56,7 +57,7 @@ class TransactionAdmin(admin.ModelAdmin):
     
     fieldsets = (
         (
-            'Core Information',
+            _('Core Information'),
             {
                 'classes': ('tab-general',),
                 'fields': (
@@ -72,7 +73,7 @@ class TransactionAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Provider & Tracking',
+            _('Provider & Tracking'),
             {
                 'classes': ('tab-provider',),
                 'fields': (
@@ -83,7 +84,7 @@ class TransactionAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Metadata & Description',
+            _('Metadata & Description'),
             {
                 'classes': ('tab-metadata',),
                 'fields': (
@@ -93,7 +94,7 @@ class TransactionAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Timestamps',
+            _('Timestamps'),
             {
                 'classes': ('tab-timestamps',),
                 'fields': (
@@ -104,11 +105,11 @@ class TransactionAdmin(admin.ModelAdmin):
         ),
     )
     
-    @admin.display(description='Amount')
+    @admin.display(description=_('Amount'))
     def amount_display(self, obj):
         return f'{obj.amount:,} {obj.currency}'
     
-    @admin.display(description='Status')
+    @admin.display(description=_('Status'))
     def transaction_status_badge(self, obj):
         color_map = {
             Transaction.TransactionStatus.SUCCESS: '#28a745',

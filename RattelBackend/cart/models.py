@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator
+from django.utils.translation import gettext_lazy as _
 from .manager import CartManager
 
 
@@ -18,24 +19,24 @@ class CartItem(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='cart_items',
-        verbose_name='User',
+        verbose_name=_('User'),
     )
 
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
-        verbose_name='Item Type',
+        verbose_name=_('Item Type'),
     )
-    object_id = models.CharField(max_length=255, verbose_name='Item ID')
+    object_id = models.CharField(max_length=255, verbose_name=_('Item ID'))
     content_object = GenericForeignKey('content_type', 'object_id')
 
     quantity = models.PositiveIntegerField(
         default=1,
         validators=[MinValueValidator(1)],
-        verbose_name='Quantity',
+        verbose_name=_('Quantity'),
     )
 
-    added_at = models.DateTimeField(auto_now_add=True, verbose_name='Added At')
+    added_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Added At'))
 
     def __str__(self):
         return f"{self.user.username}'s cart — {self.content_type} id={self.object_id} (qty={self.quantity})"
