@@ -155,11 +155,18 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fa'
+LANGUAGES = [
+    ('en', 'English'),
+    ('fa', 'Persian'),
+]
 
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 USE_TZ = True
 
@@ -285,12 +292,13 @@ CORS_ALLOW_HEADERS = [
 # Jazzmin
 
 JAZZMIN_SETTINGS = {
-    'site_title': 'Rattel',
-    'site_header': 'Rattel',
-    'site_brand': 'Rattel',
-    'welcome_sign': 'Welcome to Rattel',
+    'site_title': 'اکسیر قرآن',
+    'site_header': 'اکسیر قرآن',
+    'site_brand': 'اکسیر قرآن',
+    'welcome_sign': 'به داشبورد سایت اکسیر قرآن خوش آمدید',
     'show_ui_builder': True,
     'changeform_format': 'tabs',
+    'custom_css': 'css/jazzmin-custom.css',
 }
 
 # Logging

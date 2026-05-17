@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 
 from .models import Course, Chapter, Episode
@@ -60,7 +61,7 @@ class CourseAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            'Core Information',
+            _('Core Information'),
             {
                 'classes': ('tab-general',),
                 'fields': (
@@ -78,7 +79,7 @@ class CourseAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Description',
+            _('Description'),
             {
                 'classes': ('tab-description',),
                 'fields': (
@@ -88,7 +89,7 @@ class CourseAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Pricing',
+            _('Pricing'),
             {
                 'classes': ('tab-pricing',),
                 'fields': (
@@ -99,14 +100,14 @@ class CourseAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Students',
+            _('Students'),
             {
                 'classes': ('tab-students',),
                 'fields': ('bought_by',),
             },
         ),
         (
-            'Timestamps',
+            _('Timestamps'),
             {
                 'classes': ('tab-timestamps',),
                 'fields': ('total_time', 'created_at', 'updated_at'),
@@ -114,7 +115,7 @@ class CourseAdmin(admin.ModelAdmin):
         ),
     )
 
-    @admin.display(description='Price')
+    @admin.display(description=_('Price'))
     def price_display(self, obj):
         """Display effective price with Toman label.
 
@@ -127,7 +128,7 @@ class CourseAdmin(admin.ModelAdmin):
         effective = obj.new_price if obj.new_price else obj.price
         return f'{effective:,} تومان'
 
-    @admin.display(description='Discount')
+    @admin.display(description=_('Discount'))
     def discount_display(self, obj):
         """Display discount badge if applicable.
 
@@ -174,19 +175,19 @@ class ChapterAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            'Chapter Info',
+            _('Chapter Info'),
             {
                 'fields': ('course', 'title', 'order', 'description', 'is_free', 'is_visible'),
             },
         ),
         (
-            'Content Counts',
+            _('Content Counts'),
             {
                 'fields': ('number_of_files', 'number_of_videos'),
             },
         ),
         (
-            'Timestamps',
+            _('Timestamps'),
             {
                 'fields': ('created_at', 'updated_at'),
             },

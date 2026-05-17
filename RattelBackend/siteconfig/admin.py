@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from django.shortcuts import redirect
 from django.urls import reverse
 from .models import (
@@ -23,8 +24,8 @@ class FooterColumnLinkInline(admin.TabularInline):
     fields = ['link', 'label', 'order']
     ordering = ['order']
     autocomplete_fields = ['link']
-    verbose_name = 'Link'
-    verbose_name_plural = 'Links in this Column'
+    verbose_name = _('Link')
+    verbose_name_plural = _('Links in this Column')
 
 
 class FooterLinkColumnInline(admin.StackedInline):
@@ -34,8 +35,8 @@ class FooterLinkColumnInline(admin.StackedInline):
     fields = ['title', 'order']
     ordering = ['order']
     show_change_link = True
-    verbose_name = 'Link Column'
-    verbose_name_plural = 'Footer Link Columns'
+    verbose_name = _('Link Column')
+    verbose_name_plural = _('Footer Link Columns')
 
 
 class FooterSocialMediaInline(admin.TabularInline):
@@ -45,8 +46,8 @@ class FooterSocialMediaInline(admin.TabularInline):
     fields = ['social_link', 'order']
     ordering = ['order']
     autocomplete_fields = ['social_link']
-    verbose_name = 'Social Media Link'
-    verbose_name_plural = 'Social Media Links'
+    verbose_name = _('Social Media Link')
+    verbose_name_plural = _('Social Media Links')
 
 
 @admin.register(Link)
@@ -56,9 +57,9 @@ class LinkAdmin(admin.ModelAdmin):
     list_per_page = 25
     
     fieldsets = [
-        ('Link Information', {
+        (_('Link Information'), {
             'fields': ['name', 'url', 'logo'],
-            'description': 'Create reusable links that can be used throughout the site'
+            'description': _('Create reusable links that can be used throughout the site')
         })
     ]
 
@@ -71,15 +72,15 @@ class SocialMediaLinkAdmin(admin.ModelAdmin):
     list_per_page = 25
     
     fieldsets = [
-        ('Social Media Information', {
+        (_('Social Media Information'), {
             'fields': ['platform', 'url'],
-            'description': 'Create reusable social media links for your footer'
+            'description': _('Create reusable social media links for your footer')
         })
     ]
     
     def usage_count(self, obj):
         return obj.footersocialmedia_set.count()
-    usage_count.short_description = 'Used in Footer'
+    usage_count.short_description = _('Used in Footer')
 
 
 @admin.register(FooterLinkColumn)
@@ -93,15 +94,15 @@ class FooterLinkColumnAdmin(admin.ModelAdmin):
     inlines = [FooterColumnLinkInline]
     
     fieldsets = [
-        ('Column Configuration', {
+        (_('Column Configuration'), {
             'fields': ['title', 'order'],
-            'description': 'Configure this link column. Add links using the tabular inline below.'
+            'description': _('Configure this link column. Add links using the tabular inline below.')
         })
     ]
     
     def links_count(self, obj):
         return obj.column_links.count()
-    links_count.short_description = 'Number of Links'
+    links_count.short_description = _('Number of Links')
 
 
 @admin.register(Footer)
@@ -114,19 +115,19 @@ class FooterAdmin(admin.ModelAdmin):
     inlines = [FooterLinkColumnInline, FooterSocialMediaInline]
     
     fieldsets = [
-        ('Branding & Identity', {
+        (_('Branding & Identity'), {
             'fields': ['logo', 'description'],
-            'description': 'Configure your footer branding and main description',
+            'description': _('Configure your footer branding and main description'),
             'classes': ['wide']
         }),
-        ('Legal & Copyright', {
+        (_('Legal & Copyright'), {
             'fields': ['rights'],
-            'description': 'Footer copyright and rights information',
+            'description': _('Footer copyright and rights information'),
             'classes': ['wide']
         }),
-        ('Contact Us', {
+        (_('Contact Us'), {
             'fields': ['contact_phone', 'contact_email', 'contact_address', 'contact_hours'],
-            'description': 'Footer Contact Us column information',
+            'description': _('Footer Contact Us column information'),
             'classes': ['wide']
         })
     ]
@@ -161,8 +162,8 @@ class SiteNavbarTitleOnlyItemsInline(admin.StackedInline):
     fields = ['label', 'link', 'order']
     ordering = ['order']
     autocomplete_fields = ['link']
-    verbose_name = 'Title Only Item'
-    verbose_name_plural = 'Title Only Items'
+    verbose_name = _('Title Only Item')
+    verbose_name_plural = _('Title Only Items')
 
 class SiteNavbarDescribedItemsInline(admin.StackedInline):
     """Inline for managing title only items within navbar"""
@@ -171,8 +172,8 @@ class SiteNavbarDescribedItemsInline(admin.StackedInline):
     fields = ['label', 'link', 'description', 'order']
     ordering = ['order']
     autocomplete_fields = ['link']
-    verbose_name = 'Described Item'
-    verbose_name_plural = 'Described Items'
+    verbose_name = _('Described Item')
+    verbose_name_plural = _('Described Items')
 
 class SiteNavbarImageItemsInline(admin.StackedInline):
     """Inline for managing title only items within navbar"""
@@ -181,8 +182,8 @@ class SiteNavbarImageItemsInline(admin.StackedInline):
     fields = ['label', 'link', 'description', 'icon', 'order']
     ordering = ['order']
     autocomplete_fields = ['link']
-    verbose_name = 'Image Item'
-    verbose_name_plural = 'Image Items'
+    verbose_name = _('Image Item')
+    verbose_name_plural = _('Image Items')
 
 
 class InformationInline(admin.StackedInline):
@@ -191,8 +192,8 @@ class InformationInline(admin.StackedInline):
     extra = 0
     fields = ('title', 'description', 'image', 'order')
     ordering = ('order',)
-    verbose_name = 'Information Box'
-    verbose_name_plural = 'Information Boxes'
+    verbose_name = _('Information Box')
+    verbose_name_plural = _('Information Boxes')
 
 
 
@@ -206,24 +207,24 @@ class SiteNavbarAdmin(admin.ModelAdmin):
     inlines = [SiteNavbarTitleOnlyItemsInline, SiteNavbarDescribedItemsInline, SiteNavbarImageItemsInline]
     
     fieldsets = [
-        ('Navbar', {
+        (_('Navbar'), {
             'fields': ['navbar_logo', 'navbar_links'],
-            'description': 'Navbar Items + Logo',
+            'description': _('Navbar Items + Logo'),
             'classes': ['wide']
         }),
-        ('Mega-Menu Titles', {
+        (_('Mega-Menu Titles'), {
             'fields': ['col1_title', 'col2_title', 'col3_title'],
-            'description': 'Title of each column in mega-menu',
+            'description': _('Title of each column in mega-menu'),
             'classes': ['wide']
         }),
-        ('Mega-Menu Banner', {
+        (_('Mega-Menu Banner'), {
             'fields': ['banner_title', 'banner_link', 'banner_img'],
-            'description': 'Banner info/image in mega-menu',
+            'description': _('Banner info/image in mega-menu'),
             'classes': ['wide']
         }),
-        ('Mega-Menu Notification', {
+        (_('Mega-Menu Notification'), {
             'fields': ['notification'],
-            'description': 'Notification message in mega-menu',
+            'description': _('Notification message in mega-menu'),
             'classes': ['wide']
         })
     ]
@@ -278,8 +279,8 @@ class MainPageAdmin(admin.ModelAdmin):
 
     # ── Fieldset layout ────────────────────────────────────────────────────────
     fieldsets = (
-        ('Landing Section', {
-            'description': 'Hero area at the top of the page.',
+        (_('Landing Section'), {
+            'description': _('Hero area at the top of the page.'),
             'fields': (
                 ('landing_title', 'landing_brushed_title'),
                 'landing_description',
@@ -291,8 +292,8 @@ class MainPageAdmin(admin.ModelAdmin):
                 ('landing_message_title', 'landing_message_description'),
             ),
         }),
-        ('Statistics', {
-            'description': 'Four stat blocks shown on the homepage.',
+        (_('Statistics'), {
+            'description': _('Four stat blocks shown on the homepage.'),
             'classes': ('collapse',),
             'fields': (
                 ('stat1_title', 'stat1_description'),
@@ -308,7 +309,7 @@ class MainPageAdmin(admin.ModelAdmin):
                 ('stat4_link',),
             ),
         }),
-        ('Advertisement Banner', {
+        (_('Advertisement Banner'), {
             'classes': ('collapse',),
             'fields': (
                 'ad_title',
@@ -316,7 +317,7 @@ class MainPageAdmin(admin.ModelAdmin):
                 'ad_link',
             ),
         }),
-        ('Dual Choice', {
+        (_('Dual Choice'), {
             'classes': ('collapse',),
             'fields': (
                 ('choice1_title', 'choice1_link'),
@@ -327,8 +328,8 @@ class MainPageAdmin(admin.ModelAdmin):
                 ('choice2_image',),
             )
         }),
-        ('User Experience Section', {
-            'description': 'Testimonials and top-user showcase.',
+        (_('User Experience Section'), {
+            'description': _('Testimonials and top-user showcase.'),
             'classes': ('collapse',),
             'fields': (
                 'ux_title',
@@ -347,7 +348,7 @@ class MainPageAdmin(admin.ModelAdmin):
                 'ux_comment2_rate',
             ),
         }),
-        ('Top Teachers', {
+        (_('Top Teachers'), {
             'classes': ('collapse',),
             'fields': (
                 'top_teachers_title',
@@ -355,11 +356,11 @@ class MainPageAdmin(admin.ModelAdmin):
                 'top_teachers_list'
             )
         }),
-        ('Imaged Links', {
+        (_('Imaged Links'), {
             'classes': ('collapse',),
             'fields': ('imaged_links_list',)
         }),
-        ('Course Demo', {
+        (_('Course Demo'), {
             'classes': ('collapse',),
             'fields': ('top_courses_video',)
         }),
