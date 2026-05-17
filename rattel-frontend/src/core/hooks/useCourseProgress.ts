@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "../api";
+import {useAuth} from "@/src/core/hooks/useAuth";
 
 export interface EpisodeInfo {
     id: number;
@@ -51,9 +52,10 @@ export function useCourseProgress(courseId: string | null) {
     const [progress, setProgress] = useState<CourseProgress | null>(null);
     const [isLoadingProgress, setIsLoadingProgress] = useState(false);
     const [progressError, setProgressError] = useState<string | null>(null);
+    const { isAuthenticated } = useAuth();
 
     const fetchProgress = async () => {
-        if (!courseId) return;
+        if (!courseId || !isAuthenticated) return;
 
         setIsLoadingProgress(true);
         setProgressError(null);

@@ -19,8 +19,14 @@ interface LandingSection {
     brushed_title: string;
     description: string;
     link: Link | null;
-    video: string;
+    video: string | null;
     image: string;
+    icon1: string | null;
+    icon2: string | null;
+    icon3: string | null;
+    feature1: string;
+    feature2: string;
+    feature3: string;
     message_title: string;
     message_description: string;
 }

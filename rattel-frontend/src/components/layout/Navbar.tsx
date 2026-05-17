@@ -275,7 +275,7 @@ export default function Navbar() {
                                         </li>
                                         <li>
                                             <a className="dropdown-item" href="/auth/register">
-                                                <i className="bi bi-gear fa-fw me-2"></i>
+                                                <i className="bi bi-person-fill-add fa-fw me-2"></i>
                                                 ثبت نام
                                             </a>
                                         </li>

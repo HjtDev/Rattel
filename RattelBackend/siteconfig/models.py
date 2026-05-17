@@ -310,6 +310,12 @@ class MainPage(models.Model):
     landing_video = models.FileField(upload_to='landing_contents/video', blank=True, null=True, validators=[video_validator], verbose_name='Video Intro')
 
     landing_image = models.FileField(upload_to='landing_contents/image', verbose_name='Landing Image', help_text='Recommended: 386 * 603')
+    icon1 = models.FileField(upload_to='landing_contents/icons', blank=True, null=True, verbose_name='Feature Icon #1')
+    icon2 = models.FileField(upload_to='landing_contents/icons', blank=True, null=True, verbose_name='Feature Icon #2')
+    icon3 = models.FileField(upload_to='landing_contents/icons', blank=True, null=True, verbose_name='Feature Icon #3')
+    feature1 = models.CharField(max_length=50, blank=True, default='', verbose_name='Feature #1')
+    feature2 = models.CharField(max_length=50, blank=True, default='', verbose_name='Feature #2')
+    feature3 = models.CharField(max_length=50, blank=True, default='', verbose_name='Feature #3')
     landing_message_title = models.CharField(max_length=60, verbose_name='Message Title')
     landing_message_description = models.CharField(max_length=80, verbose_name='Message Description')
 
@@ -323,6 +329,12 @@ class MainPage(models.Model):
             'link': LinkSerializer(self.landing_link).data if self.landing_link else None,  # Serialize link if a link is added
             'video': self.landing_video.name and self.landing_video.url,  # Grab URL if available
             'image': self.landing_image.url,
+            'icon1': self.icon1.name and self.icon1.url if self.icon1 else None,
+            'icon2': self.icon2.name and self.icon2.url if self.icon2 else None,
+            'icon3': self.icon3.name and self.icon3.url if self.icon3 else None,
+            'feature1': self.feature1,
+            'feature2': self.feature2,
+            'feature3': self.feature3,
             'message_title': self.landing_message_title,
             'message_description': self.landing_message_description,
         }
@@ -531,6 +543,12 @@ class MainPage(models.Model):
                 'landing_brushed_title': 'Landing Brushed Title',
                 'landing_description': 'Landing Description',
                 'landing_image': generate_random_image(386, 603, 'landing_contents/image'),
+                'icon1': generate_random_image(64, 64, 'landing_contents/icons'),
+                'icon2': generate_random_image(64, 64, 'landing_contents/icons'),
+                'icon3': generate_random_image(64, 64, 'landing_contents/icons'),
+                'feature1': 'Feature 1',
+                'feature2': 'Feature 2',
+                'feature3': 'Feature 3',
                 'landing_message_title': 'Landing Message Title',
                 'landing_message_description': 'Landing Message Description',
                 'stat1_title': 'Stat1 Title',
