@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import { sendBlogViewCount, useBlogDetail } from "@/src/core/hooks/useBlogDetail";
 import { toggleSaveBlog } from "@/src/core/hooks/useSavedBlogs";
-import { getMediaUrl } from "@/src/core/utils";
+import { getMediaUrl, shareCurrentPage } from "@/src/core/utils";
 import { api } from "@/src/core/api";
 
 export default function BlogPostPage() {
@@ -60,6 +60,17 @@ export default function BlogPostPage() {
     });
 
     toast.success(result.is_saved ? "پست ذخیره شد" : "پست از ذخیره‌شده‌ها حذف شد");
+  };
+
+  const handleShare = async () => {
+    const result = await shareCurrentPage({
+      title: blogDetail?.title,
+      text: blogDetail?.short_description?.replace(/<[^>]*>/g, ""),
+    });
+
+    if (result === "copied") {
+      toast.success("لینک پست کپی شد");
+    }
   };
 
   const handleSubmitComment = async (e: React.FormEvent) => {
@@ -135,10 +146,16 @@ export default function BlogPostPage() {
                       <li className="list-inline-item d-lg-block my-lg-2">{blogDetail.ttr} دقیقه زمان مطالعه</li>
                       <li className="list-inline-item badge text-bg-info"><i className="far fa-eye me-1"></i>{blogDetail.view_count} بازدید</li>
                     </ul>
-                    <button className="btn btn-sm btn-outline-danger" onClick={handleToggleSave}>
-                      <i className={`${blogDetail.is_saved ? "fas" : "far"} fa-heart ms-1`}></i>
-                      {blogDetail.is_saved ? "ذخیره شده" : "ذخیره پست"}
-                    </button>
+                    <div className="d-flex justify-content-center align-items-center flex-lg-column flex-sm-row flex-sm-wrap">
+                      <button className="btn btn-sm btn-outline-danger w-50" onClick={handleToggleSave}>
+                        <i className={`${blogDetail.is_saved ? "fas" : "far"} fa-heart ms-1`}></i>
+                        {blogDetail.is_saved ? "ذخیره شده" : "ذخیره پست"}
+                      </button>
+                      <button className="btn btn-sm btn-outline-primary mt-lg-1 w-50" onClick={handleShare}>
+                        <i className="fas fa-share-alt ms-1"></i>
+                        اشتراک گذاری
+                      </button>
+                    </div>
                   </div>
                 </div>
 
