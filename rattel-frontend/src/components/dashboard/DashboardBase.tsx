@@ -139,6 +139,11 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     </i>
                                                     دوره های نشان شده
                                                 </a>
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/saved-blogs", pathname) ? "active" : ""}`} href="/dashboard/saved-blogs">
+                                                    <i className="bi bi-bookmark-heart fa-fw me-2">
+                                                    </i>
+                                                    پست های نشان شده
+                                                </a>
                                                 <a className="list-group-item text-danger bg-danger-soft-hover"
                                                    href="#" onClick={(e) => {
                                                     e.preventDefault();

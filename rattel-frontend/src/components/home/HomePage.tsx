@@ -11,6 +11,7 @@ import DualChoice from "./DualChoice";
 import TopTeachers from "./TopTeachers";
 import ImagedLinks from "./ImagedLinks";
 import CourseDemo from "./CourseDemo";
+import RecentBlogPosts from "./RecentBlogPosts";
 import InformationBoxes from "./InformationBoxes";
 import FAQ from "./FAQ";
 
@@ -51,6 +52,7 @@ export default function HomePage() {
             <TopTeachers data={topTeachersData} isLoading={isLoadingMainPage} />
             <ImagedLinks data={imagedLinksData} isLoading={isLoadingMainPage} />
             <CourseDemo data={coursesDemoData} isLoading={isLoadingMainPage} />
+            <RecentBlogPosts />
             <InformationBoxes data={informationBoxesData} isLoading={isLoadingMainPage} />
             <FAQ />
         </main>

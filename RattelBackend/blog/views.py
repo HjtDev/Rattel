@@ -73,7 +73,7 @@ class BlogListView(APIView, GetDataMixin, ResponseBuilderMixin):
         drf_cached_response(
             ttl=600,
             cache_prefix='blog_list',
-            user_aware=True,
+            user_aware=False,
             response_codes=[200],
             cache_headers=False,
         )
@@ -457,4 +457,3 @@ class BlogMetaView(APIView, GetDataMixin, ResponseBuilderMixin):
             categories=[{'name': c.name, 'slug': c.slug} for c in categories],
             tags=[{'name': t.name, 'slug': t.slug} for t in tags],
         )
-
