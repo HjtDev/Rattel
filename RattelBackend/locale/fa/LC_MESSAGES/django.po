@@ -510,11 +510,11 @@ msgstr "پرداخت"
 
 #: payment/models.py:10
 msgid "Transaction"
-msgstr "آیدی تراکنش"
+msgstr "تراکنش"
 
 #: payment/models.py:11
 msgid "Transactions"
-msgstr "آیدی تراکنش"
+msgstr "تراکنش ها"
 
 #: payment/models.py:19
 msgid "Rial"
