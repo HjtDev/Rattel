@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from tinymce.models import HTMLField
+from RattelBackend.cache import invalidate_cache
 
 
 class BlogCategory(models.Model):
@@ -18,6 +19,11 @@ class BlogCategory(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        invalidate_cache('blog_meta')
+        invalidate_cache('blog_list')
+
 
 class BlogTag(models.Model):
     name = models.CharField(max_length=80, unique=True, verbose_name=_('Name'))
@@ -31,6 +37,11 @@ class BlogTag(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        invalidate_cache('blog_meta')
+        invalidate_cache('blog_list')
 
 
 class BlogPost(models.Model):
@@ -67,6 +78,12 @@ class BlogPost(models.Model):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        invalidate_cache('blog_list')
+        invalidate_cache('blog_detail')
+        invalidate_cache('my_saved_blog_posts')
+
 
 class BlogComment(models.Model):
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments', verbose_name=_('Post'))
@@ -94,3 +111,8 @@ class BlogComment(models.Model):
 
     def __str__(self):
         return f'{self.user} -> {self.post}'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        invalidate_cache('blog_comments')
+        invalidate_cache('blog_detail')
