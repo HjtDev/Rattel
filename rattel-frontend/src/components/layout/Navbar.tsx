@@ -245,6 +245,12 @@ export default function Navbar() {
                                             </a>
                                         </li>
                                         <li>
+                                            <a className="dropdown-item" href="/dashboard/saved-blogs/">
+                                                <i className="bi bi-journal-bookmark-fill fa-fw me-2"></i>
+                                                پست های نشان شده
+                                            </a>
+                                        </li>
+                                        <li>
                                             <a className="dropdown-item" href="#" onClick={(e) => {
                                                 e.preventDefault();
                                                 logout();

@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'courses.apps.CoursesConfig',
     'cart.apps.CartConfig',
     'tickets.apps.TicketsConfig',
+    'blog.apps.BlogConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -416,7 +417,7 @@ TINYMCE_DEFAULT_CONFIG = {
         'insertfile image media template link anchor codesample | ltr rtl | code'
     ),
     'contextmenu': 'link image imagetools table',
-    'images_upload_url': '/api/blog/editor/upload/',
+    'images_upload_url': '/api/v1/editor/upload/',
     'automatic_uploads': True,
     'image_advtab': True,
     'image_caption': True,
