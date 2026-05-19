@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 from django.http import JsonResponse
+from .views import TinyMCEImageUploadView
 
 
 def healthz(_request):
@@ -27,6 +28,7 @@ def healthz(_request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('healthz/', healthz),
+    path('api/v1/editor/upload/', TinyMCEImageUploadView.as_view(), name='editor-upload'),
     path('api/v1/users/', include('users.urls')),
     path('api/v1/payment/', include('payment.urls', namespace='payment')),
     path('api/v1/auth/', include('authentication.urls', namespace='authentication')),
