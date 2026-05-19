@@ -1,7 +1,6 @@
 "use client";
 
 import { useFooter } from "@/src/core/hooks/useFooter";
-import { getMediaUrl } from "@/src/core/utils";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 
 function getSocialIcon(platform: string): string {
@@ -22,6 +21,10 @@ function getSocialIcon(platform: string): string {
 
 export default function Footer() {
     const { footerData, isLoadingFooter } = useFooter();
+    const trustImages = [
+        { src: "/assets/images/trust/enamad.png", alt: "Enamad" },
+        { src: "/assets/images/trust/zibal.avif", alt: "Zibal" },
+    ];
 
     return (
         <footer>
@@ -80,6 +83,31 @@ export default function Footer() {
                                         </div>
                                 ))
                             }} width={190} height={206} />
+                            <LoadingSkeleton
+                                isLoading={isLoadingFooter}
+                                Content={() => (
+                                    <div className="col-6 col-md-4">
+                                        <h5 className="mb-2 mb-md-4">اعتماد</h5>
+                                        <ul className="list-unstyled d-flex flex-wrap gap-2 mb-0">
+                                            {trustImages.map((imageItem, index) => (
+                                                <li key={index}>
+                                                    <a href="/trust" className="d-inline-block">
+                                                        <img
+                                                            src={imageItem.src}
+                                                            alt={imageItem.alt}
+                                                            width={56}
+                                                            height={56}
+                                                            className="rounded border object-fit-cover"
+                                                        />
+                                                    </a>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                width={190}
+                                height={206}
+                            />
                             </div>
                         </div>
                         <div className="col-lg-3">
