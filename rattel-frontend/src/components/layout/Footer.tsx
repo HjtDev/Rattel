@@ -91,7 +91,7 @@ export default function Footer() {
                                         <ul className="list-unstyled d-flex flex-wrap gap-2 mb-0">
                                             {trustImages.map((imageItem, index) => (
                                                 <li key={index}>
-                                                    <a href="/trust" className="d-inline-block">
+                                                    <a href="/about-us/#trust-section" className="d-inline-block">
                                                         <img
                                                             src={imageItem.src}
                                                             alt={imageItem.alt}
