@@ -3,6 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django_resized import ResizedImageField
 from django.utils.translation import gettext_lazy as _
+from sortedm2m.fields import SortedManyToManyField
 from tinymce.models import HTMLField
 from RattelBackend.cache import invalidate_cache
 from users.models import User
@@ -226,8 +227,8 @@ class SiteNavbar(models.Model):
         verbose_name = _('Site Navbar')
         verbose_name_plural = _('Site Navbar')
 
-    navbar_logo = ResizedImageField(upload_to='navbar_images/logo/', size=[150, 36], crop=['middle', 'center'], quality=100, verbose_name=_('Navbar Logo'), help_text=_('150 * 36 pixels'))
-    navbar_links = models.ManyToManyField(Link, related_name='navbar_links', blank=True, verbose_name=_('Navbar Links'))
+    navbar_logo = ResizedImageField(upload_to='navbar_images/logo/', size=[200, 50], crop=['middle', 'center'], quality=100, verbose_name=_('Navbar Logo'), help_text=_('Forced Size: 200 * 50 pixels'))
+    navbar_links = SortedManyToManyField(Link, related_name='navbar_links', blank=True, verbose_name=_('Navbar Links'))
         
     col1_title = models.CharField(max_length=100, verbose_name=_('Col 1 Title'))
     col2_title = models.CharField(max_length=100, verbose_name=_('Col 2 Title'))
