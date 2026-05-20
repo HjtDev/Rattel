@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'health_check.storage',
     'drf_spectacular',
     'tinymce',
+    'sortedm2m',
 ]
 
 MIDDLEWARE = [
