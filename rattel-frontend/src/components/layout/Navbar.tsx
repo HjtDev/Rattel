@@ -17,8 +17,8 @@ export default function Navbar() {
                 <nav className="navbar navbar-expand-xl">
                     <div className="container-fluid px-3 px-xl-5">
                         <a className="navbar-brand" href="/">
-                            <LoadingSkeleton isLoading={isLoadingNavbar} width={"126px"} height={"36px"} Content={() => (
-                                <img className="light-mode-item navbar-brand-item" src={navbarData?.navbar_logo}
+                            <LoadingSkeleton isLoading={isLoadingNavbar} Content={() => (
+                                <img className="light-mode-item navbar-brand-item" style={{width: 200, height: 50}} src={navbarData?.navbar_logo}
                                      alt="navbar logo"/>
                             )}
                             />
