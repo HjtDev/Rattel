@@ -213,7 +213,7 @@ class SiteNavbarImageItems(BaseNavbarItem):
     icon = ResizedImageField(upload_to='navbar_images/Col3/', size=[40, 40], crop=['middle', 'center'], quality=100, verbose_name=_('Icon'), help_text=_('40 * 40 pixels'))
     
     def __str__(self):
-        return f'Image Items: {self.label or self.link.name} - {self.icon.name or 'no-icon'}'
+        return f"Image Items: {self.label or self.link.name} - {self.icon.name or 'no-icon'}"
 
     def delete(self, *args, **kwargs):
         if self.icon and self.icon.name:
@@ -269,6 +269,89 @@ class SiteNavbar(models.Model):
             }
         )
         return navbar
+
+
+class AboutUs(models.Model):
+    class Meta:
+        verbose_name = _('About Us')
+        verbose_name_plural = _('About Us')
+
+    image_section_title = models.CharField(max_length=255, verbose_name=_('Image Section Title'))
+    image_section_top_right_image = models.FileField(
+        upload_to='aboutus/images/',
+        blank=True,
+        null=True,
+        verbose_name=_('Image Section Top Right Image')
+    )
+    image_section_bottom_right_image = models.FileField(
+        upload_to='aboutus/images/',
+        blank=True,
+        null=True,
+        verbose_name=_('Image Section Bottom Right Image')
+    )
+    image_section_middle_image = models.FileField(
+        upload_to='aboutus/images/',
+        blank=True,
+        null=True,
+        verbose_name=_('Image Section Middle Image')
+    )
+    image_section_bottom_left_image = models.FileField(
+        upload_to='aboutus/images/',
+        blank=True,
+        null=True,
+        verbose_name=_('Image Section Bottom Left Image')
+    )
+    image_section_box_title = models.CharField(max_length=100, verbose_name=_('Image Section Box Title'))
+    image_section_box_description = models.TextField(max_length=300, verbose_name=_('Image Section Box Description'))
+
+    info_section_title = models.CharField(max_length=255, verbose_name=_('Info Section Title'))
+    info_section_description = HTMLField(verbose_name=_('Info Section Description'))
+    info_section_information_boxes = SortedManyToManyField(
+        'siteconfig.Information',
+        related_name='aboutus_information_boxes',
+        blank=True,
+        verbose_name=_('Info Section Information Boxes')
+    )
+
+    trust_logo_section_title = models.CharField(
+        max_length=255,
+        default='',
+        blank=True,
+        verbose_name=_('Trust Logo Section Title')
+    )
+    trust_logo_section_links = SortedManyToManyField(
+        Link,
+        related_name='aboutus_trust_links',
+        blank=True,
+        verbose_name=_('Trust Logo Section Links')
+    )
+
+    def __str__(self):
+        return 'About Us'
+
+    def save(self, *args, **kwargs):
+        if not self.pk and AboutUs.objects.exists():
+            raise ValidationError(_('Only one About Us instance can exist. Edit the existing one.'))
+        invalidate_cache('aboutus')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError(_('About Us cannot be deleted. You can only edit it.'))
+
+    @classmethod
+    def get_instance(cls):
+        about_us, created = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                'image_section_title': _('About Us'),
+                'image_section_box_title': _('Our Goal'),
+                'image_section_box_description': _('Add your short goal statement here.'),
+                'info_section_title': _('About Academy'),
+                'info_section_description': _('<p>Add your about-us HTML description here.</p>'),
+                'trust_logo_section_title': _('Trusted By'),
+            }
+        )
+        return about_us
 
 
 class Information(models.Model):

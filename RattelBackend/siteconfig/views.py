@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
 from RattelBackend.cache import drf_cached_response, invalidate_cache
-from .models import Footer, SiteNavbar, MainPage, FAQ
-from .serializers import FooterSerializer, SiteNavbarSerializer, FAQSerializer
+from .models import Footer, SiteNavbar, MainPage, FAQ, AboutUs
+from .serializers import FooterSerializer, SiteNavbarSerializer, FAQSerializer, AboutUsSerializer
 from rest_framework import status
 import logging
 
@@ -385,4 +385,36 @@ class FAQView(APIView, ResponseBuilderMixin):
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 success=False,
                 message='Something went wrong while trying to fetch FAQs.'
+            )
+
+
+class AboutUsView(APIView, ResponseBuilderMixin):
+    permission_classes = (AllowAny,)
+    throttle_scope = 'main-throttle'
+
+    @method_decorator(
+        drf_cached_response(
+            ttl=1800,
+            cache_prefix='aboutus',
+            user_aware=False,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        try:
+            about_us = AboutUs.get_instance()
+            serializer = AboutUsSerializer(about_us, context={'request': request})
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                about_us=serializer.data,
+            )
+        except Exception as e:
+            logger.error(f'Something went wrong while trying to fetch AboutUs: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                message='Something went wrong while trying to fetch about us.'
             )
