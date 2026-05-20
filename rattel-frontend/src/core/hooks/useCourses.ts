@@ -43,7 +43,7 @@ export interface CoursesResponse {
 export type SortOption = "rating" | "total_sell" | "has_discount" | "most_videos" | "longest" | "shortest";
 export type DifficultyOption = "beginner" | "intermediate" | "advanced";
 export type AgeGroupOption = "kid" | "teen" | "adult" | "all";
-export type CategoryOption = "naghme" | "hafeze" | "andishe";
+export type CategoryOption = "telavat" | "tahfiz" | "tadabbor";
 
 export interface CoursesParams {
     page?: number;

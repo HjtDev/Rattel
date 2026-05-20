@@ -29,9 +29,9 @@ class Course(models.Model):
         ALL = 'all', _('All')
 
     class CategoryChoices(models.TextChoices):
-        NAGHME = 'naghme', _('Naghme')
-        HAFEZE = 'hafeze', _('Hafeze')
-        ANDISHE = 'andishe', _('Andishe')
+        TELAVAT = 'telavat', _('Telavat')
+        TAHFIZ = 'tahfiz', _('Tahfiz')
+        TADABBOR = 'tadabbor', _('Tadabbor')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, verbose_name=_('Course ID'))
 

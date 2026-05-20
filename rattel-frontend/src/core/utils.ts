@@ -57,9 +57,9 @@ export const getDifficultyLabel = (difficulty: string) => {
  */
 export const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
-        naghme: "نغمه",
-        hafeze: "حافظه",
-        andishe: "اندیشه"
+        telavat: "تلاوت",
+        tahfiz: "تحفیظ",
+        tadabbor: "تدبر"
     };
     return labels[category] || category;
 };
