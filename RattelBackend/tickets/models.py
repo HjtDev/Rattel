@@ -1,5 +1,4 @@
 import uuid
-import os
 from django.conf import settings
 from django.db import models
 from django_resized import ResizedImageField
@@ -220,3 +219,8 @@ class Message(models.Model):
     def __str__(self):
         sender_label = 'Staff' if self.is_staff_reply else str(self.sender)
         return f'Message by {sender_label} on ticket #{self.ticket_id}'
+
+    def delete(self, *args, **kwargs):
+        if self.attachment and self.attachment.name:
+            self.attachment.delete(save=False)
+        return super().delete(*args, **kwargs)

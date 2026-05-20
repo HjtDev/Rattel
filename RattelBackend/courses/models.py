@@ -92,6 +92,13 @@ class Course(models.Model):
     def __str__(self):
         return self.name
 
+    def delete(self, *args, **kwargs):
+        if self.intro_video and self.intro_video.name:
+            self.intro_video.delete(save=False)
+        if self.image and self.image.name:
+            self.image.delete(save=False)
+        return super().delete(*args, **kwargs)
+
     def add_user(self, user):
         """On successful purchase this method is used to add user to the bought_by
 
@@ -269,6 +276,9 @@ class Episode(models.Model):
         return super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
+        if self.file and self.file.name:
+            self.file.delete(save=False)
+
         if not self.counted:
             return super().delete(*args, **kwargs)
         

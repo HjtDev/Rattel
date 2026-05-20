@@ -84,6 +84,11 @@ class BlogPost(models.Model):
         invalidate_cache('blog_detail')
         invalidate_cache('my_saved_blog_posts')
 
+    def delete(self, *args, **kwargs):
+        if self.thumbnail and self.thumbnail.name:
+            self.thumbnail.delete(save=False)
+        return super().delete(*args, **kwargs)
+
 
 class BlogComment(models.Model):
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments', verbose_name=_('Post'))
