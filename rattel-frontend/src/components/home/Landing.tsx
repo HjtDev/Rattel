@@ -437,7 +437,7 @@ export default function Landing({ data, isLoading }: LandingProps) {
                             )
                         }
                         <div
-                            className="p-3 bg-blur border border-light shadow rounded-4 position-absolute bottom-0 start-0 z-index-9 d-none d-xl-block mb-5 ms-5">
+                            className="p-3 bg-blur border border-light shadow rounded-4 position-absolute bottom-0 z-index-9 d-block mb-5 ms-5">
                             <div className="d-flex justify-content-between align-items-center">
             <span className="icon-lg bg-warning rounded-circle">
               <i className="fas fa-envelope text-white">
