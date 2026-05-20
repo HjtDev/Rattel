@@ -923,7 +923,7 @@ msgstr "ایکس(توییتر)"
 
 #: siteconfig/models.py:89
 msgid "LinkedIn"
-msgstr "لینک"
+msgstr "لینکدین"
 
 #: siteconfig/models.py:90
 msgid "TikTok"
