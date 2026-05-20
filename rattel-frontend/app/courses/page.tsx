@@ -81,9 +81,9 @@ function CoursesContent() {
 
     const getCategoryLabel = (cat: string) => {
         switch (cat) {
-            case 'naghme': return 'نغمه';
-            case 'hafeze': return 'حافظه';
-            case 'andishe': return 'اندیشه';
+            case 'telavat': return 'تلاوت';
+            case 'tahfiz': return 'تحفیظ';
+            case 'tadabbor': return 'تدبر';
             default: return cat;
         }
     };
@@ -377,25 +377,25 @@ function CoursesContent() {
                                                                 همه
                                                             </label>
                                                         </div>
-                                                        <div className="form-check">
-                                                            <input className="form-check-input" type="radio" name="category"
-                                                                   id="category-naghme" checked={category === 'naghme'} onChange={() => { setCategory('naghme'); setPage(1); }}/>
-                                                            <label className="form-check-label" htmlFor="category-naghme">
-                                                                نغمه
+                                                            <div className="form-check">
+                                                                <input className="form-check-input" type="radio" name="category"
+                                                                   id="category-telavat" checked={category === 'telavat'} onChange={() => { setCategory('telavat'); setPage(1); }}/>
+                                                            <label className="form-check-label" htmlFor="category-telavat">
+                                                                تلاوت
                                                             </label>
                                                         </div>
                                                         <div className="form-check">
                                                             <input className="form-check-input" type="radio" name="category"
-                                                                   id="category-hafeze" checked={category === 'hafeze'} onChange={() => { setCategory('hafeze'); setPage(1); }}/>
-                                                            <label className="form-check-label" htmlFor="category-hafeze">
-                                                                حافظه
+                                                                   id="category-tahfiz" checked={category === 'tahfiz'} onChange={() => { setCategory('tahfiz'); setPage(1); }}/>
+                                                            <label className="form-check-label" htmlFor="category-tahfiz">
+                                                                تحفیظ
                                                             </label>
                                                         </div>
                                                         <div className="form-check">
                                                             <input className="form-check-input" type="radio" name="category"
-                                                                   id="category-andishe" checked={category === 'andishe'} onChange={() => { setCategory('andishe'); setPage(1); }}/>
-                                                            <label className="form-check-label" htmlFor="category-andishe">
-                                                                اندیشه
+                                                                   id="category-tadabbor" checked={category === 'tadabbor'} onChange={() => { setCategory('tadabbor'); setPage(1); }}/>
+                                                            <label className="form-check-label" htmlFor="category-tadabbor">
+                                                                تدبر
                                                             </label>
                                                         </div>
                                                     </div>
