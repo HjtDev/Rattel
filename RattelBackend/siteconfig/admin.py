@@ -13,7 +13,7 @@ from .models import (
     SiteNavbarDescribedItems,
     SiteNavbarImageItems,
     SiteNavbar,
-    MainPage, Information, FAQ
+    MainPage, Information, FAQ, AboutUs
 )
 
 
@@ -196,7 +196,6 @@ class InformationInline(admin.StackedInline):
     verbose_name_plural = _('Information Boxes')
 
 
-
 @admin.register(SiteNavbar)
 class SiteNavbarAdmin(admin.ModelAdmin):
     """
@@ -372,3 +371,60 @@ class FAQAdmin(admin.ModelAdmin):
     list_filter = ('is_visible',)
     search_fields = ('question', 'answer', 'order')
     ordering = ('order',)
+
+
+@admin.register(AboutUs)
+class AboutUsAdmin(admin.ModelAdmin):
+    list_display = ('image_section_title', 'info_boxes_count', 'trust_links_count', 'info_section_title', 'trust_logo_section_title')
+    search_fields = ('image_section_title', 'info_section_title', 'trust_logo_section_title')
+    readonly_fields = ()
+
+    fieldsets = (
+        (_('Image Section'), {
+            'fields': (
+                'image_section_title',
+                'image_section_top_right_image',
+                'image_section_bottom_right_image',
+                'image_section_middle_image',
+                'image_section_bottom_left_image',
+                'image_section_box_title',
+                'image_section_box_description',
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Info Section'), {
+            'fields': (
+                'info_section_title',
+                'info_section_description',
+                'info_section_information_boxes'
+            ),
+            'description': _('Select info boxes from inline table below.'),
+            'classes': ('wide',),
+        }),
+        (_('Trust Logo Section'), {
+            'fields': ('trust_logo_section_title', 'trust_logo_section_links'),
+            'description': _('Select trust logo links from inline table below.'),
+            'classes': ('wide',),
+        }),
+    )
+
+    def info_boxes_count(self, obj):
+        return obj.info_section_information_boxes.count()
+
+    def trust_links_count(self, obj):
+        return obj.trust_logo_section_links.count()
+
+    info_boxes_count.short_description = _('Info Boxes')
+    trust_links_count.short_description = _('Trust Links')
+
+    def has_add_permission(self, request):
+        return not AboutUs.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        if AboutUs.objects.exists():
+            instance = AboutUs.objects.first()
+            return redirect(reverse('admin:siteconfig_aboutus_change', args=[instance.pk]))
+        return super().changelist_view(request, extra_context)

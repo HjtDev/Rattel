@@ -1,7 +1,7 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 from .models import Footer, FooterLinkColumn, FooterColumnLink, FooterSocialMedia, SocialMediaLink, Link, SiteNavbar, \
-    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems, Information, FAQ
+    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems, Information, FAQ, AboutUs
 import logging
 
 
@@ -346,3 +346,57 @@ class FAQSerializer(ModelSerializer):
     class Meta:
         model = FAQ
         fields = ('question', 'answer', 'order')
+
+
+class AboutUsSerializer(ModelSerializer):
+    image_section_top_right_image = SerializerMethodField()
+    image_section_bottom_right_image = SerializerMethodField()
+    image_section_middle_image = SerializerMethodField()
+    image_section_bottom_left_image = SerializerMethodField()
+    info_section_information_boxes = SerializerMethodField()
+    trust_logo_section_links = SerializerMethodField()
+
+    class Meta:
+        model = AboutUs
+        fields = (
+            'image_section_title',
+            'image_section_top_right_image',
+            'image_section_bottom_right_image',
+            'image_section_middle_image',
+            'image_section_bottom_left_image',
+            'image_section_box_title',
+            'image_section_box_description',
+            'info_section_title',
+            'info_section_description',
+            'info_section_information_boxes',
+            'trust_logo_section_title',
+            'trust_logo_section_links',
+        )
+
+    def _build_file_url(self, file_field):
+        if not file_field:
+            return None
+        request = self.context.get('request')
+        if request is None:
+            return file_field.url
+        return request.build_absolute_uri(file_field.url)
+
+    def get_image_section_top_right_image(self, obj):
+        return self._build_file_url(obj.image_section_top_right_image)
+
+    def get_image_section_bottom_right_image(self, obj):
+        return self._build_file_url(obj.image_section_bottom_right_image)
+
+    def get_image_section_middle_image(self, obj):
+        return self._build_file_url(obj.image_section_middle_image)
+
+    def get_image_section_bottom_left_image(self, obj):
+        return self._build_file_url(obj.image_section_bottom_left_image)
+
+    def get_info_section_information_boxes(self, obj):
+        boxes = obj.info_section_information_boxes.all()
+        return InformationSerializer(boxes, many=True, context=self.context).data
+
+    def get_trust_logo_section_links(self, obj):
+        links = obj.trust_logo_section_links.all()
+        return LinkSerializer(links, many=True, context=self.context).data
