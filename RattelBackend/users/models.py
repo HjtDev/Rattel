@@ -115,6 +115,11 @@ class User(AbstractBaseUser, PermissionsMixin):
             # Get the oldest courses and remove them
             oldest_courses = self.course_history.all().order_by('coursehistory__id')[:history_count - 8]
             self.course_history.remove(*oldest_courses)
+
+    def delete(self, *args, **kwargs):
+        if self.profile_picture and self.profile_picture.name:
+            self.profile_picture.delete(save=False)
+        return super().delete(*args, **kwargs)
     
 def validate_national_code(national_code: str):
     if national_code and GetDataMixin.NATIONAL_CODE_REGEX.fullmatch(national_code) is None:
