@@ -18,10 +18,10 @@ import "../public/assets/css/style-rtl.css";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 
-const siteName = "ExireQuran | اکسیر قرآن";
+const siteName = "موسسه فرهنگی اکسیر قرآن";
 const siteUrl = "https://exirequran.ir";
 const siteDescription =
-  "سامانه آموزش جامع قرآن، برنامه های حفظ، مسابقات قرآنی و مسیر یادگیری مرحله به مرحله برای کودکان، نوجوانان و بزرگسالان.";
+  "اکسیر قرآن؛ مرجع تخصصی تولیدات رسانه‌ای و سامانه آموزش مجازی علوم قرآن، تدبر، تلاوت و حفظ، با بهره‌گیری از اساتید برجسته در مسیر تعلیم و ترویج فرهنگ اهل‌بیت ع";
 const siteKeywords = [
   "اکسیر قرآن",
   "ExireQuran",
