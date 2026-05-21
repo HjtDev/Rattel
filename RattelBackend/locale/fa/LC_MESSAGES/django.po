@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RattelBackend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-21 09:06+0000\n"
+"POT-Creation-Date: 2026-05-21 09:43+0000\n"
 "PO-Revision-Date: 2026-05-17 14:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -50,8 +50,8 @@ msgid "Engagement"
 msgstr "فعالیت های کاربران"
 
 #: blog/admin.py:83 courses/admin.py:110 courses/admin.py:190
-#: courses/progress_admin.py:46 payment/admin.py:97 tickets/admin.py:79
-#: tickets/admin.py:199
+#: courses/progress_admin.py:46 gallery/admin.py:43 gallery/admin.py:80
+#: payment/admin.py:97 tickets/admin.py:79 tickets/admin.py:199
 msgid "Timestamps"
 msgstr "زمان/تاریخ ها"
 
@@ -102,7 +102,8 @@ msgstr "اسلاگ"
 
 #: blog/models.py:12 blog/models.py:31 blog/models.py:63 blog/models.py:96
 #: courses/models.py:64 courses/models.py:234 courses/models.py:258
-#: courses/progress_models.py:74 siteconfig/models.py:494 tickets/models.py:127
+#: courses/progress_models.py:74 gallery/models.py:19 gallery/models.py:59
+#: siteconfig/models.py:494 tickets/models.py:127
 msgid "Created At"
 msgstr "تاریخ ایجاد"
 
@@ -127,7 +128,7 @@ msgid "Blog ID"
 msgstr "آیدی"
 
 #: blog/models.py:49 courses/models.py:38 courses/models.py:224
-#: courses/models.py:254 siteconfig/models.py:507
+#: courses/models.py:254 gallery/models.py:17 siteconfig/models.py:507
 msgid "Title"
 msgstr "تیتر"
 
@@ -145,7 +146,7 @@ msgstr "توضیحات"
 msgid "Conclusion"
 msgstr "نتیجه گیری"
 
-#: blog/models.py:54
+#: blog/models.py:54 gallery/models.py:18
 msgid "Thumbnail"
 msgstr "عکس بنر"
 
@@ -179,7 +180,7 @@ msgid "Published At"
 msgstr "منتشر شده در"
 
 #: blog/models.py:64 courses/models.py:65 courses/models.py:235
-#: tickets/models.py:128
+#: gallery/models.py:20 gallery/models.py:60 tickets/models.py:128
 msgid "Updated At"
 msgstr "تاریخ آپدیت"
 
@@ -259,7 +260,7 @@ msgstr "فصل"
 
 #: courses/admin.py:184
 msgid "Content Counts"
-msgstr "ساعات کاری"
+msgstr "تعداد محتوا"
 
 #: courses/apps.py:7 courses/models.py:13
 msgid "Courses"
@@ -378,9 +379,9 @@ msgstr "فصل"
 msgid "Chapters"
 msgstr "فصل ها"
 
-#: courses/models.py:226 siteconfig/models.py:46 siteconfig/models.py:66
-#: siteconfig/models.py:114 siteconfig/models.py:178 siteconfig/models.py:511
-#: siteconfig/models.py:835
+#: courses/models.py:226 gallery/models.py:58 siteconfig/models.py:46
+#: siteconfig/models.py:66 siteconfig/models.py:114 siteconfig/models.py:178
+#: siteconfig/models.py:511 siteconfig/models.py:835
 msgid "Order"
 msgstr "ترتیب"
 
@@ -405,9 +406,9 @@ msgstr "جلسه"
 msgid "Episodes"
 msgstr "جلسه ها"
 
-#: courses/models.py:248
+#: courses/models.py:248 gallery/models.py:43 gallery/models.py:55
 msgid "Video"
-msgstr "ویدیو معرفی سایت"
+msgstr "ویدیو"
 
 #: courses/models.py:249
 msgid "Note"
@@ -481,6 +482,101 @@ msgstr "مدت زمانی که کاربر در حال مشاهده این جلس
 #: courses/progress_models.py:69
 msgid "Last Watched At"
 msgstr "آخرین بازدید"
+
+#: gallery/admin.py:36 users/admin.py:53 users/admin.py:60
+msgid "General"
+msgstr "اطلاعات عمومی"
+
+#: gallery/admin.py:51
+#| msgid "Content Counts"
+msgid "Content Count"
+msgstr "تعداد محتوا"
+
+#: gallery/admin.py:66
+#| msgid "Registration"
+msgid "Relations"
+msgstr "ثبت نام"
+
+#: gallery/admin.py:73
+#| msgid "Medium"
+msgid "Media"
+msgstr "متوسط"
+
+#: gallery/admin.py:88
+#| msgid "File"
+msgid "Has File"
+msgstr "فایل"
+
+#: gallery/models.py:12 gallery/models.py:52
+msgid "Gallery"
+msgstr "گالری"
+
+#: gallery/models.py:13
+msgid "Galleries"
+msgstr "گالری"
+
+#: gallery/models.py:16
+msgid "Gallery ID"
+msgstr "آیدی"
+
+#: gallery/models.py:42 gallery/models.py:54 siteconfig/models.py:509
+msgid "Image"
+msgstr "تصویر"
+
+#: gallery/models.py:44 gallery/models.py:56
+msgid "Audio"
+msgstr "صوت"
+
+#: gallery/models.py:45
+msgid "Embed"
+msgstr "امبد"
+
+#: gallery/models.py:48
+#| msgid "Primary Content"
+msgid "Gallery Content"
+msgstr "رسانه گالری"
+
+#: gallery/models.py:49
+#| msgid "Primary Content"
+msgid "Gallery Contents"
+msgstr "رسانه های گالری"
+
+#: gallery/models.py:53
+#| msgid "Content"
+msgid "Content Type"
+msgstr "نوع محتوا"
+
+#: gallery/models.py:57
+msgid "Embed Code"
+msgstr "کد امبد"
+
+#: gallery/models.py:74
+msgid "Invalid content type."
+msgstr "نوع محتوا نامعتبر است."
+
+#: gallery/models.py:79
+msgid "Embed code is required for embed content type."
+msgstr "نوع محتوا امبد است. لطفا امبد را تنظیم کنید."
+
+#: gallery/models.py:81
+msgid "File is required for selected content type."
+msgstr "با توجه به نوع محتوا یک فایل مورد نیاز است."
+
+#: gallery/models.py:84
+msgid "Image must be empty unless content type is image."
+msgstr "شما نباید یک تصویر آپلود کنید مگر اینکه نوع محتوا تصویر باشد."
+
+#: gallery/models.py:86
+msgid "Video must be empty unless content type is video."
+msgstr "شما نباید ویدیو آپلود کنید مگر اینکه موع محتوا ویدیو باشد."
+
+#: gallery/models.py:88
+msgid "Audio must be empty unless content type is audio."
+msgstr "شما نباید صوت آپلود کنید مگر اینکه نوع محتوا صوت باشد"
+
+#: gallery/models.py:90
+msgid "Embed code must be empty unless content type is embed."
+msgstr "شما نباید کد امبد تنظیم کنید مگر اینکه نوع محتوا امبد باشد"
 
 #: notifications/apps.py:7
 msgid "Notifications"
@@ -701,7 +797,7 @@ msgstr "اطلاعات و حقوق سایت"
 
 #: siteconfig/admin.py:128
 msgid "Contact Us"
-msgstr "ساعات کاری"
+msgstr "ارتباط با ما"
 
 #: siteconfig/admin.py:130
 msgid "Footer Contact Us column information"
@@ -1233,7 +1329,6 @@ msgid "Collaboration Section Step 1 Description"
 msgstr "توضیحات مرحله اول"
 
 #: siteconfig/models.py:382
-#| msgid "Collaboration Section Step 1 Title"
 msgid "Collaboration Section Step 1 Image"
 msgstr "عکس مرحله اول"
 
@@ -1246,7 +1341,6 @@ msgid "Collaboration Section Step 2 Description"
 msgstr "توضیحات مرحله دوم"
 
 #: siteconfig/models.py:390
-#| msgid "Collaboration Section Step 2 Title"
 msgid "Collaboration Section Step 2 Image"
 msgstr "عکس مرحله دوم"
 
@@ -1259,7 +1353,6 @@ msgid "Collaboration Section Step 3 Description"
 msgstr "توضیحات مرحله سوم"
 
 #: siteconfig/models.py:398
-#| msgid "Collaboration Section Step 3 Title"
 msgid "Collaboration Section Step 3 Image"
 msgstr "عکس مرحله سوم"
 
@@ -1456,10 +1549,6 @@ msgstr "بخش اطلاعات"
 #: siteconfig/models.py:504
 msgid "Information Sections"
 msgstr "بخش اطلاعات"
-
-#: siteconfig/models.py:509
-msgid "Image"
-msgstr "تصویر"
 
 #: siteconfig/models.py:509
 msgid "Recommended: 615 * 435"
@@ -1824,10 +1913,6 @@ msgstr "تعداد فایل ها"
 #: users/admin.py:23 users/admin.py:24
 msgid "User Settings"
 msgstr "تنظیمات کاربر"
-
-#: users/admin.py:53 users/admin.py:60
-msgid "General"
-msgstr "اطلاعات عمومی"
 
 #: users/admin.py:54 users/admin.py:61
 msgid "Personal Info"
