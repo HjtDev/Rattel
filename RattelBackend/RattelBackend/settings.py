@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'tickets.apps.TicketsConfig',
     'blog.apps.BlogConfig',
+    'gallery.apps.GalleryConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',

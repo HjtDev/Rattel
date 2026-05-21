@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RattelBackend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-21 07:45+0000\n"
+"POT-Creation-Date: 2026-05-21 09:43+0000\n"
 "PO-Revision-Date: 2026-05-17 14:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -50,8 +50,8 @@ msgid "Engagement"
 msgstr "فعالیت های کاربران"
 
 #: blog/admin.py:83 courses/admin.py:110 courses/admin.py:190
-#: courses/progress_admin.py:46 payment/admin.py:97 tickets/admin.py:79
-#: tickets/admin.py:199
+#: courses/progress_admin.py:46 gallery/admin.py:43 gallery/admin.py:80
+#: payment/admin.py:97 tickets/admin.py:79 tickets/admin.py:199
 msgid "Timestamps"
 msgstr "زمان/تاریخ ها"
 
@@ -102,7 +102,8 @@ msgstr "اسلاگ"
 
 #: blog/models.py:12 blog/models.py:31 blog/models.py:63 blog/models.py:96
 #: courses/models.py:64 courses/models.py:234 courses/models.py:258
-#: courses/progress_models.py:74 siteconfig/models.py:476 tickets/models.py:127
+#: courses/progress_models.py:74 gallery/models.py:19 gallery/models.py:59
+#: siteconfig/models.py:494 tickets/models.py:127
 msgid "Created At"
 msgstr "تاریخ ایجاد"
 
@@ -127,7 +128,7 @@ msgid "Blog ID"
 msgstr "آیدی"
 
 #: blog/models.py:49 courses/models.py:38 courses/models.py:224
-#: courses/models.py:254 siteconfig/models.py:489
+#: courses/models.py:254 gallery/models.py:17 siteconfig/models.py:507
 msgid "Title"
 msgstr "تیتر"
 
@@ -137,7 +138,7 @@ msgstr "توضیحات کوتاه"
 
 #: blog/models.py:52 courses/admin.py:82 courses/models.py:225
 #: payment/models.py:58 siteconfig/models.py:199 siteconfig/models.py:212
-#: siteconfig/models.py:490 siteconfig/models.py:530
+#: siteconfig/models.py:508 siteconfig/models.py:548
 msgid "Description"
 msgstr "توضیحات"
 
@@ -145,7 +146,7 @@ msgstr "توضیحات"
 msgid "Conclusion"
 msgstr "نتیجه گیری"
 
-#: blog/models.py:54
+#: blog/models.py:54 gallery/models.py:18
 msgid "Thumbnail"
 msgstr "عکس بنر"
 
@@ -170,7 +171,7 @@ msgid "Tags"
 msgstr "تگ ها"
 
 #: blog/models.py:61 courses/models.py:62 courses/models.py:232
-#: siteconfig/models.py:819
+#: siteconfig/models.py:837
 msgid "Visible"
 msgstr "نمایش در سایت"
 
@@ -179,7 +180,7 @@ msgid "Published At"
 msgstr "منتشر شده در"
 
 #: blog/models.py:64 courses/models.py:65 courses/models.py:235
-#: tickets/models.py:128
+#: gallery/models.py:20 gallery/models.py:60 tickets/models.py:128
 msgid "Updated At"
 msgstr "تاریخ آپدیت"
 
@@ -259,7 +260,7 @@ msgstr "فصل"
 
 #: courses/admin.py:184
 msgid "Content Counts"
-msgstr "ساعات کاری"
+msgstr "تعداد محتوا"
 
 #: courses/apps.py:7 courses/models.py:13
 msgid "Courses"
@@ -378,9 +379,9 @@ msgstr "فصل"
 msgid "Chapters"
 msgstr "فصل ها"
 
-#: courses/models.py:226 siteconfig/models.py:46 siteconfig/models.py:66
-#: siteconfig/models.py:114 siteconfig/models.py:178 siteconfig/models.py:493
-#: siteconfig/models.py:817
+#: courses/models.py:226 gallery/models.py:58 siteconfig/models.py:46
+#: siteconfig/models.py:66 siteconfig/models.py:114 siteconfig/models.py:178
+#: siteconfig/models.py:511 siteconfig/models.py:835
 msgid "Order"
 msgstr "ترتیب"
 
@@ -405,9 +406,9 @@ msgstr "جلسه"
 msgid "Episodes"
 msgstr "جلسه ها"
 
-#: courses/models.py:248
+#: courses/models.py:248 gallery/models.py:43 gallery/models.py:55
 msgid "Video"
-msgstr "ویدیو معرفی سایت"
+msgstr "ویدیو"
 
 #: courses/models.py:249
 msgid "Note"
@@ -481,6 +482,101 @@ msgstr "مدت زمانی که کاربر در حال مشاهده این جلس
 #: courses/progress_models.py:69
 msgid "Last Watched At"
 msgstr "آخرین بازدید"
+
+#: gallery/admin.py:36 users/admin.py:53 users/admin.py:60
+msgid "General"
+msgstr "اطلاعات عمومی"
+
+#: gallery/admin.py:51
+#| msgid "Content Counts"
+msgid "Content Count"
+msgstr "تعداد محتوا"
+
+#: gallery/admin.py:66
+#| msgid "Registration"
+msgid "Relations"
+msgstr "ثبت نام"
+
+#: gallery/admin.py:73
+#| msgid "Medium"
+msgid "Media"
+msgstr "متوسط"
+
+#: gallery/admin.py:88
+#| msgid "File"
+msgid "Has File"
+msgstr "فایل"
+
+#: gallery/models.py:12 gallery/models.py:52
+msgid "Gallery"
+msgstr "گالری"
+
+#: gallery/models.py:13
+msgid "Galleries"
+msgstr "گالری"
+
+#: gallery/models.py:16
+msgid "Gallery ID"
+msgstr "آیدی"
+
+#: gallery/models.py:42 gallery/models.py:54 siteconfig/models.py:509
+msgid "Image"
+msgstr "تصویر"
+
+#: gallery/models.py:44 gallery/models.py:56
+msgid "Audio"
+msgstr "صوت"
+
+#: gallery/models.py:45
+msgid "Embed"
+msgstr "امبد"
+
+#: gallery/models.py:48
+#| msgid "Primary Content"
+msgid "Gallery Content"
+msgstr "رسانه گالری"
+
+#: gallery/models.py:49
+#| msgid "Primary Content"
+msgid "Gallery Contents"
+msgstr "رسانه های گالری"
+
+#: gallery/models.py:53
+#| msgid "Content"
+msgid "Content Type"
+msgstr "نوع محتوا"
+
+#: gallery/models.py:57
+msgid "Embed Code"
+msgstr "کد امبد"
+
+#: gallery/models.py:74
+msgid "Invalid content type."
+msgstr "نوع محتوا نامعتبر است."
+
+#: gallery/models.py:79
+msgid "Embed code is required for embed content type."
+msgstr "نوع محتوا امبد است. لطفا امبد را تنظیم کنید."
+
+#: gallery/models.py:81
+msgid "File is required for selected content type."
+msgstr "با توجه به نوع محتوا یک فایل مورد نیاز است."
+
+#: gallery/models.py:84
+msgid "Image must be empty unless content type is image."
+msgstr "شما نباید یک تصویر آپلود کنید مگر اینکه نوع محتوا تصویر باشد."
+
+#: gallery/models.py:86
+msgid "Video must be empty unless content type is video."
+msgstr "شما نباید ویدیو آپلود کنید مگر اینکه موع محتوا ویدیو باشد."
+
+#: gallery/models.py:88
+msgid "Audio must be empty unless content type is audio."
+msgstr "شما نباید صوت آپلود کنید مگر اینکه نوع محتوا صوت باشد"
+
+#: gallery/models.py:90
+msgid "Embed code must be empty unless content type is embed."
+msgstr "شما نباید کد امبد تنظیم کنید مگر اینکه نوع محتوا امبد باشد"
 
 #: notifications/apps.py:7
 msgid "Notifications"
@@ -701,7 +797,7 @@ msgstr "اطلاعات و حقوق سایت"
 
 #: siteconfig/admin.py:128
 msgid "Contact Us"
-msgstr "ساعات کاری"
+msgstr "ارتباط با ما"
 
 #: siteconfig/admin.py:130
 msgid "Footer Contact Us column information"
@@ -848,42 +944,35 @@ msgid "Resume Submission"
 msgstr "ارسال رزومه"
 
 #: siteconfig/admin.py:442 siteconfig/admin.py:529
-#| msgid "Permissions"
 msgid "Resume Submissions"
 msgstr "ارسال رزومه"
 
 #: siteconfig/admin.py:455
-#| msgid "Link Information"
 msgid "Submission Information"
 msgstr "اطلاعات رزومه"
 
-#: siteconfig/admin.py:459 siteconfig/models.py:475 tickets/admin.py:186
+#: siteconfig/admin.py:459 siteconfig/models.py:493 tickets/admin.py:186
 #: tickets/models.py:176
 msgid "Message"
 msgstr "پیام"
 
 #: siteconfig/admin.py:477
-#| msgid "Info Section"
 msgid "Hero Section"
 msgstr "لندینگ"
 
 #: siteconfig/admin.py:486
-#| msgid "Information Section"
 msgid "Collaboration Section"
 msgstr "مراحل همکاری"
 
 #: siteconfig/admin.py:496
-#| msgid "Info Section"
 msgid "Counter Section"
 msgstr "شمارنده ها"
 
 #: siteconfig/admin.py:505
-#| msgid "Landing Section"
 msgid "Main Content Section"
 msgstr "بخش توضیحات"
 
 #: siteconfig/admin.py:517
-#| msgid "Advertisement Description"
 msgid "Advertisement Section"
 msgstr "تبلیغ"
 
@@ -1203,37 +1292,31 @@ msgstr "توضیحاتی را درباره فعالیت های خود بنویس
 msgid "Trusted By"
 msgstr "اعتماد"
 
-#: siteconfig/models.py:359 siteconfig/models.py:360 siteconfig/models.py:470
+#: siteconfig/models.py:359 siteconfig/models.py:360 siteconfig/models.py:488
 msgid "Work With Us"
 msgstr "همکاری با ما"
 
 #: siteconfig/models.py:362
-#| msgid "Banner Col Title"
 msgid "Hero Title"
 msgstr "تیتر"
 
 #: siteconfig/models.py:363
-#| msgid "Description"
 msgid "Hero Description"
 msgstr "توضیحات"
 
 #: siteconfig/models.py:370
-#| msgid "Number of Links"
 msgid "Hero Link"
 msgstr "لینک"
 
 #: siteconfig/models.py:372
-#| msgid "Banner Image"
 msgid "Hero Image"
 msgstr "عکس"
 
 #: siteconfig/models.py:374
-#| msgid "Info Section Title"
 msgid "Collaboration Section Title"
 msgstr "تیتر"
 
 #: siteconfig/models.py:375
-#| msgid "Info Section Description"
 msgid "Collaboration Section Description"
 msgstr "توضیحات"
 
@@ -1242,496 +1325,476 @@ msgid "Collaboration Section Step 1 Title"
 msgstr "تیتر مرحله اول"
 
 #: siteconfig/models.py:377
-#| msgid "Info Section Description"
 msgid "Collaboration Section Step 1 Description"
 msgstr "توضیحات مرحله اول"
 
-#: siteconfig/models.py:378
+#: siteconfig/models.py:382
+msgid "Collaboration Section Step 1 Image"
+msgstr "عکس مرحله اول"
+
+#: siteconfig/models.py:384
 msgid "Collaboration Section Step 2 Title"
 msgstr "تیتر مرحله دوم"
 
-#: siteconfig/models.py:379
-#| msgid "Info Section Description"
+#: siteconfig/models.py:385
 msgid "Collaboration Section Step 2 Description"
 msgstr "توضیحات مرحله دوم"
 
-#: siteconfig/models.py:380
+#: siteconfig/models.py:390
+msgid "Collaboration Section Step 2 Image"
+msgstr "عکس مرحله دوم"
+
+#: siteconfig/models.py:392
 msgid "Collaboration Section Step 3 Title"
 msgstr "تیتر مرحله سوم"
 
-#: siteconfig/models.py:381
-#| msgid "Info Section Description"
+#: siteconfig/models.py:393
 msgid "Collaboration Section Step 3 Description"
 msgstr "توضیحات مرحله سوم"
 
-#: siteconfig/models.py:383
+#: siteconfig/models.py:398
+msgid "Collaboration Section Step 3 Image"
+msgstr "عکس مرحله سوم"
+
+#: siteconfig/models.py:401
 msgid "Counter Section Item 1 Label"
 msgstr "متن شمارنده اول"
 
-#: siteconfig/models.py:384
+#: siteconfig/models.py:402
 msgid "Counter Section Item 1 Value"
 msgstr "شمارنده اول"
 
-#: siteconfig/models.py:385
+#: siteconfig/models.py:403
 msgid "Counter Section Item 2 Label"
 msgstr "متن شمارنده دوم"
 
-#: siteconfig/models.py:386
+#: siteconfig/models.py:404
 msgid "Counter Section Item 2 Value"
 msgstr "شمارنده دوم"
 
-#: siteconfig/models.py:387
+#: siteconfig/models.py:405
 msgid "Counter Section Item 3 Label"
 msgstr "متن شمارنده سوم"
 
-#: siteconfig/models.py:388
+#: siteconfig/models.py:406
 msgid "Counter Section Item 3 Value"
 msgstr "شمارنده سوم"
 
-#: siteconfig/models.py:389
+#: siteconfig/models.py:407
 msgid "Counter Section Item 4 Label"
 msgstr "متن شمارنده چهارم"
 
-#: siteconfig/models.py:390
+#: siteconfig/models.py:408
 msgid "Counter Section Item 4 Value"
 msgstr "شمارنده چهارم"
 
-#: siteconfig/models.py:392
-#| msgid "Info Section Title"
+#: siteconfig/models.py:410
 msgid "Main Content Section Title"
 msgstr "بخش توشیحات"
 
-#: siteconfig/models.py:393
-#| msgid "Info Section Title"
+#: siteconfig/models.py:411
 msgid "Main Content Section Tab 1 Title"
 msgstr "تیتر اول"
 
-#: siteconfig/models.py:394
-#| msgid "Info Section Description"
+#: siteconfig/models.py:412
 msgid "Main Content Section Tab 1 Description"
 msgstr "توضیخات بخش اول"
 
-#: siteconfig/models.py:395
-#| msgid "Info Section Title"
+#: siteconfig/models.py:413
 msgid "Main Content Section Tab 2 Title"
 msgstr "تیتر دوم"
 
-#: siteconfig/models.py:396
-#| msgid "Info Section Description"
+#: siteconfig/models.py:414
 msgid "Main Content Section Tab 2 Description"
 msgstr "توضیخات بخش دوم"
 
-#: siteconfig/models.py:397
-#| msgid "Info Section Title"
+#: siteconfig/models.py:415
 msgid "Main Content Section Tab 3 Title"
 msgstr "تیتر سوم"
 
-#: siteconfig/models.py:398
-#| msgid "Info Section Description"
+#: siteconfig/models.py:416
 msgid "Main Content Section Tab 3 Description"
 msgstr "توضیخات بخش سوم"
 
-#: siteconfig/models.py:400
-#| msgid "Advertisement Title"
+#: siteconfig/models.py:418
 msgid "Advertisement Section Title"
 msgstr "تیتر تبلیغ"
 
-#: siteconfig/models.py:401
-#| msgid "Advertisement Description"
+#: siteconfig/models.py:419
 msgid "Advertisement Section Description"
 msgstr "توضیحات تبلیغ"
 
-#: siteconfig/models.py:408
-#| msgid "Advertisement Link"
+#: siteconfig/models.py:426
 msgid "Advertisement Section Link"
 msgstr "لینک تبلیغ"
 
-#: siteconfig/models.py:416
-#| msgid "Only one About Us instance can exist. Edit the existing one."
+#: siteconfig/models.py:434
 msgid "Only one Work With Us instance can exist. Edit the existing one."
 msgstr ""
 "فقط یک نمونه از مدل همکاری با ما می توانید بسازید. لطفا نمونه موجود را تغییر "
 "دهید."
 
-#: siteconfig/models.py:421
-#| msgid "About Us cannot be deleted. You can only edit it."
+#: siteconfig/models.py:439
 msgid "Work With Us cannot be deleted. You can only edit it."
 msgstr "نمونه همکاری با ما غیرقابل حذف است. لطفا نمونه موجود را تغییر دهید."
 
-#: siteconfig/models.py:428 siteconfig/models.py:449
+#: siteconfig/models.py:446 siteconfig/models.py:467
 msgid "Become an Instructor!"
 msgstr "همکار ما شو"
 
-#: siteconfig/models.py:429
-#| msgid "Info Section Description"
+#: siteconfig/models.py:447
 msgid "Add hero section description here."
 msgstr "توضیحات بخش لندینگ را تنظیم کنید."
 
-#: siteconfig/models.py:430
+#: siteconfig/models.py:448
 msgid "Collaboration Steps"
 msgstr "مراحل همکاری"
 
-#: siteconfig/models.py:431
-#| msgid "<p>Add your about-us HTML description here.</p>"
+#: siteconfig/models.py:449
 msgid "Add collaboration section description here."
 msgstr "توضیحاتی را درباره روند کاری خود بنویسید."
 
-#: siteconfig/models.py:432
+#: siteconfig/models.py:450
 msgid "Register"
 msgstr "ثبت نام"
 
-#: siteconfig/models.py:433
-#| msgid "Stat #1 Description"
+#: siteconfig/models.py:451
 msgid "Add step 1 description."
 msgstr "توضیحات مرحله اول"
 
-#: siteconfig/models.py:434 siteconfig/models.py:445
-#| msgid "Course"
+#: siteconfig/models.py:452 siteconfig/models.py:463
 msgid "Add Course"
 msgstr "اضافه کردن دوره"
 
-#: siteconfig/models.py:435
-#| msgid "Stat #2 Description"
+#: siteconfig/models.py:453
 msgid "Add step 2 description."
 msgstr "توضیحات مرحله دوم"
 
-#: siteconfig/models.py:436
+#: siteconfig/models.py:454
 msgid "Earn Income"
 msgstr "درآمد کسب کنید."
 
-#: siteconfig/models.py:437
-#| msgid "Stat #3 Description"
+#: siteconfig/models.py:455
 msgid "Add step 3 description."
 msgstr "توضیحات مرحله سوم"
 
-#: siteconfig/models.py:438
-#| msgid "Students"
+#: siteconfig/models.py:456
 msgid "Total Students"
 msgstr "تعداد دانش آموزان"
 
-#: siteconfig/models.py:439
+#: siteconfig/models.py:457
 msgid "Total Instructors"
 msgstr "تعداد استاد ها"
 
-#: siteconfig/models.py:440
-#| msgid "Courses"
+#: siteconfig/models.py:458
 msgid "Total Courses"
 msgstr "دوره ها"
 
-#: siteconfig/models.py:441
+#: siteconfig/models.py:459
 msgid "Languages"
 msgstr "زبان ها"
 
-#: siteconfig/models.py:442
+#: siteconfig/models.py:460
 msgid "Instructor Recruitment Stages"
 msgstr "مراحل استخدام"
 
-#: siteconfig/models.py:443
-#| msgid "Description"
+#: siteconfig/models.py:461
 msgid "Registration"
 msgstr "ثبت نام"
 
-#: siteconfig/models.py:444
+#: siteconfig/models.py:462
 msgid "<p>Add tab 1 content.</p>"
 msgstr "اطلاعات بخش اول"
 
-#: siteconfig/models.py:446
+#: siteconfig/models.py:464
 msgid "<p>Add tab 2 content.</p>"
 msgstr "اطلاعات بخش دوم"
 
-#: siteconfig/models.py:447
-#| msgid "Notifications"
+#: siteconfig/models.py:465
 msgid "Monetization"
 msgstr "درآمدزایی"
 
-#: siteconfig/models.py:448
+#: siteconfig/models.py:466
 msgid "<p>Add tab 3 content.</p>"
 msgstr "اطلاعات بخش سوم"
 
-#: siteconfig/models.py:450
-#| msgid "Advertisement Description"
+#: siteconfig/models.py:468
 msgid "Add advertisement section description here."
 msgstr "توضیحات بخش تبلیغات را اینجا اضافه کنید."
 
-#: siteconfig/models.py:458
+#: siteconfig/models.py:476
 msgid "Work With Us Resume Submission"
 msgstr "رزومه ارسال شده"
 
-#: siteconfig/models.py:459
+#: siteconfig/models.py:477
 msgid "Work With Us Resume Submissions"
 msgstr "رزومه های ارسال شده"
 
-#: siteconfig/models.py:472
-#| msgid "Name"
+#: siteconfig/models.py:490
 msgid "Full Name"
 msgstr "نام"
 
-#: siteconfig/models.py:473 users/models.py:74
+#: siteconfig/models.py:491 users/models.py:74
 msgid "Email"
 msgstr "ایمیل"
 
-#: siteconfig/models.py:474
-#| msgid "Phone number"
+#: siteconfig/models.py:492
 msgid "Phone Number"
 msgstr "شماره تلفن"
 
-#: siteconfig/models.py:485
+#: siteconfig/models.py:503
 msgid "Information Section"
 msgstr "بخش اطلاعات"
 
-#: siteconfig/models.py:486
+#: siteconfig/models.py:504
 msgid "Information Sections"
 msgstr "بخش اطلاعات"
 
-#: siteconfig/models.py:491
-msgid "Image"
-msgstr "تصویر"
-
-#: siteconfig/models.py:491
+#: siteconfig/models.py:509
 msgid "Recommended: 615 * 435"
 msgstr "سایز پیشنهادی: ۴۳۵ * ۶۱۵"
 
-#: siteconfig/models.py:493
+#: siteconfig/models.py:511
 msgid "Lower number appear first"
 msgstr "اعداد پایین تر زودتر به نمایش در می آیند"
 
-#: siteconfig/models.py:495 siteconfig/models.py:524 siteconfig/models.py:525
+#: siteconfig/models.py:513 siteconfig/models.py:542 siteconfig/models.py:543
 msgid "Main Page"
 msgstr "صفحه اصلی"
 
-#: siteconfig/models.py:528
+#: siteconfig/models.py:546
 msgid "Main Title"
 msgstr "تیتر اصلی"
 
-#: siteconfig/models.py:529
+#: siteconfig/models.py:547
 msgid "Brushed Title"
 msgstr "تیتر رنگ شده"
 
-#: siteconfig/models.py:532
+#: siteconfig/models.py:550
 msgid "Quick Start Link"
 msgstr "لینک شروع سریع"
 
-#: siteconfig/models.py:533
+#: siteconfig/models.py:551
 msgid "Video Intro"
 msgstr "ویدیو معرفی سایت"
 
-#: siteconfig/models.py:535
+#: siteconfig/models.py:553
 msgid "Landing Image"
 msgstr "عکس لندینگ"
 
-#: siteconfig/models.py:535
+#: siteconfig/models.py:553
 msgid "Recommended: 386 * 603"
 msgstr "سایز پیشنهادی: ۶۰۳ * ۳۸۶"
 
-#: siteconfig/models.py:536
+#: siteconfig/models.py:554
 msgid "Feature Icon #1"
 msgstr "آیکون ویژگی اول"
 
-#: siteconfig/models.py:537
+#: siteconfig/models.py:555
 msgid "Feature Icon #2"
 msgstr "آیکون ویژگی دوم"
 
-#: siteconfig/models.py:538
+#: siteconfig/models.py:556
 msgid "Feature Icon #3"
 msgstr "آیکون ویژگی سوم"
 
-#: siteconfig/models.py:539
+#: siteconfig/models.py:557
 msgid "Feature #1"
 msgstr "ویژگی اول"
 
-#: siteconfig/models.py:540
+#: siteconfig/models.py:558
 msgid "Feature #2"
 msgstr "ویژگی دوم"
 
-#: siteconfig/models.py:541
+#: siteconfig/models.py:559
 msgid "Feature #3"
 msgstr "ویژگی سوم"
 
-#: siteconfig/models.py:542
+#: siteconfig/models.py:560
 msgid "Message Title"
 msgstr "تیتر پیام"
 
-#: siteconfig/models.py:543
+#: siteconfig/models.py:561
 msgid "Message Description"
 msgstr "پیام"
 
-#: siteconfig/models.py:566
+#: siteconfig/models.py:584
 msgid "Stat #1 Title"
 msgstr "تیتر آمار اول"
 
-#: siteconfig/models.py:567
+#: siteconfig/models.py:585
 msgid "Stat #1 Description"
 msgstr "توضیحات آمار اول"
 
-#: siteconfig/models.py:568
+#: siteconfig/models.py:586
 msgid "Stat #1 Link"
 msgstr "لینک آمار اول"
 
-#: siteconfig/models.py:570
+#: siteconfig/models.py:588
 msgid "Stat #2 Title"
 msgstr "تیتر آمار دوم"
 
-#: siteconfig/models.py:571
+#: siteconfig/models.py:589
 msgid "Stat #2 Description"
 msgstr "توضیحات آمار دوم"
 
-#: siteconfig/models.py:572
+#: siteconfig/models.py:590
 msgid "Stat #2 Link"
 msgstr "لینک آمار دوم"
 
-#: siteconfig/models.py:574
+#: siteconfig/models.py:592
 msgid "Stat #3 Title"
 msgstr "تیتر آمار سوم"
 
-#: siteconfig/models.py:575
+#: siteconfig/models.py:593
 msgid "Stat #3 Description"
 msgstr "توضیحات آمار سوم"
 
-#: siteconfig/models.py:576
+#: siteconfig/models.py:594
 msgid "Stat #3 Link"
 msgstr "لینک آمار سوم"
 
-#: siteconfig/models.py:578
+#: siteconfig/models.py:596
 msgid "Stat #4 Title"
 msgstr "تیتر آمار چهارم"
 
-#: siteconfig/models.py:579
+#: siteconfig/models.py:597
 msgid "Stat #4 Description"
 msgstr "توضیحات آمار چهارم"
 
-#: siteconfig/models.py:580
+#: siteconfig/models.py:598
 msgid "Stat #4 Link"
 msgstr "لینک آمار چهارم"
 
-#: siteconfig/models.py:615
+#: siteconfig/models.py:633
 msgid "Advertisement Title"
 msgstr "تیتر تبلیغ"
 
-#: siteconfig/models.py:616
+#: siteconfig/models.py:634
 msgid "Advertisement Description"
 msgstr "توضیحات تبلیغ"
 
-#: siteconfig/models.py:617
+#: siteconfig/models.py:635
 msgid "Advertisement Link"
 msgstr "لینک تبلیغات"
 
-#: siteconfig/models.py:629
+#: siteconfig/models.py:647
 msgid "Choice #1 Title"
 msgstr "تیتر انتخاب اول"
 
-#: siteconfig/models.py:630
+#: siteconfig/models.py:648
 msgid "Choice #1 Description"
 msgstr "توضیحات انتخاب اول"
 
-#: siteconfig/models.py:632
+#: siteconfig/models.py:650
 msgid "Choice #1 Image"
 msgstr "عکس انتخاب اول"
 
-#: siteconfig/models.py:632 siteconfig/models.py:638
+#: siteconfig/models.py:650 siteconfig/models.py:656
 msgid "Recommended: 235 * 200 pixel"
 msgstr "سایز پیشنهادی: ۲۰۰ * ۲۳۵"
 
-#: siteconfig/models.py:633
+#: siteconfig/models.py:651
 msgid "Choice #1 Link"
 msgstr "لینک انتخاب اول"
 
-#: siteconfig/models.py:635
+#: siteconfig/models.py:653
 msgid "Choice #2 Title"
 msgstr "تیتر انتخاب دوم"
 
-#: siteconfig/models.py:636
+#: siteconfig/models.py:654
 msgid "Choice #2 Description"
 msgstr "توضیحات انتخاب دوم"
 
-#: siteconfig/models.py:638
+#: siteconfig/models.py:656
 msgid "Choice #2 Image"
 msgstr "عکس انتخاب دوم"
 
-#: siteconfig/models.py:639
+#: siteconfig/models.py:657
 msgid "Choice #2 Link"
 msgstr "لینک انتخاب دوم"
 
-#: siteconfig/models.py:657
+#: siteconfig/models.py:675
 msgid "User Experience Title"
 msgstr "تیتر"
 
-#: siteconfig/models.py:658
+#: siteconfig/models.py:676
 msgid "User Experience Description"
 msgstr "توضیحات"
 
-#: siteconfig/models.py:660
+#: siteconfig/models.py:678
 msgid "Show Selected Top Users"
 msgstr "نمایش کاربران برتر"
 
-#: siteconfig/models.py:661
+#: siteconfig/models.py:679
 msgid "Top Users List"
 msgstr "کاربران برتر"
 
-#: siteconfig/models.py:662
+#: siteconfig/models.py:680
 msgid "Top Users Title"
 msgstr "تیتر باکس کاربران برتر"
 
-#: siteconfig/models.py:664
+#: siteconfig/models.py:682
 msgid "User Comment #1 Text"
 msgstr "متن نظر برگزیده اول"
 
-#: siteconfig/models.py:665
+#: siteconfig/models.py:683
 msgid "User Comment #1 User"
 msgstr "کاربر برگزیده اول"
 
-#: siteconfig/models.py:666
+#: siteconfig/models.py:684
 msgid "User Comment #1 Rate"
 msgstr "امتیاز برگزیده اول"
 
-#: siteconfig/models.py:668
+#: siteconfig/models.py:686
 msgid "User Comment #2 Text"
 msgstr "متن نظر برگزیده دوم"
 
-#: siteconfig/models.py:669
+#: siteconfig/models.py:687
 msgid "User Comment #2 User"
 msgstr "کاربر برگزیده دوم"
 
-#: siteconfig/models.py:670
+#: siteconfig/models.py:688
 msgid "User Comment #2 Rate"
 msgstr "امتیاز برگزیده دوم"
 
-#: siteconfig/models.py:692
+#: siteconfig/models.py:710
 msgid "Top Teachers Title"
 msgstr "تیتر استاد های برتر"
 
-#: siteconfig/models.py:693
+#: siteconfig/models.py:711
 msgid "Top Teachers Description"
 msgstr "توضیحات استاد های برتر"
 
-#: siteconfig/models.py:694
+#: siteconfig/models.py:712
 msgid "Top Teachers List"
 msgstr "لیست استاد های برتر"
 
-#: siteconfig/models.py:705
+#: siteconfig/models.py:723
 msgid "Custom Imaged Links List"
 msgstr "لیست عکس های لینک دار"
 
-#: siteconfig/models.py:715
+#: siteconfig/models.py:733
 msgid "Top Course Video File"
 msgstr "ویدیو معرفی بخش دوره ها"
 
-#: siteconfig/models.py:810
+#: siteconfig/models.py:828
 msgid "FAQ"
 msgstr "پرسش و پاسخ"
 
-#: siteconfig/models.py:811
+#: siteconfig/models.py:829
 msgid "FAQs"
 msgstr "پرسش و پاسخ"
 
-#: siteconfig/models.py:814
+#: siteconfig/models.py:832
 msgid "Question"
 msgstr "سوال"
 
-#: siteconfig/models.py:815
+#: siteconfig/models.py:833
 msgid "Answer"
 msgstr "جواب"
 
-#: siteconfig/models.py:817
+#: siteconfig/models.py:835
 msgid "Order of the FAQ. Lower number appears first."
 msgstr "ترتیب نمایش سوالات"
 
@@ -1850,10 +1913,6 @@ msgstr "تعداد فایل ها"
 #: users/admin.py:23 users/admin.py:24
 msgid "User Settings"
 msgstr "تنظیمات کاربر"
-
-#: users/admin.py:53 users/admin.py:60
-msgid "General"
-msgstr "اطلاعات عمومی"
 
 #: users/admin.py:54 users/admin.py:61
 msgid "Personal Info"
