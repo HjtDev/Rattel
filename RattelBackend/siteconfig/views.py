@@ -197,7 +197,7 @@ class MainPageView(APIView, GetDataMixin, ResponseBuilderMixin):
     VALID_SECTIONS = (
         'full_page', 'landing', 'stats',
         'advertisement', 'dual_choices', 'user_experience',
-        'top_teachers', 'imaged_links', 'courses_demo',
+        'logo_links', 'imaged_links', 'courses_demo',
         'information_boxes'
     )
 
