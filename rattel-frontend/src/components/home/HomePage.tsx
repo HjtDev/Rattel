@@ -8,7 +8,7 @@ import TrendingCourses from "./TrendingCourses";
 import UsersExperience from "./UsersExperience";
 import Advertisement from "./Advertisement";
 import DualChoice from "./DualChoice";
-import TopTeachers from "./TopTeachers";
+import LogoLinks from "./LogoLinks";
 import ImagedLinks from "./ImagedLinks";
 import CourseDemo from "./CourseDemo";
 import RecentBlogPosts from "./RecentBlogPosts";
@@ -25,7 +25,7 @@ export default function HomePage() {
         imagedLinksData,
         coursesDemoData,
         informationBoxesData,
-        topTeachersData,
+        logoLinksData,
         isLoadingMainPage,
         error
     } = useMainPage();
@@ -49,7 +49,7 @@ export default function HomePage() {
             <Advertisement data={advertisementData} isLoading={isLoadingMainPage} />
             <TrendingCourses />
             <UsersExperience data={userExperienceData} isLoading={isLoadingMainPage} />
-            <TopTeachers data={topTeachersData} isLoading={isLoadingMainPage} />
+            <LogoLinks data={logoLinksData} isLoading={isLoadingMainPage} />
             <ImagedLinks data={imagedLinksData} isLoading={isLoadingMainPage} />
             <CourseDemo data={coursesDemoData} isLoading={isLoadingMainPage} />
             <RecentBlogPosts />

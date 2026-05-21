@@ -347,12 +347,12 @@ class MainPageAdmin(admin.ModelAdmin):
                 'ux_comment2_rate',
             ),
         }),
-        (_('Top Teachers'), {
+        (_('Logo Links'), {
             'classes': ('collapse',),
             'fields': (
-                'top_teachers_title',
-                'top_teachers_description',
-                'top_teachers_list'
+                'logo_link_title',
+                'logo_link_description',
+                'logo_link_list'
             )
         }),
         (_('Imaged Links'), {

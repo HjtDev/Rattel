@@ -707,16 +707,17 @@ class MainPage(models.Model):
         }
 
     # Top teachers
-    top_teachers_title = models.CharField(max_length=100, verbose_name=_('Top Teachers Title'))
-    top_teachers_description = models.TextField(max_length=200, verbose_name=_('Top Teachers Description'))
-    top_teachers_list = models.ManyToManyField(User, related_name='top_teachers', blank=True, verbose_name=_('Top Teachers List'))
+    logo_link_title = models.CharField(max_length=100, verbose_name=_('Logo Link List Title'))
+    logo_link_description = models.TextField(max_length=200, verbose_name=_('Logo Link List Description'))
+    logo_link_list = models.ManyToManyField(Link, related_name='logo_links', blank=True, verbose_name=_('Logo Link List'))
 
     @property
-    def top_teachers(self):
+    def logo_links(self):
+        from siteconfig.serializers import LinkSerializer
         return {
-            'title': self.top_teachers_title,
-            'description': self.top_teachers_description,
-            'list': QuickUserSerializer(self.top_teachers_list.all(), many=True).data,
+            'title': self.logo_link_title,
+            'description': self.logo_link_description,
+            'list': LinkSerializer(self.logo_link_list.all(), many=True).data,
         }
 
     # Imaged Links
@@ -816,8 +817,8 @@ class MainPage(models.Model):
                 'ux_top_users_title': 'UX Top Users Title',
                 'ux_comment1_text': 'UX Comment #1 Text',
                 'ux_comment2_text': 'UX Comment #2 Text',
-                'top_teachers_title': 'Top Teachers Title',
-                'top_teachers_description': 'Top Teachers Description',
+                'logo_link_title': 'Logo Link Title',
+                'logo_link_description': 'Logo Link Description',
             }
         )
         return mainpage
