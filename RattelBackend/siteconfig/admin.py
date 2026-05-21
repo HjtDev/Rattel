@@ -13,7 +13,7 @@ from .models import (
     SiteNavbarDescribedItems,
     SiteNavbarImageItems,
     SiteNavbar,
-    MainPage, Information, FAQ, AboutUs
+    MainPage, Information, FAQ, AboutUs, WorkWithUs, WorkWithUsResumeSubmission
 )
 
 
@@ -427,4 +427,115 @@ class AboutUsAdmin(admin.ModelAdmin):
         if AboutUs.objects.exists():
             instance = AboutUs.objects.first()
             return redirect(reverse('admin:siteconfig_aboutus_change', args=[instance.pk]))
+        return super().changelist_view(request, extra_context)
+
+
+class WorkWithUsResumeSubmissionInline(admin.TabularInline):
+    model = WorkWithUsResumeSubmission
+    extra = 0
+    can_delete = False
+    show_change_link = True
+    fields = ('full_name', 'email', 'phone_number', 'created_at')
+    readonly_fields = ('full_name', 'email', 'phone_number', 'message', 'created_at')
+    ordering = ('-created_at',)
+    verbose_name = _('Resume Submission')
+    verbose_name_plural = _('Resume Submissions')
+
+
+@admin.register(WorkWithUsResumeSubmission)
+class WorkWithUsResumeSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'email', 'phone_number', 'created_at')
+    search_fields = ('full_name', 'email', 'phone_number', 'message')
+    list_filter = ('created_at',)
+    ordering = ('-created_at',)
+    list_per_page = 25
+    readonly_fields = ('work_with_us', 'full_name', 'email', 'phone_number', 'message', 'created_at')
+
+    fieldsets = (
+        (_('Submission Information'), {
+            'fields': ('work_with_us', 'full_name', 'email', 'phone_number', 'created_at'),
+            'classes': ('wide',),
+        }),
+        (_('Message'), {
+            'fields': ('message',),
+            'classes': ('wide',),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(WorkWithUs)
+class WorkWithUsAdmin(admin.ModelAdmin):
+    inlines = [WorkWithUsResumeSubmissionInline]
+    list_display = ('hero_title', 'collaboration_section_title', 'main_content_section_title', 'resume_submissions_count')
+    search_fields = ('hero_title', 'collaboration_section_title', 'main_content_section_title', 'advertisement_section_title')
+    autocomplete_fields = ('hero_link', 'advertisement_section_link')
+
+    fieldsets = (
+        (_('Hero Section'), {
+            'fields': (
+                'hero_title',
+                'hero_description',
+                'hero_link',
+                'hero_image',
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Collaboration Section'), {
+            'fields': (
+                'collaboration_section_title',
+                'collaboration_section_description',
+                'collaboration_section_step1_title', 'collaboration_section_step1_description',
+                'collaboration_section_step2_title', 'collaboration_section_step2_description',
+                'collaboration_section_step3_title', 'collaboration_section_step3_description',
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Counter Section'), {
+            'fields': (
+                ('counter_section_item1_label', 'counter_section_item1_value'),
+                ('counter_section_item2_label', 'counter_section_item2_value'),
+                ('counter_section_item3_label', 'counter_section_item3_value'),
+                ('counter_section_item4_label', 'counter_section_item4_value'),
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Main Content Section'), {
+            'fields': (
+                'main_content_section_title',
+                ('main_content_section_tab1_title',),
+                'main_content_section_tab1_description',
+                ('main_content_section_tab2_title',),
+                'main_content_section_tab2_description',
+                ('main_content_section_tab3_title',),
+                'main_content_section_tab3_description',
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Advertisement Section'), {
+            'fields': (
+                'advertisement_section_title',
+                'advertisement_section_description',
+                'advertisement_section_link',
+            ),
+            'classes': ('wide',),
+        }),
+    )
+
+    def resume_submissions_count(self, obj):
+        return obj.resume_submissions.count()
+    resume_submissions_count.short_description = _('Resume Submissions')
+
+    def has_add_permission(self, request):
+        return not WorkWithUs.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        if WorkWithUs.objects.exists():
+            instance = WorkWithUs.objects.first()
+            return redirect(reverse('admin:siteconfig_workwithus_change', args=[instance.pk]))
         return super().changelist_view(request, extra_context)

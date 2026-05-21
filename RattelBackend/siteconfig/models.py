@@ -354,6 +354,131 @@ class AboutUs(models.Model):
         return about_us
 
 
+class WorkWithUs(models.Model):
+    class Meta:
+        verbose_name = _('Work With Us')
+        verbose_name_plural = _('Work With Us')
+
+    hero_title = models.CharField(max_length=255, verbose_name=_('Hero Title'))
+    hero_description = models.TextField(verbose_name=_('Hero Description'))
+    hero_link = models.ForeignKey(
+        Link,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='workwithus_hero_links',
+        verbose_name=_('Hero Link')
+    )
+    hero_image = models.FileField(upload_to='workwithus/hero/', blank=True, null=True, verbose_name=_('Hero Image'))
+
+    collaboration_section_title = models.CharField(max_length=255, verbose_name=_('Collaboration Section Title'))
+    collaboration_section_description = models.TextField(verbose_name=_('Collaboration Section Description'))
+    collaboration_section_step1_title = models.CharField(max_length=255, verbose_name=_('Collaboration Section Step 1 Title'))
+    collaboration_section_step1_description = models.TextField(verbose_name=_('Collaboration Section Step 1 Description'))
+    collaboration_section_step2_title = models.CharField(max_length=255, verbose_name=_('Collaboration Section Step 2 Title'))
+    collaboration_section_step2_description = models.TextField(verbose_name=_('Collaboration Section Step 2 Description'))
+    collaboration_section_step3_title = models.CharField(max_length=255, verbose_name=_('Collaboration Section Step 3 Title'))
+    collaboration_section_step3_description = models.TextField(verbose_name=_('Collaboration Section Step 3 Description'))
+
+    counter_section_item1_label = models.CharField(max_length=100, verbose_name=_('Counter Section Item 1 Label'))
+    counter_section_item1_value = models.PositiveIntegerField(default=0, verbose_name=_('Counter Section Item 1 Value'))
+    counter_section_item2_label = models.CharField(max_length=100, verbose_name=_('Counter Section Item 2 Label'))
+    counter_section_item2_value = models.PositiveIntegerField(default=0, verbose_name=_('Counter Section Item 2 Value'))
+    counter_section_item3_label = models.CharField(max_length=100, verbose_name=_('Counter Section Item 3 Label'))
+    counter_section_item3_value = models.PositiveIntegerField(default=0, verbose_name=_('Counter Section Item 3 Value'))
+    counter_section_item4_label = models.CharField(max_length=100, verbose_name=_('Counter Section Item 4 Label'))
+    counter_section_item4_value = models.PositiveIntegerField(default=0, verbose_name=_('Counter Section Item 4 Value'))
+
+    main_content_section_title = models.CharField(max_length=255, verbose_name=_('Main Content Section Title'))
+    main_content_section_tab1_title = models.CharField(max_length=255, verbose_name=_('Main Content Section Tab 1 Title'))
+    main_content_section_tab1_description = HTMLField(verbose_name=_('Main Content Section Tab 1 Description'))
+    main_content_section_tab2_title = models.CharField(max_length=255, verbose_name=_('Main Content Section Tab 2 Title'))
+    main_content_section_tab2_description = HTMLField(verbose_name=_('Main Content Section Tab 2 Description'))
+    main_content_section_tab3_title = models.CharField(max_length=255, verbose_name=_('Main Content Section Tab 3 Title'))
+    main_content_section_tab3_description = HTMLField(verbose_name=_('Main Content Section Tab 3 Description'))
+
+    advertisement_section_title = models.CharField(max_length=255, verbose_name=_('Advertisement Section Title'))
+    advertisement_section_description = models.TextField(verbose_name=_('Advertisement Section Description'))
+    advertisement_section_link = models.ForeignKey(
+        Link,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='workwithus_advertisement_links',
+        verbose_name=_('Advertisement Section Link')
+    )
+
+    def __str__(self):
+        return 'Work With Us'
+
+    def save(self, *args, **kwargs):
+        if not self.pk and WorkWithUs.objects.exists():
+            raise ValidationError(_('Only one Work With Us instance can exist. Edit the existing one.'))
+        invalidate_cache('workwithus')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError(_('Work With Us cannot be deleted. You can only edit it.'))
+
+    @classmethod
+    def get_instance(cls):
+        work_with_us, created = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                'hero_title': _('Become an Instructor!'),
+                'hero_description': _('Add hero section description here.'),
+                'collaboration_section_title': _('Collaboration Steps'),
+                'collaboration_section_description': _('Add collaboration section description here.'),
+                'collaboration_section_step1_title': _('Register'),
+                'collaboration_section_step1_description': _('Add step 1 description.'),
+                'collaboration_section_step2_title': _('Add Course'),
+                'collaboration_section_step2_description': _('Add step 2 description.'),
+                'collaboration_section_step3_title': _('Earn Income'),
+                'collaboration_section_step3_description': _('Add step 3 description.'),
+                'counter_section_item1_label': _('Total Students'),
+                'counter_section_item2_label': _('Total Instructors'),
+                'counter_section_item3_label': _('Total Courses'),
+                'counter_section_item4_label': _('Languages'),
+                'main_content_section_title': _('Instructor Recruitment Stages'),
+                'main_content_section_tab1_title': _('Registration'),
+                'main_content_section_tab1_description': _('<p>Add tab 1 content.</p>'),
+                'main_content_section_tab2_title': _('Add Course'),
+                'main_content_section_tab2_description': _('<p>Add tab 2 content.</p>'),
+                'main_content_section_tab3_title': _('Monetization'),
+                'main_content_section_tab3_description': _('<p>Add tab 3 content.</p>'),
+                'advertisement_section_title': _('Become an Instructor!'),
+                'advertisement_section_description': _('Add advertisement section description here.'),
+            }
+        )
+        return work_with_us
+
+
+class WorkWithUsResumeSubmission(models.Model):
+    class Meta:
+        verbose_name = _('Work With Us Resume Submission')
+        verbose_name_plural = _('Work With Us Resume Submissions')
+        ordering = ('-created_at',)
+        indexes = [
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['email']),
+        ]
+
+    work_with_us = models.ForeignKey(
+        WorkWithUs,
+        on_delete=models.CASCADE,
+        related_name='resume_submissions',
+        verbose_name=_('Work With Us')
+    )
+    full_name = models.CharField(max_length=150, verbose_name=_('Full Name'))
+    email = models.EmailField(verbose_name=_('Email'))
+    phone_number = models.CharField(max_length=50, verbose_name=_('Phone Number'))
+    message = models.TextField(verbose_name=_('Message'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+
+    def __str__(self):
+        return f'{self.full_name} ({self.email})'
+
+
 class Information(models.Model):
     """Information sections model"""
     class Meta:
@@ -694,7 +819,7 @@ class FAQ(models.Model):
     is_visible = models.BooleanField(default=True, verbose_name=_('Visible'))
 
     def __str__(self):
-        return f'FAQ: {self.question[:19] + '...' if len(self.question) > 20 else self.question}'
+        return f"FAQ: {self.question[:19] + '...' if len(self.question) > 20 else self.question}"
     
     def save(self, *args, **kwargs):
         invalidate_cache('faq')
