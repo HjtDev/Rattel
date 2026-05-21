@@ -115,12 +115,86 @@ echo "==> Creating required directories"
 mkdir -p RattelBackend/staticfiles RattelBackend/media
 
 echo "==> Pulling base images from registry"
-$SUDO docker compose -f docker-compose.prod.yml pull || true
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod pull || true
 
 echo "==> Building custom images"
-$SUDO docker compose -f docker-compose.prod.yml build --pull
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod build --pull
 
 echo "==> Starting services"
-$SUDO docker compose -f docker-compose.prod.yml up -d --remove-orphans
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
 
-echo "==
+echo "==> Waiting for backend to become healthy"
+RETRY_COUNT=0
+MAX_RETRIES=60
+until $SUDO docker inspect -f '{{.State.Health.Status}}' rattel_backend 2>/dev/null | grep -q "healthy"; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [[ $RETRY_COUNT -ge $MAX_RETRIES ]]; then
+    echo "ERROR: Backend failed to become healthy after $MAX_RETRIES attempts"
+    $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 backend
+    exit 1
+  fi
+  echo "Waiting for backend health check... ($RETRY_COUNT/$MAX_RETRIES)"
+  sleep 2
+done
+
+echo "==> Running Django migrations"
+if $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend \
+  python manage.py migrate; then
+  echo "Migrations completed"
+else
+  echo "Warning: Migration command exited with non-zero status (may be normal if no migrations needed)"
+fi
+
+echo "==> Collecting static files"
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend \
+  python manage.py collectstatic --noinput
+
+echo "==> Verifying all containers are running"
+EXPECTED_SERVICES=(
+  rattel_db
+  rattel_redis
+  rattel_backend
+  rattel_frontend
+  rattel_celery
+  rattel_celery_beat
+  rattel_flower
+)
+
+ALL_RUNNING=1
+
+for service in "${EXPECTED_SERVICES[@]}"; do
+  STATUS=$($SUDO docker inspect -f '{{.State.Status}}' "$service" 2>/dev/null || echo "missing")
+  if [[ "$STATUS" != "running" ]]; then
+    echo "ERROR: Container $service is not running (status: $STATUS)"
+    $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=50 "$service" || true
+    ALL_RUNNING=0
+  fi
+done
+
+if [[ "$ALL_RUNNING" -ne 1 ]]; then
+  echo "ERROR: Some containers failed to start"
+  exit 1
+fi
+
+# Reload nginx if available
+if command -v nginx >/dev/null 2>&1 && command -v systemctl >/dev/null 2>&1; then
+  echo "==> Reloading nginx configuration"
+  if $SUDO nginx -t; then
+    $SUDO systemctl reload nginx
+    echo "Nginx reloaded successfully"
+  else
+    echo "Warning: nginx configuration test failed, skipping reload"
+  fi
+fi
+
+echo "==> Deployment completed successfully"
+
+if [[ "${FOLLOW}" -eq 1 ]]; then
+  echo "==> Following logs (Ctrl+C to exit)"
+  exec $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f
+fi
+REMOTE_SCRIPT
+
+if [[ "${FOLLOW}" -eq 0 ]]; then
+  echo "✅ Deploy finished successfully"
+fi

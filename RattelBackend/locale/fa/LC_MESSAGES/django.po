@@ -27,11 +27,11 @@ msgstr "اطلاعات پایه"
 
 #: blog/admin.py:16 blog/admin.py:30 blog/admin.py:119
 msgid "System Info"
-msgstr "فصل"
+msgstr "اطلاعات سیستمی"
 
 #: blog/admin.py:68
 msgid "Primary Content"
-msgstr "محتوا"
+msgstr "اطلاعات اصلی"
 
 #: blog/admin.py:71
 msgid "Body"
@@ -39,7 +39,7 @@ msgstr "محتوا"
 
 #: blog/admin.py:74
 msgid "Classification"
-msgstr "نوتیفیکیشن"
+msgstr "دسته بندی ها"
 
 #: blog/admin.py:77
 msgid "Publishing & Visibility"

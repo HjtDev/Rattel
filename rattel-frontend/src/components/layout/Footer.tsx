@@ -148,13 +148,13 @@ export default function Footer() {
                                 <div className="justify-content-center mt-3 mt-lg-0">
                                     <ul className="nav list-inline justify-content-center mb-0">
                                         <li className="list-inline-item">
-                                            <a className="nav-link" href="#">
-                                                شرایط استفاده
+                                            <a className="nav-link" href="/about-us">
+                                                درباره ما
                                             </a>
                                         </li>
                                         <li className="list-inline-item">
-                                            <a className="nav-link pe-0" href="#">
-                                                قوانین سایت
+                                            <a className="nav-link pe-0" href="/work-with-us">
+                                                همکاری با ما
                                             </a>
                                         </li>
                                     </ul>
