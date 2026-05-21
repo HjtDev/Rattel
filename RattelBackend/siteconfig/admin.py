@@ -487,9 +487,9 @@ class WorkWithUsAdmin(admin.ModelAdmin):
             'fields': (
                 'collaboration_section_title',
                 'collaboration_section_description',
-                'collaboration_section_step1_title', 'collaboration_section_step1_description',
-                'collaboration_section_step2_title', 'collaboration_section_step2_description',
-                'collaboration_section_step3_title', 'collaboration_section_step3_description',
+                'collaboration_section_step1_title', 'collaboration_section_step1_description', 'collaboration_section_step1_image',
+                'collaboration_section_step2_title', 'collaboration_section_step2_description', 'collaboration_section_step2_image',
+                'collaboration_section_step3_title', 'collaboration_section_step3_description', 'collaboration_section_step3_image',
             ),
             'classes': ('wide',),
         }),

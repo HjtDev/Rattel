@@ -413,6 +413,9 @@ class WorkWithUsSerializer(ModelSerializer):
     hero_link = LinkSerializer(read_only=True)
     advertisement_section_link = LinkSerializer(read_only=True)
     hero_image = SerializerMethodField()
+    collaboration_section_step1_image = SerializerMethodField()
+    collaboration_section_step2_image = SerializerMethodField()
+    collaboration_section_step3_image = SerializerMethodField()
 
     class Meta:
         model = WorkWithUs
@@ -425,10 +428,13 @@ class WorkWithUsSerializer(ModelSerializer):
             'collaboration_section_description',
             'collaboration_section_step1_title',
             'collaboration_section_step1_description',
+            'collaboration_section_step1_image',
             'collaboration_section_step2_title',
             'collaboration_section_step2_description',
+            'collaboration_section_step2_image',
             'collaboration_section_step3_title',
             'collaboration_section_step3_description',
+            'collaboration_section_step3_image',
             'counter_section_item1_label',
             'counter_section_item1_value',
             'counter_section_item2_label',
@@ -456,3 +462,20 @@ class WorkWithUsSerializer(ModelSerializer):
         if request is None:
             return obj.hero_image.url
         return request.build_absolute_uri(obj.hero_image.url)
+
+    def _build_file_url(self, file_field):
+        if not file_field:
+            return None
+        request = self.context.get('request')
+        if request is None:
+            return file_field.url
+        return request.build_absolute_uri(file_field.url)
+
+    def get_collaboration_section_step1_image(self, obj):
+        return self._build_file_url(obj.collaboration_section_step1_image)
+
+    def get_collaboration_section_step2_image(self, obj):
+        return self._build_file_url(obj.collaboration_section_step2_image)
+
+    def get_collaboration_section_step3_image(self, obj):
+        return self._build_file_url(obj.collaboration_section_step3_image)

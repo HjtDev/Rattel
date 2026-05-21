@@ -375,10 +375,28 @@ class WorkWithUs(models.Model):
     collaboration_section_description = models.TextField(verbose_name=_('Collaboration Section Description'))
     collaboration_section_step1_title = models.CharField(max_length=255, verbose_name=_('Collaboration Section Step 1 Title'))
     collaboration_section_step1_description = models.TextField(verbose_name=_('Collaboration Section Step 1 Description'))
+    collaboration_section_step1_image = models.FileField(
+        upload_to='workwithus/collaboration_steps/',
+        blank=True,
+        null=True,
+        verbose_name=_('Collaboration Section Step 1 Image')
+    )
     collaboration_section_step2_title = models.CharField(max_length=255, verbose_name=_('Collaboration Section Step 2 Title'))
     collaboration_section_step2_description = models.TextField(verbose_name=_('Collaboration Section Step 2 Description'))
+    collaboration_section_step2_image = models.FileField(
+        upload_to='workwithus/collaboration_steps/',
+        blank=True,
+        null=True,
+        verbose_name=_('Collaboration Section Step 2 Image')
+    )
     collaboration_section_step3_title = models.CharField(max_length=255, verbose_name=_('Collaboration Section Step 3 Title'))
     collaboration_section_step3_description = models.TextField(verbose_name=_('Collaboration Section Step 3 Description'))
+    collaboration_section_step3_image = models.FileField(
+        upload_to='workwithus/collaboration_steps/',
+        blank=True,
+        null=True,
+        verbose_name=_('Collaboration Section Step 3 Image')
+    )
 
     counter_section_item1_label = models.CharField(max_length=100, verbose_name=_('Counter Section Item 1 Label'))
     counter_section_item1_value = models.PositiveIntegerField(default=0, verbose_name=_('Counter Section Item 1 Value'))

@@ -129,17 +129,29 @@ export default function WorkWithUs() {
           </div>
           <div className="row g-4 g-md-5">
             <div className="col-md-4 text-center">
-              <img src="/assets/images/element/create-account.svg" className="h-200px" alt="step-1" />
+              <img
+                src={workWithUsData.collaboration_section_step1_image ? getMediaUrl(workWithUsData.collaboration_section_step1_image) : "/assets/images/element/create-account.svg"}
+                className="h-200px"
+                alt={workWithUsData.collaboration_section_step1_title}
+              />
               <h4 className="mt-3 ff-vb fs-5">{workWithUsData.collaboration_section_step1_title}</h4>
               <p className="text-truncate-2 mb-0">{workWithUsData.collaboration_section_step1_description}</p>
             </div>
             <div className="col-md-4 text-center">
-              <img src="/assets/images/element/add-course.svg" className="h-200px" alt="step-2" />
+              <img
+                src={workWithUsData.collaboration_section_step2_image ? getMediaUrl(workWithUsData.collaboration_section_step2_image) : "/assets/images/element/add-course.svg"}
+                className="h-200px"
+                alt={workWithUsData.collaboration_section_step2_title}
+              />
               <h4 className="mt-3 ff-vb fs-5">{workWithUsData.collaboration_section_step2_title}</h4>
               <p className="text-truncate-2 mb-0">{workWithUsData.collaboration_section_step2_description}</p>
             </div>
             <div className="col-md-4 text-center">
-              <img src="/assets/images/element/earn-money.svg" className="h-200px" alt="step-3" />
+              <img
+                src={workWithUsData.collaboration_section_step3_image ? getMediaUrl(workWithUsData.collaboration_section_step3_image) : "/assets/images/element/earn-money.svg"}
+                className="h-200px"
+                alt={workWithUsData.collaboration_section_step3_title}
+              />
               <h4 className="mt-3 ff-vb fs-5">{workWithUsData.collaboration_section_step3_title}</h4>
               <p className="text-truncate-2 mb-0">{workWithUsData.collaboration_section_step3_description}</p>
             </div>

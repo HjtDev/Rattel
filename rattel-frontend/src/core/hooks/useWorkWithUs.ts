@@ -18,10 +18,13 @@ export interface WorkWithUsData {
   collaboration_section_description: string;
   collaboration_section_step1_title: string;
   collaboration_section_step1_description: string;
+  collaboration_section_step1_image: string | null;
   collaboration_section_step2_title: string;
   collaboration_section_step2_description: string;
+  collaboration_section_step2_image: string | null;
   collaboration_section_step3_title: string;
   collaboration_section_step3_description: string;
+  collaboration_section_step3_image: string | null;
   counter_section_item1_label: string;
   counter_section_item1_value: number;
   counter_section_item2_label: string;
