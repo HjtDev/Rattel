@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RattelBackend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-21 09:43+0000\n"
+"POT-Creation-Date: 2026-05-21 17:55+0000\n"
 "PO-Revision-Date: 2026-05-17 14:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -171,7 +171,7 @@ msgid "Tags"
 msgstr "تگ ها"
 
 #: blog/models.py:61 courses/models.py:62 courses/models.py:232
-#: siteconfig/models.py:837
+#: siteconfig/models.py:838
 msgid "Visible"
 msgstr "نمایش در سایت"
 
@@ -381,7 +381,7 @@ msgstr "فصل ها"
 
 #: courses/models.py:226 gallery/models.py:58 siteconfig/models.py:46
 #: siteconfig/models.py:66 siteconfig/models.py:114 siteconfig/models.py:178
-#: siteconfig/models.py:511 siteconfig/models.py:835
+#: siteconfig/models.py:511 siteconfig/models.py:836
 msgid "Order"
 msgstr "ترتیب"
 
@@ -488,22 +488,18 @@ msgid "General"
 msgstr "اطلاعات عمومی"
 
 #: gallery/admin.py:51
-#| msgid "Content Counts"
 msgid "Content Count"
 msgstr "تعداد محتوا"
 
 #: gallery/admin.py:66
-#| msgid "Registration"
 msgid "Relations"
 msgstr "ثبت نام"
 
 #: gallery/admin.py:73
-#| msgid "Medium"
 msgid "Media"
 msgstr "متوسط"
 
 #: gallery/admin.py:88
-#| msgid "File"
 msgid "Has File"
 msgstr "فایل"
 
@@ -532,17 +528,14 @@ msgid "Embed"
 msgstr "امبد"
 
 #: gallery/models.py:48
-#| msgid "Primary Content"
 msgid "Gallery Content"
 msgstr "رسانه گالری"
 
 #: gallery/models.py:49
-#| msgid "Primary Content"
 msgid "Gallery Contents"
 msgstr "رسانه های گالری"
 
 #: gallery/models.py:53
-#| msgid "Content"
 msgid "Content Type"
 msgstr "نوع محتوا"
 
@@ -900,8 +893,9 @@ msgid "Testimonials and top-user showcase."
 msgstr "اطلاعات مربوط به بخش کاربران برتر و نظرات"
 
 #: siteconfig/admin.py:350
-msgid "Top Teachers"
-msgstr "لیست استاد های برتر"
+#| msgid "Links"
+msgid "Logo Links"
+msgstr "لوگولینک ها"
 
 #: siteconfig/admin.py:358
 msgid "Imaged Links"
@@ -1759,42 +1753,44 @@ msgid "User Comment #2 Rate"
 msgstr "امتیاز برگزیده دوم"
 
 #: siteconfig/models.py:710
-msgid "Top Teachers Title"
-msgstr "تیتر استاد های برتر"
+msgid "Logo Link List Title"
+msgstr "تیتر بخش لوگولینک"
 
 #: siteconfig/models.py:711
-msgid "Top Teachers Description"
-msgstr "توضیحات استاد های برتر"
+#| msgid "Long Description"
+msgid "Logo Link List Description"
+msgstr "توضیحات بخش لوگولینک"
 
 #: siteconfig/models.py:712
-msgid "Top Teachers List"
-msgstr "لیست استاد های برتر"
+#| msgid "Custom Imaged Links List"
+msgid "Logo Link List"
+msgstr "لیست لوگولینک ها"
 
-#: siteconfig/models.py:723
+#: siteconfig/models.py:724
 msgid "Custom Imaged Links List"
 msgstr "لیست عکس های لینک دار"
 
-#: siteconfig/models.py:733
+#: siteconfig/models.py:734
 msgid "Top Course Video File"
 msgstr "ویدیو معرفی بخش دوره ها"
 
-#: siteconfig/models.py:828
+#: siteconfig/models.py:829
 msgid "FAQ"
 msgstr "پرسش و پاسخ"
 
-#: siteconfig/models.py:829
+#: siteconfig/models.py:830
 msgid "FAQs"
 msgstr "پرسش و پاسخ"
 
-#: siteconfig/models.py:832
+#: siteconfig/models.py:833
 msgid "Question"
 msgstr "سوال"
 
-#: siteconfig/models.py:833
+#: siteconfig/models.py:834
 msgid "Answer"
 msgstr "جواب"
 
-#: siteconfig/models.py:835
+#: siteconfig/models.py:836
 msgid "Order of the FAQ. Lower number appears first."
 msgstr "ترتیب نمایش سوالات"
 
@@ -2057,6 +2053,18 @@ msgstr "ارسال اینیل بعد از پرداخت"
 #: users/models.py:176
 msgid "SMS on payment"
 msgstr "ارسال پیامک بعد از پرداخت"
+
+#~ msgid "Top Teachers"
+#~ msgstr "لیست استاد های برتر"
+
+#~ msgid "Top Teachers Title"
+#~ msgstr "تیتر استاد های برتر"
+
+#~ msgid "Top Teachers Description"
+#~ msgstr "توضیحات استاد های برتر"
+
+#~ msgid "Top Teachers List"
+#~ msgstr "لیست استاد های برتر"
 
 #~ msgid "150 * 36 pixels"
 #~ msgstr "150 * 36"
