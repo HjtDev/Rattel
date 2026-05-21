@@ -1,7 +1,8 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 from .models import Footer, FooterLinkColumn, FooterColumnLink, FooterSocialMedia, SocialMediaLink, Link, SiteNavbar, \
-    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems, Information, FAQ, AboutUs
+    SiteNavbarTitleOnlyItems, BaseNavbarItem, SiteNavbarDescribedItems, SiteNavbarImageItems, Information, FAQ, AboutUs, \
+    WorkWithUs, WorkWithUsResumeSubmission
 import logging
 
 
@@ -400,3 +401,81 @@ class AboutUsSerializer(ModelSerializer):
     def get_trust_logo_section_links(self, obj):
         links = obj.trust_logo_section_links.all()
         return LinkSerializer(links, many=True, context=self.context).data
+
+
+class WorkWithUsResumeSubmissionSerializer(ModelSerializer):
+    class Meta:
+        model = WorkWithUsResumeSubmission
+        fields = ('full_name', 'email', 'phone_number', 'message', 'created_at')
+
+
+class WorkWithUsSerializer(ModelSerializer):
+    hero_link = LinkSerializer(read_only=True)
+    advertisement_section_link = LinkSerializer(read_only=True)
+    hero_image = SerializerMethodField()
+    collaboration_section_step1_image = SerializerMethodField()
+    collaboration_section_step2_image = SerializerMethodField()
+    collaboration_section_step3_image = SerializerMethodField()
+
+    class Meta:
+        model = WorkWithUs
+        fields = (
+            'hero_title',
+            'hero_description',
+            'hero_link',
+            'hero_image',
+            'collaboration_section_title',
+            'collaboration_section_description',
+            'collaboration_section_step1_title',
+            'collaboration_section_step1_description',
+            'collaboration_section_step1_image',
+            'collaboration_section_step2_title',
+            'collaboration_section_step2_description',
+            'collaboration_section_step2_image',
+            'collaboration_section_step3_title',
+            'collaboration_section_step3_description',
+            'collaboration_section_step3_image',
+            'counter_section_item1_label',
+            'counter_section_item1_value',
+            'counter_section_item2_label',
+            'counter_section_item2_value',
+            'counter_section_item3_label',
+            'counter_section_item3_value',
+            'counter_section_item4_label',
+            'counter_section_item4_value',
+            'main_content_section_title',
+            'main_content_section_tab1_title',
+            'main_content_section_tab1_description',
+            'main_content_section_tab2_title',
+            'main_content_section_tab2_description',
+            'main_content_section_tab3_title',
+            'main_content_section_tab3_description',
+            'advertisement_section_title',
+            'advertisement_section_description',
+            'advertisement_section_link',
+        )
+
+    def get_hero_image(self, obj):
+        if not obj.hero_image:
+            return None
+        request = self.context.get('request')
+        if request is None:
+            return obj.hero_image.url
+        return request.build_absolute_uri(obj.hero_image.url)
+
+    def _build_file_url(self, file_field):
+        if not file_field:
+            return None
+        request = self.context.get('request')
+        if request is None:
+            return file_field.url
+        return request.build_absolute_uri(file_field.url)
+
+    def get_collaboration_section_step1_image(self, obj):
+        return self._build_file_url(obj.collaboration_section_step1_image)
+
+    def get_collaboration_section_step2_image(self, obj):
+        return self._build_file_url(obj.collaboration_section_step2_image)
+
+    def get_collaboration_section_step3_image(self, obj):
+        return self._build_file_url(obj.collaboration_section_step3_image)
