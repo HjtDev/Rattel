@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from django.shortcuts import redirect
 from django.urls import reverse
 from .models import (
@@ -12,7 +13,7 @@ from .models import (
     SiteNavbarDescribedItems,
     SiteNavbarImageItems,
     SiteNavbar,
-    MainPage, Information, FAQ
+    MainPage, Information, FAQ, AboutUs, WorkWithUs, WorkWithUsResumeSubmission
 )
 
 
@@ -23,8 +24,8 @@ class FooterColumnLinkInline(admin.TabularInline):
     fields = ['link', 'label', 'order']
     ordering = ['order']
     autocomplete_fields = ['link']
-    verbose_name = 'Link'
-    verbose_name_plural = 'Links in this Column'
+    verbose_name = _('Link')
+    verbose_name_plural = _('Links in this Column')
 
 
 class FooterLinkColumnInline(admin.StackedInline):
@@ -34,8 +35,8 @@ class FooterLinkColumnInline(admin.StackedInline):
     fields = ['title', 'order']
     ordering = ['order']
     show_change_link = True
-    verbose_name = 'Link Column'
-    verbose_name_plural = 'Footer Link Columns'
+    verbose_name = _('Link Column')
+    verbose_name_plural = _('Footer Link Columns')
 
 
 class FooterSocialMediaInline(admin.TabularInline):
@@ -45,8 +46,8 @@ class FooterSocialMediaInline(admin.TabularInline):
     fields = ['social_link', 'order']
     ordering = ['order']
     autocomplete_fields = ['social_link']
-    verbose_name = 'Social Media Link'
-    verbose_name_plural = 'Social Media Links'
+    verbose_name = _('Social Media Link')
+    verbose_name_plural = _('Social Media Links')
 
 
 @admin.register(Link)
@@ -56,9 +57,9 @@ class LinkAdmin(admin.ModelAdmin):
     list_per_page = 25
     
     fieldsets = [
-        ('Link Information', {
+        (_('Link Information'), {
             'fields': ['name', 'url', 'logo'],
-            'description': 'Create reusable links that can be used throughout the site'
+            'description': _('Create reusable links that can be used throughout the site')
         })
     ]
 
@@ -71,15 +72,15 @@ class SocialMediaLinkAdmin(admin.ModelAdmin):
     list_per_page = 25
     
     fieldsets = [
-        ('Social Media Information', {
+        (_('Social Media Information'), {
             'fields': ['platform', 'url'],
-            'description': 'Create reusable social media links for your footer'
+            'description': _('Create reusable social media links for your footer')
         })
     ]
     
     def usage_count(self, obj):
         return obj.footersocialmedia_set.count()
-    usage_count.short_description = 'Used in Footer'
+    usage_count.short_description = _('Used in Footer')
 
 
 @admin.register(FooterLinkColumn)
@@ -93,15 +94,15 @@ class FooterLinkColumnAdmin(admin.ModelAdmin):
     inlines = [FooterColumnLinkInline]
     
     fieldsets = [
-        ('Column Configuration', {
+        (_('Column Configuration'), {
             'fields': ['title', 'order'],
-            'description': 'Configure this link column. Add links using the tabular inline below.'
+            'description': _('Configure this link column. Add links using the tabular inline below.')
         })
     ]
     
     def links_count(self, obj):
         return obj.column_links.count()
-    links_count.short_description = 'Number of Links'
+    links_count.short_description = _('Number of Links')
 
 
 @admin.register(Footer)
@@ -114,19 +115,19 @@ class FooterAdmin(admin.ModelAdmin):
     inlines = [FooterLinkColumnInline, FooterSocialMediaInline]
     
     fieldsets = [
-        ('Branding & Identity', {
+        (_('Branding & Identity'), {
             'fields': ['logo', 'description'],
-            'description': 'Configure your footer branding and main description',
+            'description': _('Configure your footer branding and main description'),
             'classes': ['wide']
         }),
-        ('Legal & Copyright', {
+        (_('Legal & Copyright'), {
             'fields': ['rights'],
-            'description': 'Footer copyright and rights information',
+            'description': _('Footer copyright and rights information'),
             'classes': ['wide']
         }),
-        ('Contact Us', {
+        (_('Contact Us'), {
             'fields': ['contact_phone', 'contact_email', 'contact_address', 'contact_hours'],
-            'description': 'Footer Contact Us column information',
+            'description': _('Footer Contact Us column information'),
             'classes': ['wide']
         })
     ]
@@ -161,8 +162,8 @@ class SiteNavbarTitleOnlyItemsInline(admin.StackedInline):
     fields = ['label', 'link', 'order']
     ordering = ['order']
     autocomplete_fields = ['link']
-    verbose_name = 'Title Only Item'
-    verbose_name_plural = 'Title Only Items'
+    verbose_name = _('Title Only Item')
+    verbose_name_plural = _('Title Only Items')
 
 class SiteNavbarDescribedItemsInline(admin.StackedInline):
     """Inline for managing title only items within navbar"""
@@ -171,8 +172,8 @@ class SiteNavbarDescribedItemsInline(admin.StackedInline):
     fields = ['label', 'link', 'description', 'order']
     ordering = ['order']
     autocomplete_fields = ['link']
-    verbose_name = 'Described Item'
-    verbose_name_plural = 'Described Items'
+    verbose_name = _('Described Item')
+    verbose_name_plural = _('Described Items')
 
 class SiteNavbarImageItemsInline(admin.StackedInline):
     """Inline for managing title only items within navbar"""
@@ -181,8 +182,8 @@ class SiteNavbarImageItemsInline(admin.StackedInline):
     fields = ['label', 'link', 'description', 'icon', 'order']
     ordering = ['order']
     autocomplete_fields = ['link']
-    verbose_name = 'Image Item'
-    verbose_name_plural = 'Image Items'
+    verbose_name = _('Image Item')
+    verbose_name_plural = _('Image Items')
 
 
 class InformationInline(admin.StackedInline):
@@ -191,9 +192,8 @@ class InformationInline(admin.StackedInline):
     extra = 0
     fields = ('title', 'description', 'image', 'order')
     ordering = ('order',)
-    verbose_name = 'Information Box'
-    verbose_name_plural = 'Information Boxes'
-
+    verbose_name = _('Information Box')
+    verbose_name_plural = _('Information Boxes')
 
 
 @admin.register(SiteNavbar)
@@ -206,24 +206,24 @@ class SiteNavbarAdmin(admin.ModelAdmin):
     inlines = [SiteNavbarTitleOnlyItemsInline, SiteNavbarDescribedItemsInline, SiteNavbarImageItemsInline]
     
     fieldsets = [
-        ('Navbar', {
+        (_('Navbar'), {
             'fields': ['navbar_logo', 'navbar_links'],
-            'description': 'Navbar Items + Logo',
+            'description': _('Navbar Items + Logo'),
             'classes': ['wide']
         }),
-        ('Mega-Menu Titles', {
+        (_('Mega-Menu Titles'), {
             'fields': ['col1_title', 'col2_title', 'col3_title'],
-            'description': 'Title of each column in mega-menu',
+            'description': _('Title of each column in mega-menu'),
             'classes': ['wide']
         }),
-        ('Mega-Menu Banner', {
+        (_('Mega-Menu Banner'), {
             'fields': ['banner_title', 'banner_link', 'banner_img'],
-            'description': 'Banner info/image in mega-menu',
+            'description': _('Banner info/image in mega-menu'),
             'classes': ['wide']
         }),
-        ('Mega-Menu Notification', {
+        (_('Mega-Menu Notification'), {
             'fields': ['notification'],
-            'description': 'Notification message in mega-menu',
+            'description': _('Notification message in mega-menu'),
             'classes': ['wide']
         })
     ]
@@ -278,8 +278,8 @@ class MainPageAdmin(admin.ModelAdmin):
 
     # ── Fieldset layout ────────────────────────────────────────────────────────
     fieldsets = (
-        ('Landing Section', {
-            'description': 'Hero area at the top of the page.',
+        (_('Landing Section'), {
+            'description': _('Hero area at the top of the page.'),
             'fields': (
                 ('landing_title', 'landing_brushed_title'),
                 'landing_description',
@@ -291,8 +291,8 @@ class MainPageAdmin(admin.ModelAdmin):
                 ('landing_message_title', 'landing_message_description'),
             ),
         }),
-        ('Statistics', {
-            'description': 'Four stat blocks shown on the homepage.',
+        (_('Statistics'), {
+            'description': _('Four stat blocks shown on the homepage.'),
             'classes': ('collapse',),
             'fields': (
                 ('stat1_title', 'stat1_description'),
@@ -308,7 +308,7 @@ class MainPageAdmin(admin.ModelAdmin):
                 ('stat4_link',),
             ),
         }),
-        ('Advertisement Banner', {
+        (_('Advertisement Banner'), {
             'classes': ('collapse',),
             'fields': (
                 'ad_title',
@@ -316,7 +316,7 @@ class MainPageAdmin(admin.ModelAdmin):
                 'ad_link',
             ),
         }),
-        ('Dual Choice', {
+        (_('Dual Choice'), {
             'classes': ('collapse',),
             'fields': (
                 ('choice1_title', 'choice1_link'),
@@ -327,8 +327,8 @@ class MainPageAdmin(admin.ModelAdmin):
                 ('choice2_image',),
             )
         }),
-        ('User Experience Section', {
-            'description': 'Testimonials and top-user showcase.',
+        (_('User Experience Section'), {
+            'description': _('Testimonials and top-user showcase.'),
             'classes': ('collapse',),
             'fields': (
                 'ux_title',
@@ -347,19 +347,19 @@ class MainPageAdmin(admin.ModelAdmin):
                 'ux_comment2_rate',
             ),
         }),
-        ('Top Teachers', {
+        (_('Logo Links'), {
             'classes': ('collapse',),
             'fields': (
-                'top_teachers_title',
-                'top_teachers_description',
-                'top_teachers_list'
+                'logo_link_title',
+                'logo_link_description',
+                'logo_link_list'
             )
         }),
-        ('Imaged Links', {
+        (_('Imaged Links'), {
             'classes': ('collapse',),
             'fields': ('imaged_links_list',)
         }),
-        ('Course Demo', {
+        (_('Course Demo'), {
             'classes': ('collapse',),
             'fields': ('top_courses_video',)
         }),
@@ -371,3 +371,171 @@ class FAQAdmin(admin.ModelAdmin):
     list_filter = ('is_visible',)
     search_fields = ('question', 'answer', 'order')
     ordering = ('order',)
+
+
+@admin.register(AboutUs)
+class AboutUsAdmin(admin.ModelAdmin):
+    list_display = ('image_section_title', 'info_boxes_count', 'trust_links_count', 'info_section_title', 'trust_logo_section_title')
+    search_fields = ('image_section_title', 'info_section_title', 'trust_logo_section_title')
+    readonly_fields = ()
+
+    fieldsets = (
+        (_('Image Section'), {
+            'fields': (
+                'image_section_title',
+                'image_section_top_right_image',
+                'image_section_bottom_right_image',
+                'image_section_middle_image',
+                'image_section_bottom_left_image',
+                'image_section_box_title',
+                'image_section_box_description',
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Info Section'), {
+            'fields': (
+                'info_section_title',
+                'info_section_description',
+                'info_section_information_boxes'
+            ),
+            'description': _('Select info boxes from inline table below.'),
+            'classes': ('wide',),
+        }),
+        (_('Trust Logo Section'), {
+            'fields': ('trust_logo_section_title', 'trust_logo_section_links'),
+            'description': _('Select trust logo links from inline table below.'),
+            'classes': ('wide',),
+        }),
+    )
+
+    def info_boxes_count(self, obj):
+        return obj.info_section_information_boxes.count()
+
+    def trust_links_count(self, obj):
+        return obj.trust_logo_section_links.count()
+
+    info_boxes_count.short_description = _('Info Boxes')
+    trust_links_count.short_description = _('Trust Links')
+
+    def has_add_permission(self, request):
+        return not AboutUs.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        if AboutUs.objects.exists():
+            instance = AboutUs.objects.first()
+            return redirect(reverse('admin:siteconfig_aboutus_change', args=[instance.pk]))
+        return super().changelist_view(request, extra_context)
+
+
+class WorkWithUsResumeSubmissionInline(admin.TabularInline):
+    model = WorkWithUsResumeSubmission
+    extra = 0
+    can_delete = False
+    show_change_link = True
+    fields = ('full_name', 'email', 'phone_number', 'created_at')
+    readonly_fields = ('full_name', 'email', 'phone_number', 'message', 'created_at')
+    ordering = ('-created_at',)
+    verbose_name = _('Resume Submission')
+    verbose_name_plural = _('Resume Submissions')
+
+
+@admin.register(WorkWithUsResumeSubmission)
+class WorkWithUsResumeSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'email', 'phone_number', 'created_at')
+    search_fields = ('full_name', 'email', 'phone_number', 'message')
+    list_filter = ('created_at',)
+    ordering = ('-created_at',)
+    list_per_page = 25
+    readonly_fields = ('work_with_us', 'full_name', 'email', 'phone_number', 'message', 'created_at')
+
+    fieldsets = (
+        (_('Submission Information'), {
+            'fields': ('work_with_us', 'full_name', 'email', 'phone_number', 'created_at'),
+            'classes': ('wide',),
+        }),
+        (_('Message'), {
+            'fields': ('message',),
+            'classes': ('wide',),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(WorkWithUs)
+class WorkWithUsAdmin(admin.ModelAdmin):
+    inlines = [WorkWithUsResumeSubmissionInline]
+    list_display = ('hero_title', 'collaboration_section_title', 'main_content_section_title', 'resume_submissions_count')
+    search_fields = ('hero_title', 'collaboration_section_title', 'main_content_section_title', 'advertisement_section_title')
+    autocomplete_fields = ('hero_link', 'advertisement_section_link')
+
+    fieldsets = (
+        (_('Hero Section'), {
+            'fields': (
+                'hero_title',
+                'hero_description',
+                'hero_link',
+                'hero_image',
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Collaboration Section'), {
+            'fields': (
+                'collaboration_section_title',
+                'collaboration_section_description',
+                'collaboration_section_step1_title', 'collaboration_section_step1_description', 'collaboration_section_step1_image',
+                'collaboration_section_step2_title', 'collaboration_section_step2_description', 'collaboration_section_step2_image',
+                'collaboration_section_step3_title', 'collaboration_section_step3_description', 'collaboration_section_step3_image',
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Counter Section'), {
+            'fields': (
+                ('counter_section_item1_label', 'counter_section_item1_value'),
+                ('counter_section_item2_label', 'counter_section_item2_value'),
+                ('counter_section_item3_label', 'counter_section_item3_value'),
+                ('counter_section_item4_label', 'counter_section_item4_value'),
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Main Content Section'), {
+            'fields': (
+                'main_content_section_title',
+                ('main_content_section_tab1_title',),
+                'main_content_section_tab1_description',
+                ('main_content_section_tab2_title',),
+                'main_content_section_tab2_description',
+                ('main_content_section_tab3_title',),
+                'main_content_section_tab3_description',
+            ),
+            'classes': ('wide',),
+        }),
+        (_('Advertisement Section'), {
+            'fields': (
+                'advertisement_section_title',
+                'advertisement_section_description',
+                'advertisement_section_link',
+            ),
+            'classes': ('wide',),
+        }),
+    )
+
+    def resume_submissions_count(self, obj):
+        return obj.resume_submissions.count()
+    resume_submissions_count.short_description = _('Resume Submissions')
+
+    def has_add_permission(self, request):
+        return not WorkWithUs.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        if WorkWithUs.objects.exists():
+            instance = WorkWithUs.objects.first()
+            return redirect(reverse('admin:siteconfig_workwithus_change', args=[instance.pk]))
+        return super().changelist_view(request, extra_context)

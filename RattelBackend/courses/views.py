@@ -153,7 +153,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
             sort (str):         One of rating | total_sell | most_videos | longest | shortest
             age_group (str):    Filter by AgeGroupChoices value
             difficulty (str):   Filter by DifficultyChoices value
-            category (str):     Filter by CategoryChoices value
+            category (str):     Filter by category value (telavat, tahfiz, tadabbor)
             teacher_name (str): Partial match on teacher name
             search (str):       Search in course name and description
 

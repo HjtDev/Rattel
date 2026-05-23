@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from .models import Ticket, Message
 
@@ -10,6 +11,8 @@ class MessageInline(admin.StackedInline):
     fields = ('sender', 'body', 'attachment', 'is_staff_reply', 'created_at')
     readonly_fields = ('created_at',)
     ordering = ('created_at',)
+    verbose_name = _('پیام')
+    verbose_name_plural = _('پیام ها')
 
 
 @admin.register(Ticket)
@@ -51,7 +54,7 @@ class TicketAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            'Ticket Information',
+            _('Ticket Information'),
             {
                 'classes': ('tab-general',),
                 'fields': (
@@ -63,7 +66,7 @@ class TicketAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Status & Priority',
+            _('Status & Priority'),
             {
                 'classes': ('tab-status',),
                 'fields': (
@@ -73,7 +76,7 @@ class TicketAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Timestamps',
+            _('Timestamps'),
             {
                 'classes': ('tab-timestamps',),
                 'fields': (
@@ -84,7 +87,7 @@ class TicketAdmin(admin.ModelAdmin):
         ),
     )
 
-    @admin.display(description='Status')
+    @admin.display(description=_('Status'))
     def status_badge(self, obj):
         """Render a colored badge for ticket status.
 
@@ -108,7 +111,7 @@ class TicketAdmin(admin.ModelAdmin):
             obj.get_status_display(),
         )
 
-    @admin.display(description='Priority')
+    @admin.display(description=_('Priority'))
     def priority_badge(self, obj):
         """Render a colored badge for ticket priority.
 
@@ -132,7 +135,7 @@ class TicketAdmin(admin.ModelAdmin):
             obj.get_priority_display(),
         )
 
-    @admin.display(description='Messages')
+    @admin.display(description=_('Messages'))
     def message_count(self, obj):
         """Return the total message count for this ticket.
 
@@ -180,7 +183,7 @@ class MessageAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            'Message',
+            _('Message'),
             {
                 'classes': ('tab-general',),
                 'fields': (
@@ -193,7 +196,7 @@ class MessageAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'Timestamps',
+            _('Timestamps'),
             {
                 'classes': ('tab-timestamps',),
                 'fields': ('created_at',),
@@ -201,7 +204,7 @@ class MessageAdmin(admin.ModelAdmin):
         ),
     )
 
-    @admin.display(description='Attachment', boolean=True)
+    @admin.display(description=_('Attachment'), boolean=True)
     def has_attachment(self, obj):
         """Return True if this message has an attachment.
 

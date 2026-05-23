@@ -3,6 +3,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, Permis
 from django.utils import timezone
 from django_resized import ResizedImageField
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 from RattelBackend.mixins import GetDataMixin
 import os
 
@@ -61,29 +62,29 @@ def validate_name(name: str):
 
 class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        verbose_name = _('User')
+        verbose_name_plural = _('Users')
         indexes = [
             models.Index(fields=['username']),
             models.Index(fields=['email']),
             models.Index(fields=['phone']),
         ]
         
-    username = models.CharField(max_length=30, unique=True, verbose_name='Username', validators=[validate_username])
-    email = models.EmailField(max_length=255, blank=True, null=True, unique=True, validators=[validate_email_address], verbose_name='Email')
-    name = models.CharField(max_length=60, validators=[validate_name], verbose_name='Name')
-    phone = models.CharField(max_length=11, blank=False, null=False, unique=True, validators=[validate_user_phone], verbose_name='Phone number', help_text='Example: 09123456789')
-    profile_picture = ResizedImageField(upload_to=profile_directory_path, blank=True, null=True, verbose_name='Profile Picture')
+    username = models.CharField(max_length=30, unique=True, verbose_name=_('Username'), validators=[validate_username])
+    email = models.EmailField(max_length=255, blank=True, null=True, unique=True, validators=[validate_email_address], verbose_name=_('Email'))
+    name = models.CharField(max_length=60, validators=[validate_name], verbose_name=_('Name'))
+    phone = models.CharField(max_length=11, blank=False, null=False, unique=True, validators=[validate_user_phone], verbose_name=_('Phone number'), help_text=_('Example: 09123456789'))
+    profile_picture = ResizedImageField(upload_to=profile_directory_path, blank=True, null=True, verbose_name=_('Profile Picture'))
     
-    score = models.PositiveIntegerField(default=10, verbose_name='Score', help_text='For evaluating user rank')
+    score = models.PositiveIntegerField(default=10, verbose_name=_('Score'), help_text=_('For evaluating user rank'))
     
-    is_active = models.BooleanField(default=True, verbose_name='Active')
-    is_staff = models.BooleanField(default=False, verbose_name='Staff')
-    is_superuser = models.BooleanField(default=False, verbose_name='Superuser')
+    is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    is_staff = models.BooleanField(default=False, verbose_name=_('Staff'))
+    is_superuser = models.BooleanField(default=False, verbose_name=_('Superuser'))
     
-    date_joined = models.DateTimeField(default=timezone.now, verbose_name='Date Joined')
+    date_joined = models.DateTimeField(default=timezone.now, verbose_name=_('Date Joined'))
     
-    course_history = models.ManyToManyField('courses.Course', blank=True, related_name='viewed_by', verbose_name='Course History')
+    course_history = models.ManyToManyField('courses.Course', blank=True, related_name='viewed_by', verbose_name=_('Course History'))
     
     objects = UserManager()
     
@@ -114,6 +115,11 @@ class User(AbstractBaseUser, PermissionsMixin):
             # Get the oldest courses and remove them
             oldest_courses = self.course_history.all().order_by('coursehistory__id')[:history_count - 8]
             self.course_history.remove(*oldest_courses)
+
+    def delete(self, *args, **kwargs):
+        if self.profile_picture and self.profile_picture.name:
+            self.profile_picture.delete(save=False)
+        return super().delete(*args, **kwargs)
     
 def validate_national_code(national_code: str):
     if national_code and GetDataMixin.NATIONAL_CODE_REGEX.fullmatch(national_code) is None:
@@ -126,32 +132,32 @@ class Profile(models.Model):
         verbose_name_plural = 'Profiles'
     
     class RoleChoices(models.TextChoices):
-        STUDENT = 'student', 'Student'
-        TEACHER = 'teacher', 'Teacher'
+        STUDENT = 'student', _('Student')
+        TEACHER = 'teacher', _('Teacher')
         
     class GenderChoices(models.TextChoices):
-        MALE = 'male', 'Male'
-        FEMALE = 'female', 'Female'
+        MALE = 'male', _('Male')
+        FEMALE = 'female', _('Female')
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name='User')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name=_('User'))
     
-    role = models.CharField(max_length=10, choices=RoleChoices.choices, default=RoleChoices.STUDENT, verbose_name='Role')
-    gender = models.CharField(max_length=10, choices=GenderChoices.choices, blank=True, null=True, verbose_name='Gender')
+    role = models.CharField(max_length=10, choices=RoleChoices.choices, default=RoleChoices.STUDENT, verbose_name=_('Role'))
+    gender = models.CharField(max_length=10, choices=GenderChoices.choices, blank=True, null=True, verbose_name=_('Gender'))
     
-    national_code = models.CharField(max_length=10, blank=True, null=True, validators=[validate_national_code], verbose_name='National Code')
+    national_code = models.CharField(max_length=10, blank=True, null=True, validators=[validate_national_code], verbose_name=_('National Code'))
     
-    education = models.TextField(max_length=150, blank=True, null=True, verbose_name='Education')
-    had_other_classes = models.TextField(max_length=500, blank=True, null=True, verbose_name='Had other classes: Where')
-    memorized = models.TextField(max_length=300, blank=True, null=True, verbose_name='Memorized', help_text='How much Quran this person memorized.')
+    education = models.TextField(max_length=150, blank=True, null=True, verbose_name=_('Education'))
+    had_other_classes = models.TextField(max_length=500, blank=True, null=True, verbose_name=_('Had other classes: Where'))
+    memorized = models.TextField(max_length=300, blank=True, null=True, verbose_name=_('Memorized'), help_text=_('How much Quran this person memorized.'))
     
-    invited_by = models.CharField(max_length=60, blank=True, null=True, verbose_name='Invited by')
+    invited_by = models.CharField(max_length=60, blank=True, null=True, verbose_name=_('Invited by'))
     
-    birthday = models.DateField(blank=True, null=True, verbose_name='Birthday')
-    city = models.CharField(max_length=120, blank=True, null=True, verbose_name='Province/City')
+    birthday = models.DateField(blank=True, null=True, verbose_name=_('Birthday'))
+    city = models.CharField(max_length=120, blank=True, null=True, verbose_name=_('Province/City'))
     
-    telegram_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Telegram ID')
-    eitaa_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Eitaa ID')
-    instagram_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Instagram ID')
+    telegram_id = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('Telegram ID'))
+    eitaa_id = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('Eitaa ID'))
+    instagram_id = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('Instagram ID'))
     
     def __str__(self):
         return f"{self.user.username}'s Profile"
@@ -162,12 +168,12 @@ class UserSettings(models.Model):
         verbose_name = 'Setting'
         verbose_name_plural = 'Settings'
         
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings', verbose_name='User')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings', verbose_name=_('User'))
     
-    profile_visible = models.BooleanField(default=True, verbose_name='Profile visible')
-    email_on_login = models.BooleanField(default=False, verbose_name='Email on login')
-    email_on_payment = models.BooleanField(default=False, verbose_name='Email on payment')
-    sms_on_payment = models.BooleanField(default=True, verbose_name='SMS on payment')
+    profile_visible = models.BooleanField(default=True, verbose_name=_('Profile visible'))
+    email_on_login = models.BooleanField(default=False, verbose_name=_('Email on login'))
+    email_on_payment = models.BooleanField(default=False, verbose_name=_('Email on payment'))
+    sms_on_payment = models.BooleanField(default=True, verbose_name=_('SMS on payment'))
     
     def __str__(self):
         return f"{self.user.username}'s Settings"

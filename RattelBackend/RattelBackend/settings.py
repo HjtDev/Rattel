@@ -36,8 +36,13 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost,http://127.0.0.1').split(',')
-# SECURE_PROXY_SSL_HEADER = config('SECURE_PROXY_SSL_HEADER', default='').split(',')
 
+# SSL
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER=config('SECURE_PROXY_SSL_HEADER', default='HTTP_X_FORWARDED_PROTO,https').split(',')
+    SECURE_SSL_REDIRECT=config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SESSION_COOKIE_SECURE=config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+    CSRF_COOKIE_SECURE=config('CSRF_COOKIE_SECURE', default=True, cast=bool)
 
 # Application definition
 
@@ -57,6 +62,8 @@ INSTALLED_APPS = [
     'courses.apps.CoursesConfig',
     'cart.apps.CartConfig',
     'tickets.apps.TicketsConfig',
+    'blog.apps.BlogConfig',
+    'gallery.apps.GalleryConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -69,6 +76,7 @@ INSTALLED_APPS = [
     'health_check.storage',
     'drf_spectacular',
     'tinymce',
+    'sortedm2m',
 ]
 
 MIDDLEWARE = [
@@ -155,11 +163,18 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fa'
+LANGUAGES = [
+    ('en', 'English'),
+    ('fa', 'Persian'),
+]
 
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 USE_TZ = True
 
@@ -285,12 +300,13 @@ CORS_ALLOW_HEADERS = [
 # Jazzmin
 
 JAZZMIN_SETTINGS = {
-    'site_title': 'Rattel',
-    'site_header': 'Rattel',
-    'site_brand': 'Rattel',
-    'welcome_sign': 'Welcome to Rattel',
+    'site_title': 'اکسیر قرآن',
+    'site_header': 'اکسیر قرآن',
+    'site_brand': 'اکسیر قرآن',
+    'welcome_sign': 'به داشبورد سایت اکسیر قرآن خوش آمدید',
     'show_ui_builder': True,
     'changeform_format': 'tabs',
+    'custom_css': 'css/jazzmin-custom.css',
 }
 
 # Logging
@@ -408,7 +424,7 @@ TINYMCE_DEFAULT_CONFIG = {
         'insertfile image media template link anchor codesample | ltr rtl | code'
     ),
     'contextmenu': 'link image imagetools table',
-    'images_upload_url': '/api/blog/editor/upload/',
+    'images_upload_url': '/api/v1/editor/upload/',
     'automatic_uploads': True,
     'image_advtab': True,
     'image_caption': True,

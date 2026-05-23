@@ -57,9 +57,36 @@ export const getDifficultyLabel = (difficulty: string) => {
  */
 export const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
-        naghme: "نغمه",
-        hafeze: "حافظه",
-        andishe: "اندیشه"
+        telavat: "تلاوت",
+        tahfiz: "تحفیظ",
+        tadabbor: "تدبر"
     };
     return labels[category] || category;
 };
+
+/**
+ * Share current page with Web Share API on supported devices.
+ * Falls back to copying the current URL to clipboard on desktop.
+ */
+export async function shareCurrentPage(params: { title?: string; text?: string } = {}): Promise<"shared" | "copied" | "failed"> {
+    if (typeof window === "undefined") return "failed";
+
+    const url = window.location.href;
+    const { title, text } = params;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({ title, text, url });
+            return "shared";
+        } catch {
+            return "failed";
+        }
+    }
+
+    try {
+        await navigator.clipboard.writeText(url);
+        return "copied";
+    } catch {
+        return "failed";
+    }
+}

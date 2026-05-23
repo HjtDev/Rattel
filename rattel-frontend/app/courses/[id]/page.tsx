@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import {useEffect, useState} from "react";
 import { useCourseDetail } from "@/src/core/hooks/useCourseDetail";
-import { getMediaUrl } from "@/src/core/utils";
+import { getMediaUrl, shareCurrentPage, getDifficultyLabel, getCategoryLabel } from "@/src/core/utils";
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import { toast } from "react-toastify";
@@ -11,7 +11,6 @@ import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import { markEpisodeWatched, useCourseProgress } from "@/src/core/hooks/useCourseProgress";
-import { getDifficultyLabel, getCategoryLabel } from "@/src/core/utils";
 
 export default function CourseDetail() {
     const params = useParams();
@@ -54,27 +53,13 @@ export default function CourseDetail() {
     };
 
     const handleShare = async () => {
-        const url = window.location.href;
-        
-        // Check if mobile (has native share)
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: courseDetail?.name,
-                    text: courseDetail?.short_description?.replace(/<[^>]*>/g, ''),
-                    url: url
-                });
-            } catch (err) {
-                // User cancelled or error
-            }
-        } else {
-            // Desktop - copy to clipboard
-            try {
-                await navigator.clipboard.writeText(url);
-                toast.success("لینک دوره کپی شد");
-            } catch (err) {
-                toast.error("خطا در کپی کردن لینک");
-            }
+        const result = await shareCurrentPage({
+            title: courseDetail?.name,
+            text: courseDetail?.short_description?.replace(/<[^>]*>/g, ''),
+        });
+
+        if (result === "copied") {
+            toast.success("لینک دوره کپی شد");
         }
     };
 

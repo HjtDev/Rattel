@@ -4,12 +4,13 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from tinymce.models import HTMLField
 from django.utils.functional import classproperty
+from django.utils.translation import gettext_lazy as _
 
 
 class Course(models.Model):
     class Meta:
-        verbose_name = 'Course'
-        verbose_name_plural = 'Courses'
+        verbose_name = _('Course')
+        verbose_name_plural = _('Courses')
         indexes = [
             models.Index(fields=['teacher', 'created_at']),
             models.Index(fields=['difficulty', 'age_group']),
@@ -17,51 +18,51 @@ class Course(models.Model):
         ]
 
     class DifficultyChoices(models.TextChoices):
-        BEGINNER = 'beginner', 'Beginner'
-        INTERMEDIATE = 'intermediate', 'Intermediate'
-        ADVANCED = 'advanced', 'Advanced'
+        BEGINNER = 'beginner', _('Beginner')
+        INTERMEDIATE = 'intermediate', _('Intermediate')
+        ADVANCED = 'advanced', _('Advanced')
 
     class AgeGroupChoices(models.TextChoices):
-        KID = 'kid', 'Kid'
-        TEEN = 'teen', 'Teen'
-        ADULT = 'adult', 'Adult'
-        ALL = 'all', 'All'
+        KID = 'kid', _('Kid')
+        TEEN = 'teen', _('Teen')
+        ADULT = 'adult', _('Adult')
+        ALL = 'all', _('All')
 
     class CategoryChoices(models.TextChoices):
-        NAGHME = 'naghme', 'Naghme'
-        HAFEZE = 'hafeze', 'Hafeze'
-        ANDISHE = 'andishe', 'Andishe'
+        TELAVAT = 'telavat', _('Telavat')
+        TAHFIZ = 'tahfiz', _('Tahfiz')
+        TADABBOR = 'tadabbor', _('Tadabbor')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, verbose_name='Course ID')
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, verbose_name=_('Course ID'))
 
-    name = models.CharField(max_length=255, verbose_name='Title')
-    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='courses_taught', verbose_name='Teacher')
-    bought_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='purchased_courses', blank=True, verbose_name='Bought By')
-    saved_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_courses', blank=True, verbose_name='Saved By')
+    name = models.CharField(max_length=255, verbose_name=_('Title'))
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='courses_taught', verbose_name=_('Teacher'))
+    bought_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='purchased_courses', blank=True, verbose_name=_('Bought By'))
+    saved_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_courses', blank=True, verbose_name=_('Saved By'))
 
-    short_description = HTMLField(verbose_name='Short Description')
-    long_description = HTMLField(verbose_name='Long Description')
+    short_description = HTMLField(verbose_name=_('Short Description'))
+    long_description = HTMLField(verbose_name=_('Long Description'))
 
-    intro_video = models.FileField(upload_to='courses/intros/', blank=True, null=True, verbose_name='Course Intro Video')
-    image = models.FileField(upload_to='courses/images/', blank=True, null=True, verbose_name='Course Image/Banner')
+    intro_video = models.FileField(upload_to='courses/intros/', blank=True, null=True, verbose_name=_('Course Intro Video'))
+    image = models.FileField(upload_to='courses/images/', blank=True, null=True, verbose_name=_('Course Image/Banner'))
 
-    price = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name='Price (Toman)')
-    new_price = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)], verbose_name='Discounted Price (0 = no discount)')
+    price = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name=_('Price (Toman)'))
+    new_price = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)], verbose_name=_('Discounted Price (0 = no discount)'))
 
-    extra_sells = models.PositiveIntegerField(default=0, verbose_name='Extra Sells (outside site)')
+    extra_sells = models.PositiveIntegerField(default=0, verbose_name=_('Extra Sells (outside site)'))
 
-    difficulty = models.CharField(max_length=20, choices=DifficultyChoices.choices, verbose_name='Difficulty')
-    age_group = models.CharField(max_length=10, choices=AgeGroupChoices.choices, verbose_name='Age Group')
-    category = models.CharField(max_length=20, choices=CategoryChoices.choices, verbose_name='Category')
+    difficulty = models.CharField(max_length=20, choices=DifficultyChoices.choices, verbose_name=_('Difficulty'))
+    age_group = models.CharField(max_length=10, choices=AgeGroupChoices.choices, verbose_name=_('Age Group'))
+    category = models.CharField(max_length=20, choices=CategoryChoices.choices, verbose_name=_('Category'))
 
-    rating = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name='Rating')
+    rating = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name=_('Rating'))
 
-    total_time = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)], verbose_name='Total Time(H)', help_text='Time it takes to finish this course')
+    total_time = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)], verbose_name=_('Total Time(H)'), help_text=_('Time it takes to finish this course'))
 
-    is_visible = models.BooleanField(default=True, verbose_name='Visible', help_text='If disabled purchasing items of this model will be disabled too.')
+    is_visible = models.BooleanField(default=True, verbose_name=_('Visible'), help_text=_('If disabled purchasing items of this model will be disabled too.'))
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
 
     @classproperty
     def CART_SERIALIZER(cls):
@@ -90,6 +91,13 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+
+    def delete(self, *args, **kwargs):
+        if self.intro_video and self.intro_video.name:
+            self.intro_video.delete(save=False)
+        if self.image and self.image.name:
+            self.image.delete(save=False)
+        return super().delete(*args, **kwargs)
 
     def add_user(self, user):
         """On successful purchase this method is used to add user to the bought_by
@@ -207,24 +215,24 @@ class Course(models.Model):
 
 class Chapter(models.Model):
     class Meta:
-        verbose_name = 'Chapter'
-        verbose_name_plural = 'Chapters'
+        verbose_name = _('Chapter')
+        verbose_name_plural = _('Chapters')
         ordering = ['course', 'order']
 
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='chapters', verbose_name='Course')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='chapters', verbose_name=_('Course'))
 
-    title = models.CharField(max_length=255, verbose_name='Title')
-    description = HTMLField(blank=True, verbose_name='Description')
-    order = models.PositiveSmallIntegerField(default=0, verbose_name='Order')
+    title = models.CharField(max_length=255, verbose_name=_('Title'))
+    description = HTMLField(blank=True, verbose_name=_('Description'))
+    order = models.PositiveSmallIntegerField(default=0, verbose_name=_('Order'))
 
-    number_of_files = models.PositiveIntegerField(default=0, verbose_name='Number of Files')
-    number_of_videos = models.PositiveIntegerField(default=0, verbose_name='Number of Videos')
+    number_of_files = models.PositiveIntegerField(default=0, verbose_name=_('Number of Files'))
+    number_of_videos = models.PositiveIntegerField(default=0, verbose_name=_('Number of Videos'))
 
-    is_free = models.BooleanField(default=False, verbose_name='Free Preview')
-    is_visible = models.BooleanField(default=True, verbose_name='Visible')
+    is_free = models.BooleanField(default=False, verbose_name=_('Free Preview'))
+    is_visible = models.BooleanField(default=True, verbose_name=_('Visible'))
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
 
     def __str__(self):
         return f'{self.course.name} — {self.title}'
@@ -232,24 +240,24 @@ class Chapter(models.Model):
 
 class Episode(models.Model):
     class Meta:
-        verbose_name = 'Episode'
-        verbose_name_plural = 'Episodes'
+        verbose_name = _('Episode')
+        verbose_name_plural = _('Episodes')
         ordering = ['chapter', 'id']
 
     class EpisodeType(models.TextChoices):
-        VIDEO = 'video', 'Video'
-        NOTE = 'note', 'Note'
-        ATTACHMENT = 'attachment', 'Attachment'
+        VIDEO = 'video', _('Video')
+        NOTE = 'note', _('Note')
+        ATTACHMENT = 'attachment', _('Attachment')
 
-    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='episodes', verbose_name='Chapter')
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='episodes', verbose_name=_('Chapter'))
 
-    title = models.CharField(max_length=255, verbose_name='Title')
-    type = models.CharField(max_length=20, choices=EpisodeType.choices, verbose_name='Type')
-    file = models.FileField(upload_to='courses/episodes/', verbose_name='File')
+    title = models.CharField(max_length=255, verbose_name=_('Title'))
+    type = models.CharField(max_length=20, choices=EpisodeType.choices, verbose_name=_('Type'))
+    file = models.FileField(upload_to='courses/episodes/', verbose_name=_('File'))
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
     
-    counted = models.BooleanField(default=False, verbose_name='Counted')
+    counted = models.BooleanField(default=False, verbose_name=_('Counted'))
 
     def __str__(self):
         return f'{self.chapter} — {self.title}'
@@ -268,6 +276,9 @@ class Episode(models.Model):
         return super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
+        if self.file and self.file.name:
+            self.file.delete(save=False)
+
         if not self.counted:
             return super().delete(*args, **kwargs)
         

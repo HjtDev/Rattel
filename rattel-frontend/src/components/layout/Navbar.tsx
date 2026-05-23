@@ -17,8 +17,8 @@ export default function Navbar() {
                 <nav className="navbar navbar-expand-xl">
                     <div className="container-fluid px-3 px-xl-5">
                         <a className="navbar-brand" href="/">
-                            <LoadingSkeleton isLoading={isLoadingNavbar} width={"126px"} height={"36px"} Content={() => (
-                                <img className="light-mode-item navbar-brand-item" src={navbarData?.navbar_logo}
+                            <LoadingSkeleton isLoading={isLoadingNavbar} Content={() => (
+                                <img className="light-mode-item navbar-brand-item" style={{width: 200, height: 50}} src={navbarData?.navbar_logo}
                                      alt="navbar logo"/>
                             )}
                             />
@@ -242,6 +242,12 @@ export default function Navbar() {
                                             <a className="dropdown-item" href="/dashboard/saved-courses/">
                                                 <i className="bi bi-bookmark fa-fw me-2"></i>
                                                 دوره های نشان شده
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a className="dropdown-item" href="/dashboard/saved-blogs/">
+                                                <i className="bi bi-journal-bookmark-fill fa-fw me-2"></i>
+                                                پست های نشان شده
                                             </a>
                                         </li>
                                         <li>

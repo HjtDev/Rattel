@@ -78,10 +78,10 @@ interface UserExperienceSection {
     comment2_rate: number;
 }
 
-interface TopTeachersSection {
+interface LogoLinkSection {
     title: string;
     description: string;
-    list: any[];
+    list: Link[];
 }
 
 interface ImagedLinksSection {
@@ -109,7 +109,7 @@ interface MainPageData {
     advertisement: AdvertisementSection;
     dual_choices: DualChoicesSection;
     user_experience: UserExperienceSection;
-    top_teachers: TopTeachersSection;
+    logo_links: LogoLinkSection;
     imaged_links: ImagedLinksSection;
     courses_demo: CoursesDemoSection;
     information_boxes: InformationBoxesSection;
@@ -122,7 +122,7 @@ type SectionType =
     | 'advertisement'
     | 'dual_choices'
     | 'user_experience'
-    | 'top_teachers'
+    | 'logo_links'
     | 'imaged_links'
     | 'courses_demo'
     | 'information_boxes';
@@ -134,7 +134,7 @@ export function useMainPage(section: SectionType = 'full_page') {
     const [advertisementData, setAdvertisementData] = useState<AdvertisementSection | null>(null);
     const [dualChoicesData, setDualChoicesData] = useState<DualChoicesSection | null>(null);
     const [userExperienceData, setUserExperienceData] = useState<UserExperienceSection | null>(null);
-    const [topTeachersData, setTopTeachersData] = useState<TopTeachersSection | null>(null);
+    const [logoLinksData, setLogoLinksData] = useState<LogoLinkSection | null>(null);
     const [imagedLinksData, setImagedLinksData] = useState<ImagedLinksSection | null>(null);
     const [coursesDemoData, setCoursesDemoData] = useState<CoursesDemoSection | null>(null);
     const [informationBoxesData, setInformationBoxesData] = useState<InformationBoxesSection | null>(null);
@@ -159,7 +159,7 @@ export function useMainPage(section: SectionType = 'full_page') {
                         setAdvertisementData(data.advertisement);
                         setDualChoicesData(data.dual_choices);
                         setUserExperienceData(data.user_experience);
-                        setTopTeachersData(data.top_teachers);
+                        setLogoLinksData(data.logo_links);
                         setImagedLinksData(data.imaged_links);
                         setCoursesDemoData(data.courses_demo);
                         setInformationBoxesData(data.information_boxes);
@@ -181,8 +181,8 @@ export function useMainPage(section: SectionType = 'full_page') {
                             case 'user_experience':
                                 setUserExperienceData(data);
                                 break;
-                            case 'top_teachers':
-                                setTopTeachersData(data);
+                            case 'logo_links':
+                                setLogoLinksData(data);
                                 break;
                             case 'imaged_links':
                                 setImagedLinksData(data);
@@ -214,7 +214,7 @@ export function useMainPage(section: SectionType = 'full_page') {
         advertisementData,
         dualChoicesData,
         userExperienceData,
-        topTeachersData,
+        logoLinksData: logoLinksData,
         imagedLinksData,
         coursesDemoData,
         informationBoxesData,

@@ -4,8 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
 from RattelBackend.cache import drf_cached_response, invalidate_cache
-from .models import Footer, SiteNavbar, MainPage, FAQ
-from .serializers import FooterSerializer, SiteNavbarSerializer, FAQSerializer
+from .models import Footer, SiteNavbar, MainPage, FAQ, AboutUs, WorkWithUs
+from .serializers import FooterSerializer, SiteNavbarSerializer, FAQSerializer, AboutUsSerializer, WorkWithUsSerializer, \
+    WorkWithUsResumeSubmissionSerializer
 from rest_framework import status
 import logging
 
@@ -196,7 +197,7 @@ class MainPageView(APIView, GetDataMixin, ResponseBuilderMixin):
     VALID_SECTIONS = (
         'full_page', 'landing', 'stats',
         'advertisement', 'dual_choices', 'user_experience',
-        'top_teachers', 'imaged_links', 'courses_demo',
+        'logo_links', 'imaged_links', 'courses_demo',
         'information_boxes'
     )
 
@@ -385,4 +386,101 @@ class FAQView(APIView, ResponseBuilderMixin):
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 success=False,
                 message='Something went wrong while trying to fetch FAQs.'
+            )
+
+
+class AboutUsView(APIView, ResponseBuilderMixin):
+    permission_classes = (AllowAny,)
+    throttle_scope = 'main-throttle'
+
+    @method_decorator(
+        drf_cached_response(
+            ttl=1800,
+            cache_prefix='aboutus',
+            user_aware=False,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        try:
+            about_us = AboutUs.get_instance()
+            serializer = AboutUsSerializer(about_us, context={'request': request})
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                about_us=serializer.data,
+            )
+        except Exception as e:
+            logger.error(f'Something went wrong while trying to fetch AboutUs: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                message='Something went wrong while trying to fetch about us.'
+            )
+
+
+class WorkWithUsView(APIView, ResponseBuilderMixin):
+    permission_classes = (AllowAny,)
+    throttle_scope = 'main-throttle'
+
+    @method_decorator(
+        drf_cached_response(
+            ttl=1800,
+            cache_prefix='workwithus',
+            user_aware=False,
+            response_codes=[200],
+            cache_headers=False,
+        )
+    )
+    def get(self, request):
+        try:
+            work_with_us = WorkWithUs.get_instance()
+            serializer = WorkWithUsSerializer(work_with_us, context={'request': request})
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True,
+                message='Successful',
+                work_with_us=serializer.data,
+            )
+        except Exception as e:
+            logger.error(f'Something went wrong while trying to fetch WorkWithUs: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                message='Something went wrong while trying to fetch work with us.'
+            )
+
+
+class WorkWithUsResumeSubmissionView(APIView, ResponseBuilderMixin):
+    permission_classes = (AllowAny,)
+    throttle_scope = 'main-throttle'
+
+    def post(self, request):
+        try:
+            work_with_us = WorkWithUs.get_instance()
+            serializer = WorkWithUsResumeSubmissionSerializer(data=request.data)
+            if not serializer.is_valid():
+                return self.build_response(
+                    status.HTTP_400_BAD_REQUEST,
+                    success=False,
+                    error=-1,
+                    message='Invalid form data.',
+                    details=serializer.errors,
+                )
+
+            serializer.save(work_with_us=work_with_us)
+            invalidate_cache('workwithus')
+            return self.build_response(
+                status.HTTP_201_CREATED,
+                success=True,
+                message='Resume submitted successfully.',
+            )
+        except Exception as e:
+            logger.error(f'Something went wrong while trying to submit WorkWithUs resume: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False,
+                message='Something went wrong while trying to submit resume.'
             )
