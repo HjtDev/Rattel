@@ -438,9 +438,9 @@ function CoursesContent() {
                                                 </h4>
                                                 <ul className="list-inline mb-0">
                                                     <li className="list-inline-item mb-2">
-                                                        <input type="radio" className="btn-check" name="age_group" id="age-all" checked={!ageGroup} onChange={() => { setAgeGroup(undefined); setPage(1); }}/>
-                                                        <label className="btn btn-light btn-primary-soft-check" htmlFor="age-all">
-                                                            همه
+                                                        <input type="radio" className="btn-check" name="age_group" id="age-all-ages" checked={ageGroup === 'all'} onChange={() => { setAgeGroup('all'); setPage(1); }}/>
+                                                        <label className="btn btn-light btn-primary-soft-check" htmlFor="age-all-ages">
+                                                            همه سنین
                                                         </label>
                                                     </li>
                                                     <li className="list-inline-item mb-2">
@@ -459,12 +459,6 @@ function CoursesContent() {
                                                         <input type="radio" className="btn-check" name="age_group" id="age-adult" checked={ageGroup === 'adult'} onChange={() => { setAgeGroup('adult'); setPage(1); }}/>
                                                         <label className="btn btn-light btn-primary-soft-check" htmlFor="age-adult">
                                                             بزرگسال
-                                                        </label>
-                                                    </li>
-                                                    <li className="list-inline-item mb-2">
-                                                        <input type="radio" className="btn-check" name="age_group" id="age-all-ages" checked={ageGroup === 'all'} onChange={() => { setAgeGroup('all'); setPage(1); }}/>
-                                                        <label className="btn btn-light btn-primary-soft-check" htmlFor="age-all-ages">
-                                                            همه سنین
                                                         </label>
                                                     </li>
                                                 </ul>

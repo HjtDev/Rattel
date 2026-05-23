@@ -80,7 +80,7 @@ class CourseListView(APIView, GetDataMixin, ResponseBuilderMixin):
             Filtered queryset.
         """
         if age_group := params.get('age_group'):
-            qs = qs.filter(age_group=age_group)
+            qs = qs.filter(age_group=age_group) if age_group != Course.AgeGroupChoices.ALL else qs
         if difficulty := params.get('difficulty'):
             qs = qs.filter(difficulty=difficulty)
         if category := params.get('category'):
