@@ -36,8 +36,13 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost,http://127.0.0.1').split(',')
-# SECURE_PROXY_SSL_HEADER = config('SECURE_PROXY_SSL_HEADER', default='').split(',')
 
+# SSL
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER=config('SECURE_PROXY_SSL_HEADER', default='HTTP_X_FORWARDED_PROTO,https').split(',')
+    SECURE_SSL_REDIRECT=config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SESSION_COOKIE_SECURE=config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+    CSRF_COOKIE_SECURE=config('CSRF_COOKIE_SECURE', default=True, cast=bool)
 
 # Application definition
 

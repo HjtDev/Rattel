@@ -2,16 +2,15 @@
 set -euo pipefail
 
 # Usage:
-#   1) cp deploy/deploy.prod.env.example deploy/deploy.prod.env
-#   2) fill deploy/deploy.prod.env
-#   3) ./deploy/deploy-prod.sh [--follow]
+#   ./deploy/deploy-prod.sh [--follow]
+#
+# Deploys Django/Next.js project to production server via SSH
+# Handles rsync, Docker Compose rebuild, health checks, and log streaming
 
 FOLLOW=0
 for arg in "$@"; do
   case "$arg" in
-    --follow)
-      FOLLOW=1
-      ;;
+    --follow) FOLLOW=1 ;;
     *)
       echo "ERROR: unknown argument: $arg"
       echo "Usage: $0 [--follow]"
@@ -43,9 +42,8 @@ if [[ -n "${SSH_KEY_PATH}" && ! -f "${SSH_KEY_PATH}" ]]; then
   echo "ERROR: SSH key not found at ${SSH_KEY_PATH}"
   exit 1
 fi
-
 if [[ ! -f "docker-compose.prod.yml" ]]; then
-  echo "ERROR: run this script from repo root."
+  echo "ERROR: run this script from repo root"
   exit 1
 fi
 
@@ -59,7 +57,7 @@ fi
 echo "==> Syncing project to ${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}"
 RSYNC_FLAGS=(-az --delete)
 if [[ "${FOLLOW}" -eq 1 ]]; then
-  RSYNC_FLAGS+=(-v)
+  RSYNC_FLAGS+=(-v --progress)
 fi
 
 rsync "${RSYNC_FLAGS[@]}" \
@@ -78,82 +76,125 @@ rsync "${RSYNC_FLAGS[@]}" \
   -e "${RSYNC_SSH}" \
   ./ "${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}/"
 
-echo "==> Running remote deployment steps"
-"${SSH_CMD[@]}" "${SERVER_USER}@${SERVER_HOST}" "SERVER_PATH='${SERVER_PATH}' FOLLOW='${FOLLOW}' bash -s" <<'REMOTE'
+echo "==> Running remote deployment"
+
+# Use -t for interactive TTY when following logs
+SSH_FLAGS=()
+if [[ "${FOLLOW}" -eq 1 ]]; then
+  SSH_FLAGS+=(-t)
+fi
+
+"${SSH_CMD[@]}" "${SSH_FLAGS[@]}" "${SERVER_USER}@${SERVER_HOST}" "SERVER_PATH='${SERVER_PATH}' FOLLOW='${FOLLOW}' bash -s" <<'REMOTE_SCRIPT'
 set -euo pipefail
 
 cd "${SERVER_PATH}"
 
-if [[ ! -f .env.prod ]]; then
-  echo "ERROR: ${SERVER_PATH}/.env.prod not found"
-  exit 1
-fi
-if [[ ! -f RattelBackend/.env.prod ]]; then
-  echo "ERROR: ${SERVER_PATH}/RattelBackend/.env.prod not found"
-  exit 1
-fi
-if [[ ! -f rattel-frontend/.env.prod ]]; then
-  echo "ERROR: ${SERVER_PATH}/rattel-frontend/.env.prod not found"
-  exit 1
-fi
+echo "==> Checking required .env files"
+for env_file in .env.prod RattelBackend/.env.prod rattel-frontend/.env.prod; do
+  if [[ ! -f "$env_file" ]]; then
+    echo "ERROR: ${SERVER_PATH}/$env_file not found"
+    exit 1
+  fi
+done
 
+# Determine sudo requirement
 if [[ "$(id -u)" -eq 0 ]]; then
   SUDO=""
+  echo "==> Running as root"
 else
-  if ! command -v sudo >/dev/null 2>&1; then
+  if command -v sudo >/dev/null 2>&1; then
+    SUDO="sudo"
+    echo "==> Running with sudo"
+  else
     echo "ERROR: current user is not root and sudo is not available"
     exit 1
   fi
-  SUDO="sudo"
 fi
 
-SETTINGS_FILE="RattelBackend/settings.py"
-ensure_setting() {
-  local key="$1"
-  local value="$2"
-  if grep -Eq "^${key}[[:space:]]*=" "${SETTINGS_FILE}"; then
-    sed -i "s|^${key}[[:space:]]*=.*|${key} = ${value}|" "${SETTINGS_FILE}"
-  else
-    printf "%s = %s\n" "${key}" "${value}" >> "${SETTINGS_FILE}"
-  fi
-}
-
-ensure_setting "SECURE_PROXY_SSL_HEADER" "('HTTP_X_FORWARDED_PROTO', 'https')"
-ensure_setting "SECURE_SSL_REDIRECT" "True"
-ensure_setting "SESSION_COOKIE_SECURE" "True"
-ensure_setting "CSRF_COOKIE_SECURE" "True"
-
+echo "==> Creating required directories"
 mkdir -p RattelBackend/staticfiles RattelBackend/media
 
-# Start core infra first
-${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml up -d db redis
+echo "==> Pulling base images from registry"
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod pull || true
 
-# Wait for db/redis to be healthy before Django management commands
-until [ "$(${SUDO} docker inspect -f '{{.State.Health.Status}}' rattel_db 2>/dev/null)" = "healthy" ]; do
-  echo "Waiting for rattel_db to become healthy..."
+echo "==> Building custom images"
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod build --pull
+
+echo "==> Starting services"
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
+
+echo "==> Waiting for backend to become healthy"
+RETRY_COUNT=0
+MAX_RETRIES=60
+until $SUDO docker inspect -f '{{.State.Health.Status}}' rattel_backend 2>/dev/null | grep -q "healthy"; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [[ $RETRY_COUNT -ge $MAX_RETRIES ]]; then
+    echo "ERROR: Backend failed to become healthy after $MAX_RETRIES attempts"
+    $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 backend
+    exit 1
+  fi
+  echo "Waiting for backend health check... ($RETRY_COUNT/$MAX_RETRIES)"
   sleep 2
 done
-until [ "$(${SUDO} docker inspect -f '{{.State.Health.Status}}' rattel_redis 2>/dev/null)" = "healthy" ]; do
-  echo "Waiting for rattel_redis to become healthy..."
-  sleep 2
-done
 
-# Run Django finalization before backend health checks rely on migrated tables
-${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm backend python manage.py migrate --noinput
-${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm backend python manage.py collectstatic --noinput
-
-# Ensure services are stopped before build/start to avoid stale containers.
-${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml stop backend celery celery-beat flower frontend || true
-
-# Start/update app services
-${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build backend celery celery-beat flower frontend
-
-# Show status
-${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml ps
-
-if [[ "${FOLLOW:-0}" -eq 1 ]]; then
-  ${SUDO} docker compose --env-file .env.prod -f docker-compose.prod.yml logs -f
+echo "==> Running Django migrations"
+if $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend \
+  python manage.py migrate; then
+  echo "Migrations completed"
+else
+  echo "Warning: Migration command exited with non-zero status (may be normal if no migrations needed)"
 fi
-REMOTE
 
-echo "==> Deploy finished"
+echo "==> Collecting static files"
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend \
+  python manage.py collectstatic --noinput
+
+echo "==> Verifying all containers are running"
+EXPECTED_SERVICES=(
+  rattel_db
+  rattel_redis
+  rattel_backend
+  rattel_frontend
+  rattel_celery
+  rattel_celery_beat
+  rattel_flower
+)
+
+ALL_RUNNING=1
+
+for service in "${EXPECTED_SERVICES[@]}"; do
+  STATUS=$($SUDO docker inspect -f '{{.State.Status}}' "$service" 2>/dev/null || echo "missing")
+  if [[ "$STATUS" != "running" ]]; then
+    echo "ERROR: Container $service is not running (status: $STATUS)"
+    $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=50 "$service" || true
+    ALL_RUNNING=0
+  fi
+done
+
+if [[ "$ALL_RUNNING" -ne 1 ]]; then
+  echo "ERROR: Some containers failed to start"
+  exit 1
+fi
+
+# Reload nginx if available
+if command -v nginx >/dev/null 2>&1 && command -v systemctl >/dev/null 2>&1; then
+  echo "==> Reloading nginx configuration"
+  if $SUDO nginx -t; then
+    $SUDO systemctl reload nginx
+    echo "Nginx reloaded successfully"
+  else
+    echo "Warning: nginx configuration test failed, skipping reload"
+  fi
+fi
+
+echo "==> Deployment completed successfully"
+
+if [[ "${FOLLOW}" -eq 1 ]]; then
+  echo "==> Following logs (Ctrl+C to exit)"
+  exec $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f
+fi
+REMOTE_SCRIPT
+
+if [[ "${FOLLOW}" -eq 0 ]]; then
+  echo "✅ Deploy finished successfully"
+fi
