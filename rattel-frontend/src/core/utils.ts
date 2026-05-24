@@ -43,8 +43,8 @@ export function isLinkActive(href: string, pathname: string): boolean {
  */
 export const getDifficultyLabel = (difficulty: string) => {
     const labels: Record<string, string> = {
-        beginner: "مبتدی",
-        intermediate: "متوسط",
+        beginner: "مقدماتی",
+        intermediate: "متوسطه",
         advanced: "پیشرفته"
     };
     return labels[difficulty] || difficulty;

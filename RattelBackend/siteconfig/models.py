@@ -227,7 +227,7 @@ class SiteNavbar(models.Model):
         verbose_name = _('Site Navbar')
         verbose_name_plural = _('Site Navbar')
 
-    navbar_logo = ResizedImageField(upload_to='navbar_images/logo/', size=[200, 50], crop=['middle', 'center'], quality=100, verbose_name=_('Navbar Logo'), help_text=_('Forced Size: 200 * 50 pixels'))
+    navbar_logo = models.FileField(upload_to='navbar_images/logo/', verbose_name=_('Navbar Logo'), help_text=_('Suggested Format: .svg'))
     navbar_links = SortedManyToManyField(Link, related_name='navbar_links', blank=True, verbose_name=_('Navbar Links'))
         
     col1_title = models.CharField(max_length=100, verbose_name=_('Col 1 Title'))

@@ -365,6 +365,24 @@ class MainPageAdmin(admin.ModelAdmin):
         }),
     )
 
+
+@admin.register(Information)
+class InformationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title')
+    search_fields = ('id', 'title', 'description')
+    ordering = ('id',)
+
+    fieldsets = (
+        (_('Image Section'), {
+            'fields': (
+                ('title', 'image'),
+                'description',
+            ),
+            'classes': ('wide',),
+        }),
+    )
+
+
 @admin.register(FAQ)
 class FAQAdmin(admin.ModelAdmin):
     list_display = ('question', 'is_visible')
