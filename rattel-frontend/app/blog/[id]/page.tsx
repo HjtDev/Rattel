@@ -128,12 +128,23 @@ export default function BlogPostPage() {
   }
 
   return (
-    <main>
+    <main className="font-iransans">
       <section className="pb-0 pt-4 pb-md-5">
         <div className="container">
           <div className="row">
             <div className="col-12">
-              <div className="row">
+              <div className="row flex-row-reverse">
+
+                <div className="col-lg-9 mt-4">
+                  <div className="col-xl-10 mx-auto">
+                    <img
+                        src={blogDetail.thumbnail ? getMediaUrl(blogDetail.thumbnail) : "/assets/images/event/10.jpg"}
+                        className="rounded-3 w-100"
+                        alt={blogDetail.title}
+                    />
+                  </div>
+                </div>
+
                 <div className="col-lg-3 align-items-center mt-4 mt-lg-5 order-2 order-lg-1">
                   <div className="text-lg-center">
                     <div className="avatar avatar-xxl">
@@ -159,7 +170,7 @@ export default function BlogPostPage() {
                   </div>
                 </div>
 
-                <div className="col-lg-9 order-1">
+                <div className="col-lg-12 order-1">
                   <span>{blogDetail.time_since} پیش</span>
                   <span className="mx-2">|</span>
                   <div className="badge text-bg-success">{blogDetail.category?.name || "عمومی"}</div>
@@ -168,15 +179,6 @@ export default function BlogPostPage() {
                 </div>
               </div>
 
-              <div className="row mt-4">
-                <div className="col-xl-10 mx-auto">
-                  <img
-                    src={blogDetail.thumbnail ? getMediaUrl(blogDetail.thumbnail) : "/assets/images/event/10.jpg"}
-                    className="rounded-3 w-100"
-                    alt={blogDetail.title}
-                  />
-                </div>
-              </div>
 
               <div className="row mt-4">
                 <div className="col-12 mt-4 mt-lg-0">
