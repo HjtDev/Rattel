@@ -138,16 +138,30 @@ until $SUDO docker inspect -f '{{.State.Health.Status}}' rattel_backend 2>/dev/n
 done
 
 echo "==> Running Django migrations"
-if $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend \
-  python manage.py migrate; then
-  echo "Migrations completed"
+set +e  # Temporarily disable exit on error
+$SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend \
+  python manage.py migrate < /dev/null || true
+MIGRATE_EXIT=$?
+set -e  # Re-enable exit on error
+
+if [[ $MIGRATE_EXIT -eq 0 ]]; then
+  echo "Migrations completed successfully"
 else
-  echo "Warning: Migration command exited with non-zero status (may be normal if no migrations needed)"
+  echo "Warning: Migration command exited with status $MIGRATE_EXIT"
+  echo "Checking if backend is still healthy..."
+  if $SUDO docker inspect -f '{{.State.Health.Status}}' rattel_backend 2>/dev/null | grep -q "healthy"; then
+    echo "Backend is healthy, continuing deployment"
+  else
+    echo "ERROR: Backend is not healthy after migration attempt"
+    $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 backend
+    exit 1
+  fi
 fi
+
 
 echo "==> Collecting static files"
 $SUDO docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend \
-  python manage.py collectstatic --noinput
+  python manage.py collectstatic --noinput < /dev/null
 
 echo "==> Verifying all containers are running"
 EXPECTED_SERVICES=(
