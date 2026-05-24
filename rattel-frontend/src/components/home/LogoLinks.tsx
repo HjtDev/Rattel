@@ -19,7 +19,7 @@ interface LogoLinkSection {
 function LogoLinkCard({logo_link}: {logo_link: Link} ) {
     const router = useRouter();
     return (
-        <div className="col-sm-6 col-lg-4 col-xl-3">
+        <div className="col-6 col-sm-6 col-lg-4 col-xl-3">
             <div className="card text-center h-100" onClick={(e) => {
                 e.preventDefault();
                 router.push(logo_link.url)
