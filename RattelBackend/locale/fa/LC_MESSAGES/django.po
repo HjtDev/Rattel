@@ -273,11 +273,11 @@ msgstr "دوره"
 
 #: courses/models.py:21
 msgid "Beginner"
-msgstr "مبتدی"
+msgstr "مقدماتی"
 
 #: courses/models.py:22
 msgid "Intermediate"
-msgstr "متوسط"
+msgstr "متوسطه"
 
 #: courses/models.py:23
 msgid "Advanced"
