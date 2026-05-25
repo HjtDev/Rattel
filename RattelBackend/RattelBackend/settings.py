@@ -16,10 +16,11 @@ from datetime import timedelta
 from cryptography.fernet import Fernet
 from django.core.exceptions import ImproperlyConfigured
 from notifications.handlers.sms import SMSHandler
-from notifications.providers.sms.local import LocalSMSProvider
+from notifications.providers.sms.melipayamak_service import MelipayamakProvider
 from notifications.handlers.email import EmailHandler
 from notifications.providers.email.smtp import SMTPEmailProvider
 import dj_database_url, os, logging
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -386,15 +387,25 @@ SMS_API_KEY = config('SMS_API_KEY')
 SMS_API_USERNAME = config('SMS_API_USERNAME')
 SMS_API_PASSWORD = config('SMS_API_PASSWORD')
 SMS_API_WARN_ON_LOW_CREDIT = config('SMS_API_WARN_ON_LOW_CREDIT')
+SMS_API_ADMIN = config('SMS_API_ADMIN')
+SMS_CACHE_PREFIX = config('SMS_CACHE_PREFIX')
+SMS_API_OTP_TEMPLATE = config('SMS_API_OTP_TEMPLATE')
+SMS_API_PAYMENT_SUCCESS_TEMPLATE = config('SMS_API_PAYMENT_SUCCESS_TEMPLATE')
 SMS_HANDLER = SMSHandler
-SMS_PROVIDER = LocalSMSProvider
+SMS_PROVIDER = MelipayamakProvider
 SMS_SETTINGS = {
-    'sender': 'Local SMS Provider',
-    'output': logger.info
+    'api_key': SMS_API_KEY,
+    'username': SMS_API_USERNAME,
+    'password': SMS_API_PASSWORD,
+    'warn_on_low_credit': SMS_API_WARN_ON_LOW_CREDIT,
+    'admin': SMS_API_ADMIN,
+    'use_async': False,
+    'use_soap': False,
+    'use_celery': False,
+    'cache_prefix': SMS_CACHE_PREFIX
 }
 
 # Gateway Settings
-
 MERCHANT = config('MERCHANT')
 GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
 

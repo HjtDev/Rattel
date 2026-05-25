@@ -1,6 +1,6 @@
-from notifications.providers.sms.melipayamak_service import MelipayamakProvider
-from celery import shared_task
-from django.conf import settings
+# from notifications.providers.sms.melipayamak_service import MelipayamakProvider
+# from celery import shared_task
+# from django.conf import settings
 import logging
 
 

@@ -1,6 +1,8 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.template.loader import render_to_string
+from setuptools.command.install_scripts import install_scripts
+
 from .models import Transaction
 from django.conf import settings
 import logging
@@ -166,7 +168,11 @@ def sms_on_payment(sender, instance: Transaction, created, **kwargs):
     # Only process newly created transactions
     if not created:
         return
-    
+
+    logger.info(f'{instance.transaction_status=}')
+    if instance.transaction_status != instance.TransactionStatus.SUCCESS:
+        return
+
     # Check if user has a phone number
     if not instance.user.phone:
         return
@@ -199,26 +205,16 @@ def sms_on_payment(sender, instance: Transaction, created, **kwargs):
     except Exception as e:
         logger.error(f'Failed to initialize SMS handler: {e}')
         return
-    
-    # Build plain text SMS content with transaction details
-    rendered_content = f"""
-    {settings.SITE_NAME} - Transaction: {instance.tracking_id}
-    Amount: {instance.amount} {instance.currency}
-    Status: {instance.transaction_status.upper()}
-    Type: {instance.transaction_type.upper()}
-    Reason: {instance.transaction_reason.upper()}
-    TrackID: {instance.tracking_id}
-    Time: {instance.created_at.strftime('%Y-%m-%d %H:%M:%S')}
-    
-    Regards.
-    {settings.SITE_NAME}
-    """
-    
+
     # Attempt to send the SMS
     try:
-        sent = sms.send(
-            to=instance.user.phone,
-            message=rendered_content,
+        sent = sms.provider.send_with_template(
+            settings.SMS_API_PAYMENT_SUCCESS_TEMPLATE,
+            instance.user.phone,
+            f'{instance.amount:,} ریال',
+            instance.get_transaction_type_display(),
+            instance.get_transaction_reason_display(),
+            instance.tracking_id,
         )
         # Log if SMS provider indicates failure
         if not sent:

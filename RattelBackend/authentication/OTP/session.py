@@ -65,8 +65,8 @@ def start_otp_session_with_sms(
         )
     
     # If OTP session is started successfully we can now send the token to user
-    sent = sms.send(phone, f'Your verification code: {token}')
-    
+    sent = sms.provider.send_with_template(settings.SMS_API_OTP_TEMPLATE, phone, token)
+
     # Failed to send the token to user. OTP session will be canceled.
     if not sent:
         logger.error('Failed to send verification code. Canceling the OTP session.')
