@@ -1,5 +1,3 @@
-from django.conf import settings
-
 from notifications.providers.sms.melipayamak.sms import Rest, Soap, RestAsync, SoapAsync
 from notifications.providers.sms.melipayamak import Api
 from notifications.providers.base import BaseSMSProvider
@@ -23,6 +21,7 @@ class MelipayamakProvider(BaseSMSProvider):
             use_async: bool = False,
             use_celery: bool = False,
             admin: str = None,
+            warn_on_low_credit: bool = False,
             cache_prefix: str = 'melipayamak'
     ):
         """
@@ -80,7 +79,7 @@ class MelipayamakProvider(BaseSMSProvider):
             if not self.PHONE_REGEX.match(self.admin):
                 raise ValueError('Invalid phone number.')
             
-        self.warn_on_low_credit = settings.SMS_API_WARN_ON_LOW_CREDIT
+        self.warn_on_low_credit = warn_on_low_credit
         
         # Should set the admin phone number if the warning is enabled
         if self.warn_on_low_credit and not admin:
