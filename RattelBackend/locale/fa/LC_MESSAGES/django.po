@@ -244,7 +244,7 @@ msgstr "قیمت گذاری"
 
 #: courses/admin.py:103
 msgid "Students"
-msgstr "دانش آموزان"
+msgstr "قرآن آموزان"
 
 #: courses/admin.py:118
 msgid "Price"
@@ -1474,7 +1474,7 @@ msgstr "توضیحات مرحله سوم"
 
 #: siteconfig/models.py:456
 msgid "Total Students"
-msgstr "تعداد دانش آموزان"
+msgstr "تعداد قرآن آموزان"
 
 #: siteconfig/models.py:457
 msgid "Total Instructors"
@@ -1904,7 +1904,7 @@ msgstr "پروفایل کاربر"
 
 #: users/admin.py:16
 msgid "User Profiles"
-msgstr "تعداد فایل ها"
+msgstr "پروفایل"
 
 #: users/admin.py:23 users/admin.py:24
 msgid "User Settings"
@@ -1976,7 +1976,7 @@ msgstr "سابقه دوره های مشاهده شده"
 
 #: users/models.py:135
 msgid "Student"
-msgstr "دانش آموزان"
+msgstr "قرآن آموز"
 
 #: users/models.py:139
 msgid "Male"

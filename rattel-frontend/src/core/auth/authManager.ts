@@ -384,7 +384,10 @@ class AuthManager {
                 const usernameChanged = data.username !== undefined && data.username !== this.user?.username;
                 
                 // Update local user data
-                this.user = response.data.user;
+                this.user = {
+                    ...this.user,
+                    ...response.data.user
+                };
                 this.saveToStorage();
                 this.notifyListeners();
 

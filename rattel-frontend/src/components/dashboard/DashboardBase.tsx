@@ -5,7 +5,7 @@ import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import {useRouter, usePathname} from "next/navigation";
-import {isLinkActive} from "@/src/core/utils";
+import {getRoleLabel, isLinkActive} from "@/src/core/utils";
 
 interface DashboardContent {
     Content: ReactNode;
@@ -46,7 +46,7 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     alt={user?.name || "Default Profile"}
                                                 />
                                                 <span className="badge text-bg-success rounded-pill position-absolute top-50 start-100 translate-middle mt-4 mt-md-5 ms-n3 px-md-3">
-                                                    {user?.profile?.role == 'student' ? 'دانش آموز' : 'استاد'}
+                                                    {user?.profile?.role && getRoleLabel(user.profile.role)}
                                                 </span>
                                             </div>
                                         </div>

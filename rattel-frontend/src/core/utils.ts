@@ -90,3 +90,12 @@ export async function shareCurrentPage(params: { title?: string; text?: string }
         return "failed";
     }
 }
+
+/**
+ * Converts backend user role value to a Farsi label
+ * @param role - User profile role
+ * @returns user's role in Farsi
+ */
+export const getRoleLabel = (role: string) => {
+    return role == 'student' ? 'قرآن آموز' : 'استاد'
+}
