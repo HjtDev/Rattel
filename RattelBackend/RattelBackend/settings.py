@@ -271,7 +271,7 @@ else:
 # OTP Config
 
 OTP_SETTING = {
-    'TIMEOUT': timedelta(seconds=30),
+    'TIMEOUT': timedelta(minutes=2),
     'ATTEMPTS': 3,  # -1 to disable
     'TOKEN_TYPE': 'int',  # int, str, alphanumeric / Used for token generator
     'TOKEN_LENGTH': 4,  # Or any digits bigger than 1 / Used for token generator

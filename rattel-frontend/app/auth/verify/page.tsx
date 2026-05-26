@@ -96,7 +96,7 @@ function VerifyPageContent() {
                             <div className="row my-5">
                                 <div className="col-sm-10 col-xl-8 m-auto">
                                     <span className="mb-0 fs-1">👋</span>
-                                    <h1 className="fs-4">احراز هویت</h1>
+                                    <h1 className="fs-4">تایید شماره تلفن</h1>
                                     <p className="mb-4">
                                         لطفا کد تاییدی که به شماره تلفن شما پیامک شده است را در فیلد زیر وارد کنید
                                     </p>
