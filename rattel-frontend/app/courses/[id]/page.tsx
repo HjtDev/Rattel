@@ -218,7 +218,7 @@ export default function CourseDetail() {
                                         </h2>
                                         <div 
                                             dangerouslySetInnerHTML={{ __html: courseDetail.short_description }}
-                                            className="text-muted"
+                                            style={{ color: "#383E43" }}
                                         />
                                         <ul className="list-inline mb-0 mt-3">
                                             <li className="list-inline-item fw-light h6 me-3 mb-1 mb-sm-0">
@@ -281,7 +281,10 @@ export default function CourseDetail() {
                                                     توضیحات دوره
                                                 </h3>
                                             </div>
-                                            <div className="card-body">
+                                            <div
+                                                className="card-body"
+                                                 style={{ color: "#383E43" }}
+                                            >
                                                 <div dangerouslySetInnerHTML={{ __html: courseDetail.long_description }} />
                                             </div>
                                         </div>
@@ -322,7 +325,8 @@ export default function CourseDetail() {
                                                                     {chapter.description && (
                                                                         <div 
                                                                             dangerouslySetInnerHTML={{ __html: chapter.description }}
-                                                                            className="mb-3 text-muted"
+                                                                            className="mb-3"
+                                                                            style={{ color: "#383E43" }}
                                                                         />
                                                                     )}
                                                                     {chapter.episodes.map((episode) => {
