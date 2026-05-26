@@ -42,13 +42,13 @@ export default function Navbar() {
                                 <li className="nav-item dropdown dropdown-menu-shadow-stacked">
                                 </li>
                             </ul>
-                            <ul className="navbar-nav navbar-nav-scroll me-auto">
+                            <ul className="navbar-nav navbar-nav-scroll me-auto flex-nowrap">
                                 <LoadingSkeleton isLoading={isLoadingNavbar} width={"75px"} height={"40px"} count={3}
                                                  Content={() => (
                                                      navbarData?.navbar_links?.map((item, index) => (
                                                          <li className="nav-item" key={index}>
                                                              <a className="nav-link" href={item.url} id="demoMenu"
-                                                                aria-expanded="false">
+                                                                aria-expanded="false" style={{ whiteSpace: 'nowrap' }}>
                                                                  {item.name}
                                                              </a>
                                                          </li>
