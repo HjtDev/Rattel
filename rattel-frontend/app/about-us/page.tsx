@@ -74,7 +74,7 @@ export default function AboutUs() {
       <section className="pt-0 pt-md-5">
         <div className="container">
           <div className="row mb-4">
-            <div className="col-lg-8">
+            <div className="col-12 px-4">
               <h2>{aboutUsData?.info_section_title}</h2>
               <div dangerouslySetInnerHTML={{ __html: aboutUsData?.info_section_description || "" }} />
             </div>
