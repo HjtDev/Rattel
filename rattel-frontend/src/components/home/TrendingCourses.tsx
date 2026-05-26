@@ -37,7 +37,7 @@ function TrendingCourseCard({ course }: { course: Course }) {
     const router = useRouter();
 
     return (
-        <div className="col-sm-6 col-lg-4 col-xl-3">
+        <div className="col-sm-6 col-lg-4 col-xl-4">
             <div className="card action-trigger-hover border bg-transparent">
                 {course.image && (
                     <img
@@ -134,7 +134,7 @@ function TrendingCourseCard({ course }: { course: Course }) {
 }
 
 export default function TrendingCourses() {
-    const { coursesData, isLoadingCourses } = useCourses({ sort: "total_sell", count: 8 });
+    const { coursesData, isLoadingCourses } = useCourses({ sort: "total_sell", count: 3 });
 
     return (
         <section>
@@ -158,6 +158,9 @@ export default function TrendingCourses() {
                         </div>
                     )}
                 />
+                <div className="w-100 d-flex justify-content-center align-items-center mt-5">
+                    <a href="/courses?sort=total_sell" className="btn btn-info mt-2 mx-auto">مشاهده بیشتر</a>
+                </div>
             </div>
         </section>
     );

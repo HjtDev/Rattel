@@ -191,7 +191,9 @@ function CoursesContent() {
                                     </div>
                                     <form className="col-md-4 border rounded p-1 input-borderless">
                                         <select 
-                                            className="form-select js-choice z-index-9"
+                                            className="form-select js-choice z-index-9 text-rtl"
+                                            id="sorting_select"
+                                            name="sorting_select"
                                             value={sort || ''}
                                             onChange={(e) => { setSort(e.target.value as SortOption || undefined); setPage(1); }}
                                         >

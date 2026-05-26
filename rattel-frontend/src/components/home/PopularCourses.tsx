@@ -38,7 +38,7 @@ function CourseCard({ course }: { course: Course }) {
     const router = useRouter();
 
     return (
-        <div className="col-sm-6 col-lg-4 col-xl-3">
+        <div className="col-sm-6 col-lg-4 col-xl-4">
             <div className="card shadow h-100">
                 {course.image && (
                     <img
@@ -103,7 +103,7 @@ function CourseCard({ course }: { course: Course }) {
 }
 
 export default function PopularCourses() {
-    const { coursesData, isLoadingCourses } = useCourses({ sort: "rating", count: 8 });
+    const { coursesData, isLoadingCourses } = useCourses({ sort: "rating", count: 3 });
 
     return (
         <section>
@@ -120,7 +120,7 @@ export default function PopularCourses() {
                     isLoading={isLoadingCourses}
                     width="100%"
                     height={320}
-                    count={4}
+                    count={3}
                     Content={() => (
                         <div className="row g-4">
                             {coursesData?.courses.map((course) => (
@@ -129,6 +129,9 @@ export default function PopularCourses() {
                         </div>
                     )}
                 />
+                <div className="w-100 d-flex justify-content-center align-items-center mt-5">
+                    <a href="/courses?sort=rating" className="btn btn-info mt-2 mx-auto">مشاهده بیشتر</a>
+                </div>
             </div>
         </section>
     );
