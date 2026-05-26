@@ -123,6 +123,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         invalidate_cache('UserProfile')
         invalidate_cache('UserSettings')
         invalidate_cache('UserInfo')
+        return super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         if self.profile_picture and self.profile_picture.name:
