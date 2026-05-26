@@ -128,7 +128,7 @@ export default function BlogPostPage() {
   }
 
   return (
-    <main className="font-iransans">
+    <main className="font-iransans" style={{ color: '#383E43' }}>
       <section className="pb-0 pt-4 pb-md-5">
         <div className="container">
           <div className="row">
