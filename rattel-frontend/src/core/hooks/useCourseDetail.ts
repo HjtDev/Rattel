@@ -50,6 +50,7 @@ export interface CourseDetail {
     created_at: string;
     updated_at: string;
     is_saved: boolean;
+    is_owned: boolean;
     progress?: {
         completed: number;
         total: number;

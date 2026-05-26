@@ -24,7 +24,8 @@ export default function CourseDetail() {
     const [currentVideoUrl, setCurrentVideoUrl] = useState<string>("");
     const [isSaved, setIsSaved] = useState(false);
     const [currentEpisodeId, setCurrentEpisodeId] = useState<string | null>(null);
-    const { progress, refetchProgress } = useCourseProgress(courseId);
+    const { progress, refetchProgress } = useCourseProgress(null);
+
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('fa-IR').format(price);
     };
@@ -128,6 +129,9 @@ export default function CourseDetail() {
     useEffect(() => {
         if (courseDetail) {
             setIsSaved(courseDetail.is_saved);
+            if(courseDetail.is_owned) {
+                refetchProgress(courseDetail.id)
+            }
         }
     }, [courseDetail]);
 
