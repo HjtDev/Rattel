@@ -73,10 +73,6 @@ export default function LoginPage() {
                                 <div className="col-sm-10 col-xl-8 m-auto">
                                     <span className="mb-0 fs-1">👋</span>
                                     <h1 className="fs-4">ورود به حساب کاربری</h1>
-                                    <p className="mb-4">
-                                        از دیدن شما خوشحالم! لطفا نام کاربری یا شماره تلفن خود را وارد کنید.
-                                    </p>
-
                                     <form onSubmit={handleSubmit}>
                                         <div className="mb-4">
                                             <label htmlFor="username" className="form-label">

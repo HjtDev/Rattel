@@ -94,10 +94,6 @@ export default function RegisterPage() {
                                 <div className="col-sm-10 col-xl-8 m-auto">
                                     <img src="/assets/images/element/03.svg" className="h-40px mb-2" alt="" />
                                     <h2>ثبت نام</h2>
-                                    <p className="mb-4">
-                                        از دیدن شما خوشحالم! لطفا اطلاعات خود را وارد کنید.
-                                    </p>
-
                                     <form onSubmit={handleSubmit}>
                                         <div className="mb-4">
                                             <label htmlFor="username" className="form-label">
