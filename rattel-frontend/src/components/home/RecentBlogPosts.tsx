@@ -19,7 +19,7 @@ function RecentBlogPostCard({ post }: { post: BlogPostCard }) {
             alt={post.title}
             onClick={(e) => {
               e.preventDefault();
-              router.push(`/blog/${post.id}`);
+              router.push(`/blog/${post.slug}`);
             }}
             style={{ cursor: "pointer" }}
           />
@@ -32,7 +32,7 @@ function RecentBlogPostCard({ post }: { post: BlogPostCard }) {
           </div>
 
           <h5 className="card-title fw-normal">
-            <Link href={`/blog/${post.id}`}>{post.title}</Link>
+            <Link href={`/blog/${post.slug}`}>{post.title}</Link>
           </h5>
 
           <p className="text-truncate-2" dangerouslySetInnerHTML={{ __html: post.short_description }}></p>

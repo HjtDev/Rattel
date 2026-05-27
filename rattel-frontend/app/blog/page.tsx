@@ -160,7 +160,7 @@ function BlogListContent() {
               blogsData?.posts.map((post) => (
                 <div key={post.id} className="col-sm-6 col-lg-4 col-xl-3">
                   <div className="card bg-transparent h-100">
-                    <div className="overflow-hidden rounded-3 position-relative" onClick={(e) => {e.preventDefault(); router.push(`/blog/${post.id}`);}}>
+                    <div className="overflow-hidden rounded-3 position-relative" onClick={(e) => {e.preventDefault(); router.push(`/blog/${post.slug}`);}}>
                       <img src={post.thumbnail ? getMediaUrl(post.thumbnail) : "/assets/images/event/02.jpg"} className="card-img" alt={post.title} />
                       <div className="bg-overlay bg-dark opacity-4"></div>
                       <div className="card-img-overlay d-flex align-items-start justify-content-between p-3">
@@ -168,7 +168,7 @@ function BlogListContent() {
                       </div>
                     </div>
                     <div className="card-body">
-                      <h5 className="card-title fw-normal"><Link href={`/blog/${post.id}`}>{post.title}</Link></h5>
+                      <h5 className="card-title fw-normal"><Link href={`/blog/${post.slug}`}>{post.title}</Link></h5>
                       <p className="text-truncate-2" dangerouslySetInnerHTML={{ __html: post.short_description }}></p>
                       <div className="d-flex justify-content-between align-items-center">
                         <h6 className="mb-0 fw-normal">{post.author.name}</h6>

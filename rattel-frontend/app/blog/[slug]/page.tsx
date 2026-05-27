@@ -11,11 +11,11 @@ import { getMediaUrl, shareCurrentPage } from "@/src/core/utils";
 import { api } from "@/src/core/api";
 
 export default function BlogPostPage() {
-  const params = useParams<{ id: string }>();
-  const postId = params?.id || null;
+  const params = useParams<{ slug: string }>();
+  const postSlug = params?.slug || null;
 
   const { isAuthenticated } = useAuth();
-  const { blogDetail, setBlogDetail, isLoadingBlogDetail, blogDetailError } = useBlogDetail(postId);
+  const { blogDetail, setBlogDetail, isLoadingBlogDetail, blogDetailError } = useBlogDetail(postSlug);
   const [viewSent, setViewSent] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [replyToId, setReplyToId] = useState<number | null>(null);
@@ -23,17 +23,17 @@ export default function BlogPostPage() {
   const [showCommentModal, setShowCommentModal] = useState(false);
 
   useEffect(() => {
-    if (!postId || viewSent) return;
+    if (!postSlug || viewSent) return;
 
     const timer = setTimeout(async () => {
-      const success = await sendBlogViewCount(postId);
+      const success = await sendBlogViewCount(postSlug);
       if (success) {
         setViewSent(true);
       }
     }, 30000);
 
     return () => clearTimeout(timer);
-  }, [postId, viewSent]);
+  }, [postSlug, viewSent]);
 
   const publishDate = useMemo(() => {
     if (!blogDetail) return "";
@@ -42,13 +42,13 @@ export default function BlogPostPage() {
   }, [blogDetail]);
 
   const handleToggleSave = async () => {
-    if (!postId) return;
+    if (!postSlug) return;
     if (!isAuthenticated) {
       toast.warning("ابتدا وارد حساب کاربری خود شوید.");
       return;
     }
 
-    const result = await toggleSaveBlog(postId);
+    const result = await toggleSaveBlog(postSlug);
     if (!result.success) {
       toast.error(result.message);
       return;
@@ -75,7 +75,7 @@ export default function BlogPostPage() {
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!postId) return;
+    if (!postSlug) return;
     if (!isAuthenticated) {
       toast.warning("برای ارسال دیدگاه ابتدا وارد حساب کاربری شوید.");
       return;
@@ -87,7 +87,7 @@ export default function BlogPostPage() {
 
     setIsSubmittingComment(true);
     try {
-      const response = await api.post(`/blog/${postId}/comments/`, {
+      const response = await api.post(`/blog/${postSlug}/comments/`, {
         content: commentText.trim(),
         reply_to: replyToId,
       });
@@ -97,7 +97,7 @@ export default function BlogPostPage() {
         setCommentText("");
         setReplyToId(null);
         setShowCommentModal(false);
-        const detailResponse = await api.get(`/blog/${postId}/?t=${Date.now()}`);
+        const detailResponse = await api.get(`/blog/${postSlug}/?t=${Date.now()}`);
         if (detailResponse.data.success) {
           setBlogDetail(detailResponse.data.post);
         }

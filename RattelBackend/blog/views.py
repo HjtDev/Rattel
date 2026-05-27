@@ -161,13 +161,13 @@ class BlogDetailView(APIView, GetDataMixin, ResponseBuilderMixin):
             cache_headers=False,
         )
     )
-    def get(self, request, post_id):
+    def get(self, request, slug):
         try:
             post = (
                 BlogPost.objects
                 .select_related('author', 'category')
                 .prefetch_related('tags', 'comments__user', 'comments__replies__user')
-                .get(pk=post_id, is_visible=True)
+                .get(slug=slug, is_visible=True)
             )
         except BlogPost.DoesNotExist:
             return self.build_response(
@@ -177,7 +177,7 @@ class BlogDetailView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message='Blog post not found.'
             )
         except Exception as e:
-            logger.error(f'BlogDetailView failed for id={post_id}: {e.__class__.__name__}: {e}')
+            logger.error(f'BlogDetailView failed for slug={slug}: {e.__class__.__name__}: {e}')
             return self.build_response(
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 success=False,
@@ -207,9 +207,9 @@ class BlogViewCountView(APIView, GetDataMixin, ResponseBuilderMixin):
             cache_headers=False,
         )
     )
-    def get(self, request, post_id):
+    def get(self, request, slug):
         try:
-            updated = BlogPost.objects.filter(pk=post_id, is_visible=True).update(view_count=F('view_count') + 1)
+            updated = BlogPost.objects.filter(slug=slug, is_visible=True).update(view_count=F('view_count') + 1)
             if not updated:
                 return self.build_response(
                     status.HTTP_404_NOT_FOUND,
@@ -218,7 +218,7 @@ class BlogViewCountView(APIView, GetDataMixin, ResponseBuilderMixin):
                     message='Blog post not found.'
                 )
 
-            post = BlogPost.objects.only('id', 'view_count').get(pk=post_id)
+            post = BlogPost.objects.only('id', 'view_count').get(slug=slug)
             invalidate_cache('blog_list')
             invalidate_cache('blog_detail')
             return self.build_response(
@@ -241,9 +241,9 @@ class ToggleSaveBlogPostView(APIView, GetDataMixin, ResponseBuilderMixin):
     permission_classes = (IsAuthenticated,)
     throttle_scope = 'main-throttle'
 
-    def post(self, request, post_id):
+    def post(self, request, slug):
         try:
-            post = BlogPost.objects.get(pk=post_id, is_visible=True)
+            post = BlogPost.objects.get(slug=slug, is_visible=True)
         except BlogPost.DoesNotExist:
             return self.build_response(
                 status.HTTP_404_NOT_FOUND,
@@ -337,16 +337,16 @@ class BlogCommentListCreateView(APIView, GetDataMixin, ResponseBuilderMixin):
             cache_headers=False,
         )
     )
-    def get(self, request, post_id):
+    def get(self, request, slug):
         try:
-            if not BlogPost.objects.filter(pk=post_id, is_visible=True).exists():
+            if not BlogPost.objects.filter(slug=slug, is_visible=True).exists():
                 return self.build_response(
                     status.HTTP_404_NOT_FOUND,
                     success=False,
                     error=-1,
                     message='Blog post not found.'
                 )
-            comments = BlogComment.objects.select_related('user').filter(post_id=post_id, reply_to__isnull=True)
+            comments = BlogComment.objects.select_related('user').filter(post__slug=slug, post__is_visible=True, reply_to__isnull=True)
             serializer = BlogCommentSerializer(comments, many=True, context={'request': request})
             return self.build_response(
                 status.HTTP_200_OK,
@@ -364,7 +364,7 @@ class BlogCommentListCreateView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message='Something went wrong while fetching comments.'
             )
 
-    def post(self, request, post_id):
+    def post(self, request, slug):
         if not request.user.is_authenticated:
             return self.build_response(
                 status.HTTP_401_UNAUTHORIZED,
@@ -394,7 +394,7 @@ class BlogCommentListCreateView(APIView, GetDataMixin, ResponseBuilderMixin):
         reply_to_id = request.data.get('reply_to')
 
         try:
-            post = BlogPost.objects.get(pk=post_id, is_visible=True)
+            post = BlogPost.objects.get(slug=slug, is_visible=True)
         except BlogPost.DoesNotExist:
             return self.build_response(
                 status.HTTP_404_NOT_FOUND,
