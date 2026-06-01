@@ -1,15 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { useCart } from "@/src/core/hooks/useCart";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import {getMediaUrl} from "@/src/core/utils";
+import { getMediaUrl } from "@/src/core/utils";
+import { api } from "@/src/core/api";
 
 export default function Cart() {
     const { items, totalPrice, remove } = useCart();
     const { isAuthenticated } = useAuth();
     const router = useRouter();
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const originalTotal = items.reduce(
         (sum, item) => sum + (item.price ?? 0) * item.quantity,
@@ -17,12 +20,37 @@ export default function Cart() {
     );
     const hasDiscount = originalTotal > 0 && originalTotal > totalPrice;
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         if (!isAuthenticated) {
             router.push("/auth/login");
             return;
         }
-        toast.info("payment start");
+        if (items.length === 0) return;
+
+        setIsCheckingOut(true);
+        try {
+            const identifier = crypto.randomUUID();
+            const origin = window.location.origin;
+
+            const response = await api.post("/payment/start/", {
+                amount: totalPrice * 10,           // Toman → Rial
+                success_url: `${origin}/payment/success/`,
+                fail_url: `${origin}/payment/fail/`,
+                description: "خرید دوره‌های آموزشی از رتل",
+                identifier,
+            });
+
+            if (response.data.success) {
+                window.open(response.data.gateway, "_blank");
+                setIsCheckingOut(false);
+            } else {
+                toast.error(response.data.message || "خطا در شروع پرداخت");
+                setIsCheckingOut(false);
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "خطا در اتصال به سرور");
+            setIsCheckingOut(false);
+        }
     };
 
     return (
@@ -157,8 +185,17 @@ export default function Cart() {
                                         </li>
                                     </ul>
                                     <div className="d-grid">
-                                        <button className="btn btn-lg btn-success" onClick={handleCheckout}>
-                                            تسویه حساب
+                                        <button
+                                            className="btn btn-lg btn-success"
+                                            onClick={handleCheckout}
+                                            disabled={isCheckingOut}
+                                        >
+                                            {isCheckingOut ? (
+                                                <>
+                                                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                                                    در حال اتصال به درگاه...
+                                                </>
+                                            ) : 'تسویه حساب'}
                                         </button>
                                     </div>
                                     <p className="small mb-0 mt-2 text-center">

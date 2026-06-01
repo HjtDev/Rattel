@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+from RattelBackend.cache import invalidate_cache
 from RattelBackend.mixins import GetDataMixin, ResponseBuilderMixin
 from .models import CartItem
 
@@ -321,6 +322,7 @@ class CartFinalizerView(APIView, GetDataMixin, ResponseBuilderMixin):
 
     permission_classes = (IsAuthenticated,)
     throttle_scope = 'main-throttle'
+    cache_invalidation = ('course_detail',)
 
     def post(self, request):
         """
@@ -436,6 +438,9 @@ class CartFinalizerView(APIView, GetDataMixin, ResponseBuilderMixin):
 
         for cart_item in cart:
             cart_item.item.bought_by.add(request.user)
+
+        for cache_key in self.cache_invalidation:
+            invalidate_cache(cache_key, request)
 
         transaction.locked_in = True
         transaction.save(update_fields=['locked_in'])
