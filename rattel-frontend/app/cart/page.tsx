@@ -4,6 +4,7 @@ import { useCart } from "@/src/core/hooks/useCart";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import {getMediaUrl} from "@/src/core/utils";
 
 export default function Cart() {
     const { items, totalPrice, remove } = useCart();
@@ -74,7 +75,7 @@ export default function Cart() {
                                                                 <div className="w-100px w-md-80px mb-2 mb-md-0 flex-shrink-0">
                                                                     {item.picture ? (
                                                                         <img
-                                                                            src={item.picture}
+                                                                            src={getMediaUrl(item.picture)}
                                                                             className="rounded"
                                                                             alt={item.name}
                                                                             style={{width: '80px', height: '60px', objectFit: 'cover'}}

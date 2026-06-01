@@ -14,7 +14,10 @@ class CourseCartSerializer(serializers.ModelSerializer):
         fields = ('name', 'picture')
 
     def get_picture(self, obj: Course):
-        return None
+        request = self.context.get('request', None)
+        if request:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
 
 
 class EpisodeSerializer(serializers.ModelSerializer):
