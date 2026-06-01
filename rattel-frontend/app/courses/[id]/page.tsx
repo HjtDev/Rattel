@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
 import {useAuth} from "@/src/core/hooks/useAuth";
+import { useCart } from "@/src/core/hooks/useCart";
 import { markEpisodeWatched, useCourseProgress } from "@/src/core/hooks/useCourseProgress";
 
 export default function CourseDetail() {
@@ -18,8 +19,36 @@ export default function CourseDetail() {
     const courseId = params.id as string;
 
     const {isAuthenticated} = useAuth();
-    
+    const { items: cartItems, add: addToCart, remove: removeFromCart } = useCart();
+
     const { courseDetail, isLoadingCourseDetail, courseDetailError } = useCourseDetail(courseId);
+
+    const isInCart = cartItems.some(
+        (item) => item.app_label === 'courses' && item.model === 'course' && item.object_id === courseId
+    );
+
+    const handleCartToggle = async () => {
+        if (isInCart) {
+            const result = await removeFromCart('courses', 'course', courseId);
+            if (result.success) {
+                toast.info("دوره از سبد خرید حذف شد");
+            } else {
+                toast.error(result.message);
+            }
+        } else {
+            const result = await addToCart('courses', 'course', courseId, 1, {
+                name: courseDetail?.name,
+                picture: courseDetail?.image ? getMediaUrl(courseDetail.image) : null,
+                price: courseDetail?.price,
+                new_price: courseDetail?.new_price,
+            });
+            if (result.success) {
+                toast.success("دوره به سبد خرید اضافه شد");
+            } else {
+                toast.error(result.message);
+            }
+        }
+    };
     const [videoModalOpen, setVideoModalOpen] = useState(false);
     const [currentVideoUrl, setCurrentVideoUrl] = useState<string>("");
     const [isSaved, setIsSaved] = useState(false);
@@ -407,34 +436,45 @@ export default function CourseDetail() {
                                 <div data-sticky data-margin-top="80" data-sticky-for="768">
                                     <div className="card card-body border p-4">
                                         {/* Course Info */}
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                            {courseDetail.price === 0 ? (
-                                                <h3 className="fw-bold mb-0 text-success">رایگان</h3>
-                                            ) : (
-                                                <div>
-                                                    {courseDetail.new_price > 0 && (
-                                                        <>
+
+
+                                        {/* Add to Cart Button */}
+                                        {
+                                            !courseDetail.is_owned && (
+                                                <>
+                                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                                        {courseDetail.price === 0 ? (
+                                                            <h3 className="fw-bold mb-0 text-success">رایگان</h3>
+                                                        ) : (
+                                                            <div>
+                                                                {courseDetail.new_price > 0 && (
+                                                                    <>
                                                             <span className="badge bg-danger mb-2">
                                                                 {courseDetail.discount}% تخفیف
                                                             </span>
-                                                            <div className="text-decoration-line-through text-muted">
-                                                                {formatPrice(courseDetail.price)} تومان
+                                                                        <div
+                                                                            className="text-decoration-line-through text-muted">
+                                                                            {formatPrice(courseDetail.price)} تومان
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                                <h3 className="fw-bold mb-0">
+                                                                    {formatPrice(courseDetail.new_price > 0 ? courseDetail.new_price : courseDetail.price)} تومان
+                                                                </h3>
                                                             </div>
-                                                        </>
-                                                    )}
-                                                    <h3 className="fw-bold mb-0">
-                                                        {formatPrice(courseDetail.new_price > 0 ? courseDetail.new_price : courseDetail.price)} تومان
-                                                    </h3>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Add to Cart Button */}
-                                        <div className="d-grid mb-3">
-                                            <button className="btn btn-primary mb-0" onClick={(e) => toast.info("درگاه پرداخت غیرفعال است.")}>
-                                                افزودن به سبد خرید
-                                            </button>
-                                        </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="d-grid mb-3">
+                                                        <button
+                                                            className={`btn mb-0 ${isInCart ? 'btn-outline-danger' : 'btn-primary'}`}
+                                                            onClick={handleCartToggle}
+                                                        >
+                                                            {isInCart ? 'حذف از سبد خرید' : 'افزودن به سبد خرید'}
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )
+                                        }
 
                                         {/* Course Features */}
                                         <ul className="list-group list-group-borderless">
