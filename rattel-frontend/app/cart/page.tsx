@@ -22,7 +22,7 @@ export default function Cart() {
 
     const handleCheckout = async () => {
         if (!isAuthenticated) {
-            router.push("/auth/login");
+            router.push("/auth/login?next=/cart/");
             return;
         }
         if (items.length === 0) return;

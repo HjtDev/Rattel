@@ -113,11 +113,17 @@ class CartManager:
         if content_type is None:
             return False, f'"{app_label}.{model}" is not an allowed cart item type.'
 
-        if quantity > 0 and not content_type.model_class().objects.filter(pk=object_id).exists():
-            logger.error(
-                f'Object with id={object_id} does not exist for "{app_label}.{model}".'
-            )
-            return False, 'Item does not exist.'
+        if quantity > 0:
+            item_obj = content_type.model_class().objects.filter(pk=object_id).first()
+            if item_obj is None:
+                logger.error(f'Object with id={object_id} does not exist for "{app_label}.{model}".')
+                return False, 'Item does not exist.'
+            if hasattr(item_obj, 'bought_by') and item_obj.bought_by.filter(pk=self.user.pk).exists():
+                logger.info(
+                    f'User {self.user.pk} already owns "{app_label}.{model}" id={object_id}. '
+                    f'Blocked cart add.'
+                )
+                return False, 'You already own this item.'
 
         object_id = str(object_id)
 
