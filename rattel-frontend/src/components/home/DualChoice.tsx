@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { fadeInLeft, fadeInRight } from "@/src/core/motionVariants";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { getMediaUrl } from "@/src/core/utils";
 
@@ -25,10 +29,16 @@ interface DualChoiceProps {
 
 export default function DualChoice({ data, isLoading }: DualChoiceProps) {
     return (
-        <section className="py-0">
+        <section className="py-0 overflow-hidden">
             <div className="container">
                 <div className="row g-4">
-                    <div className="col-lg-6 position-relative overflow-hidden">
+                    <motion.div
+                        className="col-lg-6 position-relative overflow-hidden"
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true, amount: 0.15 }}
+                        variants={fadeInLeft}
+                    >
                         <div className="bg-primary bg-opacity-10 rounded-3 p-5 h-100">
                             <div className="position-absolute bottom-0 end-0 me-3">
                                 <LoadingSkeleton isLoading={isLoading} Content={() => (
@@ -59,8 +69,14 @@ export default function DualChoice({ data, isLoading }: DualChoiceProps) {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="col-lg-6 position-relative overflow-hidden">
+                    </motion.div>
+                    <motion.div
+                        className="col-lg-6 position-relative overflow-hidden"
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true, amount: 0.15 }}
+                        variants={fadeInRight}
+                    >
                         <div className="bg-secondary rounded-3 bg-opacity-10 p-5 h-100">
                             <div className="position-absolute bottom-0 end-0 me-3">
                                 <LoadingSkeleton isLoading={isLoading} Content={() => (
@@ -91,7 +107,7 @@ export default function DualChoice({ data, isLoading }: DualChoiceProps) {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </section>
