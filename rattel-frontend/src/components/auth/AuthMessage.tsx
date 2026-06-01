@@ -11,7 +11,7 @@ export default function AuthMessage() {
                         از اینکه در این مسیر نورانی قدم نهاده اید بسیار خرسندیم!
                     </p>
                 </div>
-                <img src="/assets/images/element/02.svg" className="mt-5"/>
+                <img src="/assets/images/auth/register_banner.png" className="mt-5"/>
             </div>
         </div>
     )

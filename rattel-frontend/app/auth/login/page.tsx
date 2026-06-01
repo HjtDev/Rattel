@@ -73,7 +73,7 @@ function LoginContent() {
                         <div className="col-12 col-lg-6 m-auto">
                             <div className="row my-5">
                                 <div className="col-sm-10 col-xl-8 m-auto">
-                                    <span className="mb-0 fs-1">👋</span>
+                                    <img src="/assets/images/auth/login_icon.png" className="h-40px mb-2" alt="Login Icon" />
                                     <h1 className="fs-4">ورود به حساب کاربری</h1>
                                     <form onSubmit={handleSubmit}>
                                         <div className="mb-4">
