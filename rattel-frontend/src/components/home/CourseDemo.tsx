@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { scaleIn } from "@/src/core/motionVariants";
 import { getMediaUrl } from "@/src/core/utils";
 
 interface CoursesDemoSection {
@@ -24,7 +26,13 @@ export default function CourseDemo({ data, isLoading }: CourseDemoProps) {
             <div className="container">
                 <div className="row">
                     <div className="col-md-8 text-center mx-auto">
-                        <div className="card card-body shadow p-2">
+                        <motion.div
+                            className="card card-body shadow p-2"
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true, amount: 0.2 }}
+                            variants={scaleIn}
+                        >
                             <div className="position-relative">
                                 <video
                                     src={videoUrl}
@@ -44,7 +52,7 @@ export default function CourseDemo({ data, isLoading }: CourseDemoProps) {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>

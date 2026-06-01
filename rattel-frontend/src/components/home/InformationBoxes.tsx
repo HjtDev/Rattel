@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { fadeInLeft, fadeInRight } from "@/src/core/motionVariants";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { getMediaUrl } from "@/src/core/utils";
 
@@ -27,12 +31,18 @@ export default function InformationBoxes({ data, isLoading }: InformationBoxesPr
                         const isImageLeft = index % 2 === 0;
                         
                         return (
-                            <section key={box.order} className={index === 0 ? "pb-0 pb-lg-5" : "overflow-hidden"}>
+                            <section key={box.order} className={index === 0 ? "pb-0 pb-lg-5 overflow-hidden" : "overflow-hidden"}>
                                 <div className="container">
                                     <div className={`row g-4 ${index === 0 ? 'g-lg-5' : ''} align-items-center`}>
                                         {isImageLeft ? (
                                             <>
-                                                <div className="col-lg-6 position-relative order-2">
+                                                <motion.div
+                                                    className="col-lg-6 position-relative order-2"
+                                                    initial="hidden"
+                                                    whileInView="show"
+                                                    viewport={{ once: true, amount: 0.15 }}
+                                                    variants={fadeInLeft}
+                                                >
                                                     <figure className="position-absolute top-50 start-50 translate-middle ms-n8 d-none d-sm-block">
                                                         <svg width="625.8px" height="550px" viewBox="0 0 625.8 630.8">
                                                             <path className="fill-primary opacity-1"
@@ -41,19 +51,37 @@ export default function InformationBoxes({ data, isLoading }: InformationBoxesPr
                                                         </svg>
                                                     </figure>
                                                     <img src={getMediaUrl(box.image)} className="position-relative" alt={box.title} />
-                                                </div>
-                                                <div className="col-lg-6 position-relative order-1 order-lg-2">
+                                                </motion.div>
+                                                <motion.div
+                                                    className="col-lg-6 position-relative order-1 order-lg-2"
+                                                    initial="hidden"
+                                                    whileInView="show"
+                                                    viewport={{ once: true, amount: 0.15 }}
+                                                    variants={fadeInRight}
+                                                >
                                                     <h2 className="fs-3">{box.title}</h2>
                                                     <div dangerouslySetInnerHTML={{ __html: box.description }} />
-                                                </div>
+                                                </motion.div>
                                             </>
                                         ) : (
                                             <>
-                                                <div className="col-md-5 position-relative z-index-9">
+                                                <motion.div
+                                                    className="col-md-5 position-relative z-index-9"
+                                                    initial="hidden"
+                                                    whileInView="show"
+                                                    viewport={{ once: true, amount: 0.15 }}
+                                                    variants={fadeInLeft}
+                                                >
                                                     <h2 className="fs-3">{box.title}</h2>
                                                     <div dangerouslySetInnerHTML={{ __html: box.description }} />
-                                                </div>
-                                                <div className="col-md-7 text-md-end position-relative">
+                                                </motion.div>
+                                                <motion.div
+                                                    className="col-md-7 text-md-end position-relative"
+                                                    initial="hidden"
+                                                    whileInView="show"
+                                                    viewport={{ once: true, amount: 0.15 }}
+                                                    variants={fadeInRight}
+                                                >
                                                     <figure className="position-absolute top-50 end-0 translate-middle-y me-n8">
                                                         <svg width="632.6px" height="540.4px" viewBox="0 0 632.6 540.4">
                                                             <path className="fill-primary opacity-1"
@@ -62,7 +90,7 @@ export default function InformationBoxes({ data, isLoading }: InformationBoxesPr
                                                         </svg>
                                                     </figure>
                                                     <img src={getMediaUrl(box.image)} className="position-relative" alt={box.title} />
-                                                </div>
+                                                </motion.div>
                                             </>
                                         )}
                                     </div>

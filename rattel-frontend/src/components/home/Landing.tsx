@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {getMediaUrl} from "@/src/core/utils";
 
@@ -269,8 +270,11 @@ export default function Landing({ data, isLoading }: LandingProps) {
             </figure>
             <div className="container">
                 <div className="row align-items-center g-5">
-                    <div
-                        className="col-lg-5 col-xl-6 position-relative z-index-1 text-center text-lg-start mb-5 mb-sm-0">
+                    <motion.div
+                        className="col-lg-5 col-xl-6 position-relative z-index-1 text-center text-lg-start mb-5 mb-sm-0"
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}>
                         <figure className="fill-warning position-absolute bottom-0 end-0 me-5 d-none d-xl-block">
                             <svg width="42px" height="42px">
                                 <path
@@ -350,8 +354,12 @@ export default function Landing({ data, isLoading }: LandingProps) {
                                 </button>
                             </div>
                         </div>
-                    </div>
-                    <div className="col-lg-7 col-xl-6 text-center position-relative">
+                    </motion.div>
+                    <motion.div
+                        className="col-lg-7 col-xl-6 text-center position-relative"
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}>
                         <figure className="position-absolute bottom-0 start-50 translate-middle-x mt-4 mb-0">
                             <svg width="550px" height="538px" viewBox="0 0 554 544"
                                  style={{background: 'new 0 0 554 544'}}>
@@ -463,7 +471,7 @@ export default function Landing({ data, isLoading }: LandingProps) {
                         <div className="position-relative">
                             <LoadingSkeleton isLoading={isLoading} Content={() => (<img src={getMediaUrl(data?.image)} alt={data?.title || "Landing image"}/>)} width={"386px"} height={"603px"}/>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </section>

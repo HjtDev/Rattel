@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { fadeInUp, staggerContainer } from "@/src/core/motionVariants";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { useFAQ } from "@/src/core/hooks/useFAQ";
 
@@ -13,13 +15,19 @@ export default function FAQ() {
     return (
         <section className="position-relative overflow-hidden pt-0 pt-sm-5">
             <div className="container">
-                <div className="row position-relative z-index-9">
+                <motion.div
+                    className="row position-relative z-index-9"
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, amount: 0.3 }}
+                    variants={fadeInUp}
+                >
                     <div className="col-12 text-center mx-auto mt-2">
                         <h2 className="mb-0">
                             پرسش و پاسخ
                         </h2>
                     </div>
-                </div>
+                </motion.div>
                 <div className="row">
                     <div className="col-lg-10 col-xl-8 mx-auto text-center position-relative">
                         <figure className="position-absolute top-0 start-0 translate-middle ms-8">
@@ -36,13 +44,19 @@ export default function FAQ() {
                                 </path>
                             </svg>
                         </figure>
-                        <LoadingSkeleton 
+                        <LoadingSkeleton
                             isLoading={isLoading}
                             Content={() => (
-                                <div className="accordion accordion-icon accordion-shadow mt-4 text-start position-relative"
-                                     id="accordionExample2">
+                                <motion.div
+                                    className="accordion accordion-icon accordion-shadow mt-4 text-start position-relative"
+                                    id="accordionExample2"
+                                    variants={staggerContainer}
+                                    initial="hidden"
+                                    whileInView="show"
+                                    viewport={{ once: true, amount: 0.1 }}
+                                >
                                     {faqData?.map((faq, index) => (
-                                        <div key={index} className="accordion-item mb-3">
+                                        <motion.div key={index} className="accordion-item mb-3" variants={fadeInUp}>
                                             <h6 className="accordion-header font-base" id={`heading-${index}`}>
                                                 <button 
                                                     className={`accordion-button fw-bold rounded ${index !== 0 ? 'collapsed' : ''} pe-5`}
@@ -63,9 +77,9 @@ export default function FAQ() {
                                                     {faq.answer}
                                                 </div>
                                             </div>
-                                        </div>
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             )}
                             width={600}
                             height={200}
