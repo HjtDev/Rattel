@@ -1,0 +1,1 @@
+{"nodes": [{"id": "cart_manager", "label": "Cart Manager", "file_type": "code", "source_file": "RattelBackend/cart/manager.py"}], "edges": [{"source": "cart_manager", "target": "rattelbackend_settings", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RattelBackend/cart/manager.py"}], "hyperedges": []}

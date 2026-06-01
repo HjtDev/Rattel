@@ -64,6 +64,9 @@ rsync "${RSYNC_FLAGS[@]}" \
   --exclude='.git' \
   --exclude='.idea' \
   --exclude='.vscode' \
+  --exclude='.claude' \
+  --exclude='.obsidian' \
+  --exclude='graphify-out' \
   --exclude='**/__pycache__' \
   --exclude='**/*.pyc' \
   --exclude='**/.venv' \

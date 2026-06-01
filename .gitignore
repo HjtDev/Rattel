@@ -138,3 +138,5 @@ rattel-frontend/public
 
 # Deploy
 deploy/*.*.env*
+
+.obsidian/
