@@ -277,5 +277,12 @@ class CartManager:
             serializer_class = item.__class__.CART_SERIALIZER
             serialized_item = serializer_class(item).data
             serialized_item['quantity'] = cart_item.quantity
+            serialized_item['app_label'] = cart_item.content_type.app_label
+            serialized_item['model'] = cart_item.content_type.model
+            serialized_item['object_id'] = cart_item.object_id
+            if hasattr(item, 'price'):
+                serialized_item['price'] = item.price
+            if hasattr(item, 'new_price'):
+                serialized_item['new_price'] = item.new_price
             serialized.append(serialized_item)
         return serialized
