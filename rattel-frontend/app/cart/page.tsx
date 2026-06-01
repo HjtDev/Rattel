@@ -36,7 +36,7 @@ export default function Cart() {
                 amount: totalPrice * 10,           // Toman → Rial
                 success_url: `${origin}/payment/success/`,
                 fail_url: `${origin}/payment/fail/`,
-                description: "خرید دوره‌های آموزشی از رتل",
+                description: "خرید دوره‌های آموزشی از اکسیر قرآن",
                 identifier,
             });
 
