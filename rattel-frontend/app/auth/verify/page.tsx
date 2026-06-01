@@ -11,6 +11,7 @@ function VerifyPageContent() {
     const searchParams = useSearchParams();
     const { verifyOTP } = useAuth();
 
+    const next = searchParams.get("next") || "";
     const [identifier, setIdentifier] = useState("");
     const [code, setCode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +67,7 @@ function VerifyPageContent() {
 
             if (result.success) {
                 toast.success("ورود موفقیت آمیز بود");
-                router.push("/");
+                router.push(next || "/");
             } else {
                 toast.error(getErrorMessage(result.error));
             }

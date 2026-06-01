@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import AuthMessage from "@/src/components/auth/AuthMessage";
 import { toast } from "react-toastify";
 
-export default function RegisterPage() {
+function RegisterContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const next = searchParams.get("next") || "";
     const { register, isAuthenticated } = useAuth();
     const [formData, setFormData] = useState({
         username: "",
@@ -70,7 +72,7 @@ export default function RegisterPage() {
 
             if (result.success && result.indicator) {
                 toast.success("کد تایید به شماره تلفن شما ارسال شد");
-                router.push(`/auth/verify?indicator=${result.indicator}`);
+                router.push(`/auth/verify?indicator=${result.indicator}${next ? `&next=${encodeURIComponent(next)}` : ""}`);
             } else {
                 toast.error(getErrorMessage(result.error));
             }
@@ -81,7 +83,7 @@ export default function RegisterPage() {
         }
     };
 
-    if(isAuthenticated) router.back()
+    if(isAuthenticated) router.push(next || "/")
 
     return (
         <main>
@@ -201,7 +203,7 @@ export default function RegisterPage() {
                                     <div className="mt-4 text-center">
                                         <span>
                                             آیا قبلا ثبت نام کرده اید؟{" "}
-                                            <a href="/auth/login">ورود</a>
+                                            <a href={`/auth/login?${next ? `next=${encodeURIComponent(next)}` : ""}`}>ورود</a>
                                         </span>
                                     </div>
                                 </div>
@@ -211,5 +213,13 @@ export default function RegisterPage() {
                 </div>
             </section>
         </main>
+    );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={null}>
+            <RegisterContent />
+        </Suspense>
     );
 }
