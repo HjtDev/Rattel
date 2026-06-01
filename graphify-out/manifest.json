@@ -170,9 +170,9 @@
     "semantic_hash": "5752c74fb8a5b5880ae8397ae526ed54"
   },
   "/home/hjtdev/Projects/Rattel/RattelBackend/cart/manager.py": {
-    "mtime": 1778952258.4279273,
-    "ast_hash": "5168195eed88f9c3a52dcf7a5572d1c2",
-    "semantic_hash": "5168195eed88f9c3a52dcf7a5572d1c2"
+    "mtime": 1780314608.0171802,
+    "ast_hash": "45527d8eb8c632c994ea7e085834fca1",
+    "semantic_hash": "45527d8eb8c632c994ea7e085834fca1"
   },
   "/home/hjtdev/Projects/Rattel/RattelBackend/cart/migrations/0001_initial.py": {
     "mtime": 1778952258.4279273,
@@ -200,9 +200,9 @@
     "semantic_hash": "c1ea58508549ce4687b730eadebcd826"
   },
   "/home/hjtdev/Projects/Rattel/RattelBackend/cart/views.py": {
-    "mtime": 1778952258.428287,
-    "ast_hash": "6a77c1404d4276981efd22b311fa3eb9",
-    "semantic_hash": "6a77c1404d4276981efd22b311fa3eb9"
+    "mtime": 1780314608.0185163,
+    "ast_hash": "ae97f785a5a384ac74191e49a645a433",
+    "semantic_hash": "ae97f785a5a384ac74191e49a645a433"
   },
   "/home/hjtdev/Projects/Rattel/RattelBackend/courses/__init__.py": {
     "mtime": 1778952258.4279273,
@@ -275,9 +275,9 @@
     "semantic_hash": "073a31aa814dd2215f213c9582377025"
   },
   "/home/hjtdev/Projects/Rattel/RattelBackend/courses/serializers.py": {
-    "mtime": 1779786306.2224088,
-    "ast_hash": "36d361635f3fb1b3341dca30ca5e9294",
-    "semantic_hash": "36d361635f3fb1b3341dca30ca5e9294"
+    "mtime": 1780314608.0185163,
+    "ast_hash": "1757a04c62914004f522776313497948",
+    "semantic_hash": "1757a04c62914004f522776313497948"
   },
   "/home/hjtdev/Projects/Rattel/RattelBackend/courses/signals.py": {
     "mtime": 1778952258.428895,
@@ -990,9 +990,9 @@
     "semantic_hash": "0b7a2a1436bcc427bf0679422869aafd"
   },
   "/home/hjtdev/Projects/Rattel/deploy/deploy-prod.sh": {
-    "mtime": 1779617847.6392136,
-    "ast_hash": "cd255736cdf4bd40d32a78d97de2f0bc",
-    "semantic_hash": "cd255736cdf4bd40d32a78d97de2f0bc"
+    "mtime": 1780303380.9149451,
+    "ast_hash": "3007230e2e2490132fbaaea4420bc3ca",
+    "semantic_hash": "3007230e2e2490132fbaaea4420bc3ca"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/app/about-us/layout.tsx": {
     "mtime": 1779514020.0299528,
@@ -1010,19 +1010,19 @@
     "semantic_hash": "ab0056a335ffb4d639e73cbe49c2e054"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/app/auth/login/page.tsx": {
-    "mtime": 1779823024.4676263,
-    "ast_hash": "aa59919c19a59c865a28d122c3fec7c4",
-    "semantic_hash": "aa59919c19a59c865a28d122c3fec7c4"
+    "mtime": 1780314608.0185163,
+    "ast_hash": "43692cc8dda6f99c37a9452483f10e0c",
+    "semantic_hash": "43692cc8dda6f99c37a9452483f10e0c"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/app/auth/register/page.tsx": {
-    "mtime": 1779823024.463617,
-    "ast_hash": "916445421ba5bd25d0f67fa61e762c7f",
-    "semantic_hash": "916445421ba5bd25d0f67fa61e762c7f"
+    "mtime": 1780314608.0189712,
+    "ast_hash": "8abb3b657880a288729c4328daf7edeb",
+    "semantic_hash": "8abb3b657880a288729c4328daf7edeb"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/app/auth/verify/page.tsx": {
-    "mtime": 1779831436.5178862,
-    "ast_hash": "37e01dee45d9ea281d52d6c936a0988b",
-    "semantic_hash": "37e01dee45d9ea281d52d6c936a0988b"
+    "mtime": 1780314608.0189712,
+    "ast_hash": "f0c0e85e4f212f1639f12d2c8e2d7c58",
+    "semantic_hash": "f0c0e85e4f212f1639f12d2c8e2d7c58"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/app/blog/[slug]/layout.tsx": {
     "mtime": 1779514020.0299528,
@@ -1050,9 +1050,9 @@
     "semantic_hash": "ff17f1cc004291394aad8d644f919ce7"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/app/courses/[id]/page.tsx": {
-    "mtime": 1779786878.0976999,
-    "ast_hash": "41be6c79a30687b45fb8cd87ba18b917",
-    "semantic_hash": "41be6c79a30687b45fb8cd87ba18b917"
+    "mtime": 1780314608.0189712,
+    "ast_hash": "af9ffb16ac98a4483f6f6a8ade907374",
+    "semantic_hash": "af9ffb16ac98a4483f6f6a8ade907374"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/app/courses/layout.tsx": {
     "mtime": 1779022089.488075,
@@ -1060,7 +1060,7 @@
     "semantic_hash": "95fec0e0d27d3b50e943ef4c695f4c5f"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/app/courses/page.tsx": {
-    "mtime": 1779783393.0329294,
+    "mtime": 1780305380.1443746,
     "ast_hash": "677b03215ab0419a887d99f17e13e768",
     "semantic_hash": "677b03215ab0419a887d99f17e13e768"
   },
@@ -1255,9 +1255,9 @@
     "semantic_hash": "62c509d4ba9cc37383f0fc1ba45de651"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/src/components/layout/Navbar.tsx": {
-    "mtime": 1779832917.3882084,
-    "ast_hash": "29a965424d0d0bfb74da12fafce93765",
-    "semantic_hash": "29a965424d0d0bfb74da12fafce93765"
+    "mtime": 1780314608.0189712,
+    "ast_hash": "55c95e017dda71e7baca13e746edc996",
+    "semantic_hash": "55c95e017dda71e7baca13e746edc996"
   },
   "/home/hjtdev/Projects/Rattel/rattel-frontend/src/components/skeleton/loadingSkeleton.tsx": {
     "mtime": 1778952258.438091,
@@ -1458,5 +1458,55 @@
     "mtime": 1779514020.030738,
     "ast_hash": "6028ddc38a0618e1222edd26bcf5e738",
     "semantic_hash": "6028ddc38a0618e1222edd26bcf5e738"
+  },
+  "/home/hjtdev/Projects/Rattel/.claude/settings.json": {
+    "mtime": 1780298620.0691092,
+    "ast_hash": "87f0d903477984d0587a02f8fe185263",
+    "semantic_hash": "87f0d903477984d0587a02f8fe185263"
+  },
+  "/home/hjtdev/Projects/Rattel/.claude/settings.local.json": {
+    "mtime": 1780313628.234728,
+    "ast_hash": "8873b4b5bc555b11082b1369ce09d845",
+    "semantic_hash": "8873b4b5bc555b11082b1369ce09d845"
+  },
+  "/home/hjtdev/Projects/Rattel/rattel-frontend/app/cart/layout.tsx": {
+    "mtime": 1780314608.0195162,
+    "ast_hash": "ef9d35c5afd7abf40f23e64e2328bfa5",
+    "semantic_hash": "ef9d35c5afd7abf40f23e64e2328bfa5"
+  },
+  "/home/hjtdev/Projects/Rattel/rattel-frontend/app/cart/page.tsx": {
+    "mtime": 1780315552.0219455,
+    "ast_hash": "8a593d210a95e021839a9f7ecd5087c5",
+    "semantic_hash": "8a593d210a95e021839a9f7ecd5087c5"
+  },
+  "/home/hjtdev/Projects/Rattel/rattel-frontend/app/payment/fail/page.tsx": {
+    "mtime": 1780314608.0189712,
+    "ast_hash": "07df7d55bbd484975c161d1b78d5710c",
+    "semantic_hash": "07df7d55bbd484975c161d1b78d5710c"
+  },
+  "/home/hjtdev/Projects/Rattel/rattel-frontend/app/payment/success/page.tsx": {
+    "mtime": 1780314608.0189712,
+    "ast_hash": "5266763eed7bd350573f54d4dcd5ac6d",
+    "semantic_hash": "5266763eed7bd350573f54d4dcd5ac6d"
+  },
+  "/home/hjtdev/Projects/Rattel/rattel-frontend/src/core/cart/cartManager.ts": {
+    "mtime": 1780314608.0189712,
+    "ast_hash": "751a9e97a4a77f28b2038148f8577674",
+    "semantic_hash": "751a9e97a4a77f28b2038148f8577674"
+  },
+  "/home/hjtdev/Projects/Rattel/rattel-frontend/src/core/hooks/useCart.ts": {
+    "mtime": 1780314608.0195162,
+    "ast_hash": "b675838d144ba95a2cf6cfec0c12c445",
+    "semantic_hash": "b675838d144ba95a2cf6cfec0c12c445"
+  },
+  "/home/hjtdev/Projects/Rattel/CLAUDE.md": {
+    "mtime": 1780303023.8341236,
+    "ast_hash": "3052b08e8a4b7417b0d8c10640e6a191",
+    "semantic_hash": "3052b08e8a4b7417b0d8c10640e6a191"
+  },
+  "/home/hjtdev/Projects/Rattel/_COMMUNITY_Local SMS Tests.md": {
+    "mtime": 1780302814.943336,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   }
 }
