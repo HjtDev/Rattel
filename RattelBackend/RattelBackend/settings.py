@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'tickets.apps.TicketsConfig',
     'blog.apps.BlogConfig',
     'gallery.apps.GalleryConfig',
+    'subscriptions.apps.SubscriptionsConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
