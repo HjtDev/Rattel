@@ -76,7 +76,7 @@ function PersonalInformationContent() {
                 username: user.username || "",
                 email: user.email || "",
             });
-            setPreviewUrl(user.profile_picture ? getMediaUrl(user.profile_picture) : "/assets/images/element/01.svg");
+            setPreviewUrl(user.profile_picture ? getMediaUrl(user.profile_picture) : "/assets/images/auth/default_profile.png");
         }
     }, [user]);
 

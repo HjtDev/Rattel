@@ -42,7 +42,7 @@ export default function DashboardBase({Content}: DashboardContent) {
                                             <div className="avatar avatar-xxl position-relative mt-n3">
                                                 <img
                                                     className="avatar-img rounded-circle border border-white border-3 shadow"
-                                                    src={user?.profile_picture || "/assets/images/element/01.svg"}
+                                                    src={user?.profile_picture || "/assets/images/auth/default_profile.png"}
                                                     alt={user?.name || "Default Profile"}
                                                 />
                                                 <span className="badge text-bg-success rounded-pill position-absolute top-50 start-100 translate-middle mt-4 mt-md-5 ms-n3 px-md-3">

@@ -273,7 +273,7 @@ export default function Navbar() {
                                         <LoadingSkeleton isLoading={isLoading} width="40px" height="40px"
                                                          Content={() => (
                                                              <img className="avatar-img rounded-circle"
-                                                                  src={user?.profile_picture || "/assets/images/element/01.svg"}
+                                                                  src={user?.profile_picture || "/assets/images/auth/default_profile.png"}
                                                                   alt={user?.name || "User"}/>
                                                          )}/>
                                     </a>
@@ -375,7 +375,7 @@ export default function Navbar() {
                                        data-bs-auto-close="outside" data-bs-display="static" data-bs-toggle="dropdown"
                                        aria-expanded="false">
                                         <img className="avatar-img rounded-circle"
-                                             src={"/assets/images/element/01.svg"}
+                                             src={"/assets/images/auth/default_profile.png"}
                                              alt={"Default Profile"}/>
                                     </a>
                                     <ul className="dropdown-menu dropdown-animation dropdown-menu-end shadow pt-3"
