@@ -68,14 +68,19 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                             {user?.phone}
                                                         </span>
                                                     </li>
-                                                    {subscription?.is_active && (
-                                                        <li className="list-inline-item mb-1 mb-sm-0">
+                                                    <li className="list-inline-item mb-1 mb-sm-0">
+                                                        {subscription?.is_active ? (
                                                             <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1">
                                                                 <i className="bi bi-star-fill me-1"></i>
                                                                 {subscription.plan.name}
                                                             </span>
-                                                        </li>
-                                                    )}
+                                                        ) : (
+                                                            <a href="/subscriptions/" className="badge bg-primary bg-opacity-10 text-primary border border-primary rounded-pill px-2 py-1 text-decoration-none">
+                                                                <i className="bi bi-star me-1"></i>
+                                                                خرید اشتراک
+                                                            </a>
+                                                        )}
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </div>

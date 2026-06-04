@@ -1,11 +1,13 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { useCart } from "@/src/core/hooks/useCart";
 import { useSubscriptionPlans, Plan } from "@/src/core/hooks/useSubscriptionPlans";
 import { useMySubscription } from "@/src/core/hooks/useMySubscription";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import { getMediaUrl } from "@/src/core/utils";
 import { toast } from "react-toastify";
+import { fadeInUp, staggerContainer, scaleIn } from "@/src/core/motionVariants";
 
 const formatPrice = (price: number) =>
     new Intl.NumberFormat("fa-IR").format(price);
@@ -66,7 +68,6 @@ function PlanCard({ plan, activePlanId, hasActiveSub }: PlanCardProps) {
     );
 
     const handleCartToggle = async () => {
-        // Block purchase if user already has an active subscription
         if (hasActiveSub) {
             toast.warning("شما در حال حاضر یک اشتراک فعال دارید");
             return;
@@ -82,7 +83,6 @@ function PlanCard({ plan, activePlanId, hasActiveSub }: PlanCardProps) {
             return;
         }
 
-        // Replace any existing plan already in the cart
         const existingPlanInCart = cartItems.find(
             (item) => item.app_label === "subscriptions" && item.model === "plan"
         );
@@ -249,6 +249,7 @@ export default function Subscriptions() {
     const { plans, isLoading, error } = useSubscriptionPlans();
     const { isAuthenticated } = useAuth();
     const { subscription, isLoading: isLoadingSub } = useMySubscription();
+    const shouldReduceMotion = useReducedMotion();
 
     const hasActiveSub = isAuthenticated && !isLoadingSub && subscription?.is_active === true;
     const activePlanId = hasActiveSub ? subscription!.plan.id : null;
@@ -260,11 +261,23 @@ export default function Subscriptions() {
             ? "col-md-6 col-xl-5"
             : "col-md-6 col-xl-4";
 
+    // Shared viewport props — reused across all whileInView blocks
+    const vp = { once: true };
+    const initial = shouldReduceMotion ? false : "hidden";
+
     return (
         <main>
             <section className="py-5 price-wrap">
                 <div className="container">
-                    <div className="row g-4 position-relative mb-4">
+
+                    {/* Hero header */}
+                    <motion.div
+                        className="row g-4 position-relative mb-4"
+                        variants={staggerContainer}
+                        initial={initial}
+                        whileInView="show"
+                        viewport={vp}
+                    >
                         <figure className="position-absolute top-0 start-0 d-none d-sm-block">
                             <svg width="22px" height="22px" viewBox="0 0 22 22">
                                 <polygon
@@ -282,19 +295,31 @@ export default function Subscriptions() {
                                     />
                                 </svg>
                             </figure>
-                            <h1 className="fs-2">پکیج های اشتراکی</h1>
-                            <p className="mb-0">با خرید اشتراک به امکانات ویژه دسترسی پیدا کنید</p>
+                            <motion.h1 className="fs-2" variants={fadeInUp}>
+                                پکیج های اشتراکی
+                            </motion.h1>
+                            <motion.p className="mb-0" variants={fadeInUp}>
+                                با خرید اشتراک به امکانات ویژه دسترسی پیدا کنید
+                            </motion.p>
                         </div>
-                    </div>
+                    </motion.div>
 
+                    {/* Active subscription banner */}
                     {hasActiveSub && subscription && (
-                        <div className="alert alert-success text-center mb-4" role="alert">
+                        <motion.div
+                            className="alert alert-success text-center mb-4"
+                            role="alert"
+                            variants={fadeInUp}
+                            initial={initial}
+                            whileInView="show"
+                            viewport={vp}
+                        >
                             <i className="bi bi-check-circle-fill me-2" />
                             اشتراک فعال شما: <strong>{subscription.plan.name}</strong> — تا تاریخ{" "}
                             <strong>
                                 {new Intl.DateTimeFormat("fa-IR").format(new Date(subscription.ends_in))}
                             </strong>
-                        </div>
+                        </motion.div>
                     )}
 
                     {error && (
@@ -303,6 +328,7 @@ export default function Subscriptions() {
                         </div>
                     )}
 
+                    {/* Plan cards grid */}
                     <div className={`row g-4 ${plans.length < 3 ? "justify-content-center" : ""}`}>
                         {isLoading
                             ? [1, 2, 3].map((i) => (
@@ -310,30 +336,64 @@ export default function Subscriptions() {
                                       <PlanCardSkeleton />
                                   </div>
                               ))
-                            : plans.map((plan) => (
-                                  <div key={plan.id} className={colClass}>
+                            : plans.map((plan, index) => (
+                                  <motion.div
+                                      key={plan.id}
+                                      className={colClass}
+                                      initial={initial}
+                                      animate="show"
+                                      variants={fadeInUp}
+                                      transition={{
+                                          duration: 0.55,
+                                          ease: "easeOut",
+                                          delay: shouldReduceMotion ? 0 : index * 0.12,
+                                      }}
+                                      whileHover={
+                                          shouldReduceMotion
+                                              ? undefined
+                                              : { y: -6, transition: { duration: 0.2 } }
+                                      }
+                                  >
                                       <PlanCard
                                           plan={plan}
                                           activePlanId={activePlanId}
-                                          hasActiveSub={!!hasActiveSub}
+                                          hasActiveSub={hasActiveSub}
                                       />
-                                  </div>
+                                  </motion.div>
                               ))}
                     </div>
                 </div>
             </section>
 
+            {/* Feature comparison table */}
             {!isLoading && plans.length > 0 && (
                 <section className="pb-5">
                     <div className="container">
-                        <div className="row">
+
+                        {/* Section heading */}
+                        <motion.div
+                            className="row"
+                            variants={fadeInUp}
+                            initial={initial}
+                            whileInView="show"
+                            viewport={vp}
+                        >
                             <div className="col-md-8 text-center mx-auto mb-4">
                                 <h2 className="fs-4">مقایسه امکانات</h2>
                             </div>
-                        </div>
+                        </motion.div>
+
                         <div className="row">
                             <div className="col-lg-10 mx-auto">
-                                <div className="row">
+
+                                {/* Table header */}
+                                <motion.div
+                                    className="row"
+                                    variants={scaleIn}
+                                    initial={initial}
+                                    whileInView="show"
+                                    viewport={vp}
+                                >
                                     <div className="col-12 bg-light p-3 rounded-3">
                                         <div className="row align-items-center">
                                             <div className="col-md-6 text-center text-md-start">
@@ -353,17 +413,29 @@ export default function Subscriptions() {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
 
-                                <FeatureRow label="دریافت اخبار زودتر" plans={plans} check={(p) => p.has_early_news_access} />
-                                <hr className="m-0" />
-                                <FeatureRow label="دسترسی به بخش آزمون" plans={plans} check={(p) => p.has_quiz_access} />
-                                <hr className="m-0" />
-                                <FeatureRow label="کلاس آنلاین (حداقل ۴ جلسه)" plans={plans} check={(p) => p.online_class_limit >= 4} />
-                                <hr className="m-0" />
-                                <FeatureRow label="کلاس آنلاین (حداقل ۸ جلسه)" plans={plans} check={(p) => p.online_class_limit >= 8} />
-                                <hr className="m-0" />
-                                <FeatureRow label="کلاس آنلاین (حداقل ۱۲ جلسه)" plans={plans} check={(p) => p.online_class_limit >= 12} />
+                                {/* Feature rows — staggered */}
+                                <motion.div
+                                    variants={staggerContainer}
+                                    initial={initial}
+                                    whileInView="show"
+                                    viewport={vp}
+                                >
+                                    {[
+                                        { label: "دریافت اخبار زودتر", check: (p: Plan) => p.has_early_news_access },
+                                        { label: "دسترسی به بخش آزمون", check: (p: Plan) => p.has_quiz_access },
+                                        { label: "کلاس آنلاین (حداقل ۴ جلسه)", check: (p: Plan) => p.online_class_limit >= 4 },
+                                        { label: "کلاس آنلاین (حداقل ۸ جلسه)", check: (p: Plan) => p.online_class_limit >= 8 },
+                                        { label: "کلاس آنلاین (حداقل ۱۲ جلسه)", check: (p: Plan) => p.online_class_limit >= 12 },
+                                    ].map((row, i) => (
+                                        <motion.div key={i} variants={fadeInUp}>
+                                            <FeatureRow label={row.label} plans={plans} check={row.check} />
+                                            {i < 4 && <hr className="m-0" />}
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+
                             </div>
                         </div>
                     </div>

@@ -309,8 +309,8 @@ export default function Navbar() {
                                                 </div>
                                             </div>
                                         </li>
-                                        {subscription?.is_active && (
-                                            <li className="px-3 pb-2">
+                                        <li className="px-3 pb-2">
+                                            {subscription?.is_active ? (
                                                 <div className="d-flex align-items-center gap-2 bg-success bg-opacity-10 border border-success rounded-2 px-2 py-1">
                                                     <i className="bi bi-star-fill text-success small"></i>
                                                     <small className="text-success fw-semibold">{subscription.plan.name}</small>
@@ -318,8 +318,13 @@ export default function Navbar() {
                                                         تا {new Intl.DateTimeFormat("fa-IR").format(new Date(subscription.ends_in))}
                                                     </small>
                                                 </div>
-                                            </li>
-                                        )}
+                                            ) : (
+                                                <a href="/subscriptions/" className="btn btn-sm btn-outline-primary w-100">
+                                                    <i className="bi bi-star me-2"></i>
+                                                    خرید اشتراک
+                                                </a>
+                                            )}
+                                        </li>
                                         <li>
                                             <hr className="dropdown-divider"/>
                                         </li>
