@@ -60,11 +60,19 @@ class ClassRequestView(APIView, ResponseBuilderMixin):
 
     def post(self, request):
         try:
+            # Block if there's a request still being processed
             pending = ClassRequest.objects.filter(
                 user=request.user,
                 status__in=[ClassRequest.Status.PENDING, ClassRequest.Status.CONTACTED],
             ).exists()
-            if pending:
+
+            # Also block plan_created requests UNLESS the linked plan was cancelled
+            plan_created_blocking = ClassRequest.objects.filter(
+                user=request.user,
+                status=ClassRequest.Status.PLAN_CREATED,
+            ).exclude(plan__status=AutomaticPlan.Status.CANCELLED).exists()
+
+            if pending or plan_created_blocking:
                 return self.build_response(
                     status.HTTP_400_BAD_REQUEST,
                     success=False, error=-1,

@@ -7,41 +7,18 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-def _get_study_dates(start_date, day_availability, time_freq, count):
+def _get_study_dates(start_date, time_freq, count):
     """
-    Return a list of `count` calendar dates the user should study on,
-    beginning from start_date, respecting their weekly availability and frequency.
+    Return a list of `count` calendar dates for study steps.
 
-    Python weekday(): 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
-    odd_days  → Sunday(6), Tuesday(1), Thursday(3)
-    even_days → Saturday(5), Monday(0), Wednesday(2)
+    per_day      → consecutive days: start, start+1, start+2, …
+    per_two_days → every other day:  start, start+2, start+4, …
+
+    user_day_availability and user_time_availability are admin-call metadata
+    only and have no effect on when steps are scheduled.
     """
-    available_map = {
-        AutomaticPlan.DayAvailability.ODD_DAYS: {6, 1, 3},
-        AutomaticPlan.DayAvailability.EVEN_DAYS: {5, 0, 2},
-    }
-    available = available_map[day_availability]
-
-    dates = []
-    current = start_date
-    available_day_idx = 0
-    safety = 365 * 5
-
-    for _ in range(safety):
-        if current.weekday() in available:
-            if time_freq == AutomaticPlan.TimeFrequency.PER_DAY:
-                dates.append(current)
-            else:  # PER_TWO_DAYS — use every other available day
-                if available_day_idx % 2 == 0:
-                    dates.append(current)
-                available_day_idx += 1
-
-            if len(dates) >= count:
-                break
-
-        current += timedelta(days=1)
-
-    return dates
+    gap = 1 if time_freq == AutomaticPlan.TimeFrequency.PER_DAY else 2
+    return [start_date + timedelta(days=i * gap) for i in range(count)]
 
 
 class ClassRequest(models.Model):
@@ -60,7 +37,7 @@ class ClassRequest(models.Model):
         ]
 
     class Status(models.TextChoices):
-        PENDING = 'pending', _('Pending')
+        PENDING = 'pending', _('Pending Admin')
         CONTACTED = 'contacted', _('Contacted')
         PLAN_CREATED = 'plan_created', _('Plan Created')
         REJECTED = 'rejected', _('Rejected')
@@ -289,12 +266,7 @@ class AutomaticPlan(models.Model):
             PlanStep.SubPart.FULL,
         ))
 
-        study_dates = _get_study_dates(
-            self.start_date,
-            self.user_day_availability,
-            self.time_freq,
-            len(steps_data),
-        )
+        study_dates = _get_study_dates(self.start_date, self.time_freq, len(steps_data))
 
         plan_steps = []
         for i, (step_type, page_start, page_end, sub_part) in enumerate(steps_data):
