@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'blog.apps.BlogConfig',
     'gallery.apps.GalleryConfig',
     'subscriptions.apps.SubscriptionsConfig',
+    'automatic_class.apps.AutomaticClassConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
