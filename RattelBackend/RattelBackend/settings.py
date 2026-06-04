@@ -413,6 +413,7 @@ GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
 # Cart
 CART_ALLOWED_CONTENT_TYPES = [
     'courses.course',
+    'subscriptions.plan'
 ]
 
 # Site Settings

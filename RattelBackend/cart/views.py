@@ -437,7 +437,7 @@ class CartFinalizerView(APIView, GetDataMixin, ResponseBuilderMixin):
             )
 
         for cart_item in cart:
-            cart_item.item.bought_by.add(request.user)
+            cart_item.item.add_user(request.user)
 
         for cache_key in self.cache_invalidation:
             invalidate_cache(cache_key, request)

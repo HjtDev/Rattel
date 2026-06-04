@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Plan
+from .models import Plan, UserSubscription
 
 
 class PlanCartSerializer(serializers.ModelSerializer):
@@ -25,8 +25,8 @@ class PlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plan
         fields = (
+            'id',
             'name',
-            'description',
             'picture',
             'price',
             'new_price',
@@ -47,3 +47,12 @@ class PlanSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.picture.url)
             return obj.picture.url
         return None
+
+
+class UserSubscriptionSerializer(serializers.ModelSerializer):
+    plan = PlanSerializer(read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = UserSubscription
+        fields = ('plan', 'started_at', 'ends_in', 'is_active')

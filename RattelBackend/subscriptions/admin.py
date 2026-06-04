@@ -42,9 +42,6 @@ class PlanAdmin(admin.ModelAdmin):
         (_('Core Information'), {
             'fields': ('id', 'name', 'picture', 'is_visible'),
         }),
-        (_('Description'), {
-            'fields': ('description',),
-        }),
         (_('Pricing'), {
             'fields': ('price', 'new_price', 'duration_days'),
         }),
