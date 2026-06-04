@@ -13,6 +13,7 @@ export interface Plan {
     duration_days: number;
     has_early_news_access: boolean;
     has_quiz_access: boolean;
+    has_free_course_access: boolean;
     online_class_limit: 0 | 4 | 8 | 12;
     is_visible: boolean;
     created_at: string;

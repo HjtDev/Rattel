@@ -46,7 +46,7 @@ class PlanAdmin(admin.ModelAdmin):
             'fields': ('price', 'new_price', 'duration_days'),
         }),
         (_('Features'), {
-            'fields': ('has_early_news_access', 'has_quiz_access', 'online_class_limit'),
+            'fields': ('has_early_news_access', 'has_quiz_access', 'has_free_course_access', 'online_class_limit'),
         }),
         (_('Subscribers'), {
             'fields': ('bought_by',),

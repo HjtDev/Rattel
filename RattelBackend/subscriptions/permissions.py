@@ -25,6 +25,16 @@ class HasQuizAccess(BasePermission):
         return sub is not None and sub.has_feature_quiz()
 
 
+class HasFreeCourseAccess(BasePermission):
+    message = 'An active subscription with free course access is required.'
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        sub = _get_subscription(request.user)
+        return sub is not None and sub.has_feature_free_courses()
+
+
 class HasOnlineClassAccess(BasePermission):
     """Passes if the user has any level of online class access (≥ 1 meeting/month)."""
     message = 'An active subscription with online class access is required.'

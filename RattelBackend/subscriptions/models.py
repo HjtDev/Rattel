@@ -41,6 +41,7 @@ class Plan(models.Model):
     # Features
     has_early_news_access = models.BooleanField(default=False, verbose_name=_('Early News Access'))
     has_quiz_access = models.BooleanField(default=False, verbose_name=_('Quiz Access'))
+    has_free_course_access = models.BooleanField(default=False, verbose_name=_('Free Course Access'))
     online_class_limit = models.IntegerField(
         choices=OnlineClassLimit.choices,
         default=OnlineClassLimit.NONE,
@@ -144,6 +145,9 @@ class UserSubscription(models.Model):
 
     def has_feature_online_class(self, min_meetings: int = 1):
         return self.is_active and self.plan.online_class_limit >= min_meetings
+
+    def has_feature_free_courses(self):
+        return self.is_active and self.plan.has_free_course_access
 
     def __str__(self):
         status = 'active' if self.is_active else 'expired'

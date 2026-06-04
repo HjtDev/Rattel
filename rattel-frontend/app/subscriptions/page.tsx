@@ -174,6 +174,14 @@ function PlanCard({ plan, activePlanId, hasActiveSub }: PlanCardProps) {
                         )}
                         دسترسی به بخش آزمون
                     </li>
+                    <li className="mb-3 h6 fw-light">
+                        {plan.has_free_course_access ? (
+                            <i className="bi bi-patch-check-fill text-success me-2" />
+                        ) : (
+                            <i className="bi bi-x-octagon-fill text-danger me-2" />
+                        )}
+                        دسترسی به دوره های رایگان
+                    </li>
                     <li className="h6 fw-light">
                         {plan.online_class_limit > 0 ? (
                             <>
@@ -425,13 +433,14 @@ export default function Subscriptions() {
                                     {[
                                         { label: "دریافت اخبار زودتر", check: (p: Plan) => p.has_early_news_access },
                                         { label: "دسترسی به بخش آزمون", check: (p: Plan) => p.has_quiz_access },
+                                        { label: "دسترسی به دوره های رایگان", check: (p: Plan) => p.has_free_course_access },
                                         { label: "کلاس آنلاین (حداقل ۴ جلسه)", check: (p: Plan) => p.online_class_limit >= 4 },
                                         { label: "کلاس آنلاین (حداقل ۸ جلسه)", check: (p: Plan) => p.online_class_limit >= 8 },
                                         { label: "کلاس آنلاین (حداقل ۱۲ جلسه)", check: (p: Plan) => p.online_class_limit >= 12 },
                                     ].map((row, i) => (
                                         <motion.div key={i} variants={fadeInUp}>
                                             <FeatureRow label={row.label} plans={plans} check={row.check} />
-                                            {i < 4 && <hr className="m-0" />}
+                                            {i < 5 && <hr className="m-0" />}
                                         </motion.div>
                                     ))}
                                 </motion.div>

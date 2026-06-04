@@ -34,6 +34,7 @@ class PlanSerializer(serializers.ModelSerializer):
             'duration_days',
             'has_early_news_access',
             'has_quiz_access',
+            'has_free_course_access',
             'online_class_limit',
             'is_visible',
             'created_at',
