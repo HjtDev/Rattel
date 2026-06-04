@@ -18,10 +18,11 @@ def invalidate_course_cache(sender, instance, **kwargs):
     invalidate_cache('my_courses')
 
 
-@receiver([post_save, pre_delete], sender=settings.AUTH_USER_MODEL)
-def invalidate_teacher_cache(sender, instance, **kwargs):
-    if not instance.pk:
-        return
-
-    if instance.profile.role == 'teacher':
-        invalidate_cache('teacher_list')
+# Teachers List is disabled
+# @receiver([post_save, pre_delete], sender=settings.AUTH_USER_MODEL)
+# def invalidate_teacher_cache(sender, instance: settings.AUTH_USER_MODEL, **kwargs):
+#     if not instance.pk:
+#         return
+#
+#     if instance. and instance.profile.role == 'teacher':
+#         invalidate_cache('teacher_list')
