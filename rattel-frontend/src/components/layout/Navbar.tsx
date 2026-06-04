@@ -3,13 +3,16 @@ import {useNavbar} from "@/src/core/hooks/useNavbar";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import {useCart} from "@/src/core/hooks/useCart";
+import {useMySubscription} from "@/src/core/hooks/useMySubscription";
 import {useRouter} from "next/navigation";
 import {useState} from "react";
+import {getMediaUrl} from "@/src/core/utils";
 
 export default function Navbar() {
     const {isLoadingNavbar, navbarData, navbarError} = useNavbar();
     const {user, logout, isLoading, isAuthenticated} = useAuth();
     const {items: cartItems, itemCount, totalPrice, remove: removeFromCart} = useCart();
+    const {subscription} = useMySubscription();
     const [searchQuery, setSearchQuery] = useState<string>("");
     const router = useRouter();
 
@@ -204,7 +207,7 @@ export default function Navbar() {
                                                     <div className="flex-shrink-0">
                                                         {item.picture ? (
                                                             <img
-                                                                src={item.picture}
+                                                                src={getMediaUrl(item.picture)}
                                                                 alt={item.name}
                                                                 className="rounded"
                                                                 style={{width: 42, height: 42, objectFit: 'cover'}}
@@ -306,6 +309,17 @@ export default function Navbar() {
                                                 </div>
                                             </div>
                                         </li>
+                                        {subscription?.is_active && (
+                                            <li className="px-3 pb-2">
+                                                <div className="d-flex align-items-center gap-2 bg-success bg-opacity-10 border border-success rounded-2 px-2 py-1">
+                                                    <i className="bi bi-star-fill text-success small"></i>
+                                                    <small className="text-success fw-semibold">{subscription.plan.name}</small>
+                                                    <small className="text-muted me-auto">
+                                                        تا {new Intl.DateTimeFormat("fa-IR").format(new Date(subscription.ends_in))}
+                                                    </small>
+                                                </div>
+                                            </li>
+                                        )}
                                         <li>
                                             <hr className="dropdown-divider"/>
                                         </li>

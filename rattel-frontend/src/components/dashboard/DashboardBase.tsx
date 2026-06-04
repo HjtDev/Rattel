@@ -6,6 +6,7 @@ import Footer from "@/src/components/layout/Footer";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import {useRouter, usePathname} from "next/navigation";
 import {getRoleLabel, isLinkActive} from "@/src/core/utils";
+import {useMySubscription} from "@/src/core/hooks/useMySubscription";
 
 interface DashboardContent {
     Content: ReactNode;
@@ -13,6 +14,7 @@ interface DashboardContent {
 
 export default function DashboardBase({Content}: DashboardContent) {
     const {user, isAuthenticated, isLoading, logout} = useAuth();
+    const {subscription} = useMySubscription();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -66,6 +68,14 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                             {user?.phone}
                                                         </span>
                                                     </li>
+                                                    {subscription?.is_active && (
+                                                        <li className="list-inline-item mb-1 mb-sm-0">
+                                                            <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1">
+                                                                <i className="bi bi-star-fill me-1"></i>
+                                                                {subscription.plan.name}
+                                                            </span>
+                                                        </li>
+                                                    )}
                                                 </ul>
                                             </div>
                                         </div>

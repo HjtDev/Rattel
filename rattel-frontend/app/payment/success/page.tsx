@@ -80,7 +80,7 @@ function PaymentSuccessContent() {
                     خرید شما با موفقیت انجام شد.
                 </p>
                 <p className="mb-4">
-                    دوره‌ها به حساب شما اضافه شدند و از طریق داشبورد قابل دسترس هستند.
+                    اشتراک/دوره ها به داشبورد حساب کاربری اضافه شد.
                 </p>
                 {transactionId && (
                     <p className="small mb-4">
