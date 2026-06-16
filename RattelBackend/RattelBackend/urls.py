@@ -39,6 +39,7 @@ urlpatterns = [
     path('api/v1/blog/', include('blog.urls', namespace='blog')),
     path('api/v1/gallery/', include('gallery.urls', namespace='gallery')),
     path('api/v1/subscriptions/', include('subscriptions.urls', namespace='subscriptions')),
+    path('api/v1/class/automatic/', include('automatic_class.urls', namespace='automatic')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

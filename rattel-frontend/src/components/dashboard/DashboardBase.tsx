@@ -159,6 +159,18 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     </i>
                                                     پست های نشان شده
                                                 </a>
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class", pathname) ? "active" : ""}`} href="/dashboard/automatic-class">
+                                                    <i className="bi bi-journal-bookmark-fill fa-fw me-2">
+                                                    </i>
+                                                    کلاس خودکار حفظ
+                                                </a>
+                                                {user?.profile?.role === 'teacher' && (
+                                                    <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class/admin", pathname) ? "active" : ""}`} href="/dashboard/automatic-class/admin">
+                                                        <i className="bi bi-shield-check fa-fw me-2">
+                                                        </i>
+                                                        پنل مدیریت کلاس
+                                                    </a>
+                                                )}
                                                 <a className="list-group-item text-danger bg-danger-soft-hover"
                                                    href="#" onClick={(e) => {
                                                     e.preventDefault();
