@@ -14,7 +14,10 @@ class CourseCartSerializer(serializers.ModelSerializer):
         fields = ('name', 'picture')
 
     def get_picture(self, obj: Course):
-        return None
+        request = self.context.get('request', None)
+        if request:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
 
 
 class EpisodeSerializer(serializers.ModelSerializer):
@@ -151,6 +154,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     total_sell = serializers.IntegerField(read_only=True)
     number_of_episodes = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
+    is_owned = serializers.SerializerMethodField()
     progress = serializers.SerializerMethodField()
 
     class Meta:
@@ -176,6 +180,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'number_of_episodes',
             'chapters',
             'is_saved',
+            'is_owned',
             'progress',
             'created_at',
             'updated_at',
@@ -211,6 +216,22 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.saved_by.filter(pk=request.user.pk).exists()
         return False
+
+    def get_is_owned(self, obj: Course):
+        """Check if the requesting user has owned this course.
+
+        Args:
+            obj: Course instance.
+
+        Returns:
+            bool: True if user has owned the course, False otherwise.
+        """
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.bought_by.filter(id=request.user.id).exists()
+        return False
+
+
 
     def get_progress(self, obj):
         """Get user's progress for this course if authenticated.

@@ -5,7 +5,8 @@ import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import {useRouter, usePathname} from "next/navigation";
-import {isLinkActive} from "@/src/core/utils";
+import {getRoleLabel, isLinkActive} from "@/src/core/utils";
+import {useMySubscription} from "@/src/core/hooks/useMySubscription";
 
 interface DashboardContent {
     Content: ReactNode;
@@ -13,6 +14,7 @@ interface DashboardContent {
 
 export default function DashboardBase({Content}: DashboardContent) {
     const {user, isAuthenticated, isLoading, logout} = useAuth();
+    const {subscription} = useMySubscription();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -42,11 +44,11 @@ export default function DashboardBase({Content}: DashboardContent) {
                                             <div className="avatar avatar-xxl position-relative mt-n3">
                                                 <img
                                                     className="avatar-img rounded-circle border border-white border-3 shadow"
-                                                    src={user?.profile_picture || "/assets/images/element/01.svg"}
+                                                    src={user?.profile_picture || "/assets/images/auth/default_profile.png"}
                                                     alt={user?.name || "Default Profile"}
                                                 />
                                                 <span className="badge text-bg-success rounded-pill position-absolute top-50 start-100 translate-middle mt-4 mt-md-5 ms-n3 px-md-3">
-                                                    {user?.profile?.role == 'student' ? 'دانش آموز' : 'استاد'}
+                                                    {user?.profile?.role && getRoleLabel(user.profile.role)}
                                                 </span>
                                             </div>
                                         </div>
@@ -65,6 +67,19 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                         <span className="text-body fw-light">
                                                             {user?.phone}
                                                         </span>
+                                                    </li>
+                                                    <li className="list-inline-item mb-1 mb-sm-0">
+                                                        {subscription?.is_active ? (
+                                                            <span className="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1">
+                                                                <i className="bi bi-star-fill me-1"></i>
+                                                                {subscription.plan.name}
+                                                            </span>
+                                                        ) : (
+                                                            <a href="/subscriptions/" className="badge bg-primary bg-opacity-10 text-primary border border-primary rounded-pill px-2 py-1 text-decoration-none">
+                                                                <i className="bi bi-star me-1"></i>
+                                                                خرید اشتراک
+                                                            </a>
+                                                        )}
                                                     </li>
                                                 </ul>
                                             </div>
@@ -144,6 +159,18 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     </i>
                                                     پست های نشان شده
                                                 </a>
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class", pathname) ? "active" : ""}`} href="/dashboard/automatic-class">
+                                                    <i className="bi bi-journal-bookmark-fill fa-fw me-2">
+                                                    </i>
+                                                    کلاس خودکار حفظ
+                                                </a>
+                                                {user?.profile?.role === 'teacher' && (
+                                                    <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class/admin", pathname) ? "active" : ""}`} href="/dashboard/automatic-class/admin">
+                                                        <i className="bi bi-shield-check fa-fw me-2">
+                                                        </i>
+                                                        پنل مدیریت کلاس
+                                                    </a>
+                                                )}
                                                 <a className="list-group-item text-danger bg-danger-soft-hover"
                                                    href="#" onClick={(e) => {
                                                     e.preventDefault();

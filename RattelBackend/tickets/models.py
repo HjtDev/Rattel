@@ -4,6 +4,7 @@ from django.db import models
 from django_resized import ResizedImageField
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+import os
 
 
 def validate_attachment(file):

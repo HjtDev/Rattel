@@ -1,6 +1,7 @@
 import uuid
 from django.conf import settings
 from django.db import models
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from tinymce.models import HTMLField
 from RattelBackend.cache import invalidate_cache
@@ -47,7 +48,7 @@ class BlogTag(models.Model):
 class BlogPost(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, verbose_name=_('Blog ID'))
     title = models.CharField(max_length=255, verbose_name=_('Title'))
-    slug = models.SlugField(max_length=280, unique=True, verbose_name=_('Slug'))
+    slug = models.SlugField(max_length=280, unique=True, allow_unicode=True, verbose_name=_('Slug'))
     short_description = HTMLField(verbose_name=_('Short Description'))
     description = HTMLField(verbose_name=_('Description'))
     conclusion = HTMLField(blank=True, verbose_name=_('Conclusion'))
@@ -79,6 +80,10 @@ class BlogPost(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
+        if self.slug:
+            self.slug = slugify(self.slug, allow_unicode=True)
+        else:
+            self.slug = slugify(self.title, allow_unicode=True)
         super().save(*args, **kwargs)
         invalidate_cache('blog_list')
         invalidate_cache('blog_detail')

@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { scaleIn } from "@/src/core/motionVariants";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 
 interface Link {
@@ -39,7 +43,13 @@ export default function Advertisement({ data, isLoading }: AdvertisementProps) {
           </figure>
           <div className="row">
             <div className="col-12">
-              <div className="bg-info p-4 p-sm-5 rounded-3">
+              <motion.div
+                className="bg-info p-4 p-sm-5 rounded-3"
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={scaleIn}
+              >
                 <div className="row position-relative">
                   <figure className="fill-white opacity-1 position-absolute top-50 start-0 translate-middle-y">
                     <svg width="141px" height="141px">
@@ -76,7 +86,7 @@ export default function Advertisement({ data, isLoading }: AdvertisementProps) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>

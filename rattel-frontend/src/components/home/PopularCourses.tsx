@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { fadeInUp, staggerContainer } from "@/src/core/motionVariants";
 import { useCourses, Course } from "@/src/core/hooks/useCourses";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {getCategoryLabel, getDifficultyLabel, getMediaUrl} from "@/src/core/utils";
@@ -38,7 +40,7 @@ function CourseCard({ course }: { course: Course }) {
     const router = useRouter();
 
     return (
-        <div className="col-sm-6 col-lg-4 col-xl-3">
+        <motion.div className="col-sm-6 col-lg-4 col-xl-4" variants={fadeInUp} whileHover={{ y: -6, transition: { duration: 0.2 } }}>
             <div className="card shadow h-100">
                 {course.image && (
                     <img
@@ -98,37 +100,52 @@ function CourseCard({ course }: { course: Course }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
 export default function PopularCourses() {
-    const { coursesData, isLoadingCourses } = useCourses({ sort: "rating", count: 8 });
+    const { coursesData, isLoadingCourses } = useCourses({ sort: "rating", count: 3 });
 
     return (
         <section>
             <div className="container">
-                <div className="row mb-4">
+                <motion.div
+                    className="row mb-4"
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, amount: 0.3 }}
+                    variants={fadeInUp}
+                >
                     <div className="col-lg-8 mx-auto text-center">
                         <h2 className="fs-3">محبوب ترین دوره ها</h2>
                         <p className="mb-0">
                             هر موضوعی را در هر زمان مطالعه کنید. هزاران دوره آموزشی را با کمترین قیمت جستجو کنید!
                         </p>
                     </div>
-                </div>
+                </motion.div>
                 <LoadingSkeleton
                     isLoading={isLoadingCourses}
                     width="100%"
                     height={320}
-                    count={4}
+                    count={3}
                     Content={() => (
-                        <div className="row g-4">
+                        <motion.div
+                            className="row g-4"
+                            variants={staggerContainer}
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true, amount: 0.05 }}
+                        >
                             {coursesData?.courses.map((course) => (
                                 <CourseCard key={course.id} course={course} />
                             ))}
-                        </div>
+                        </motion.div>
                     )}
                 />
+                <div className="w-100 d-flex justify-content-center align-items-center mt-5">
+                    <a href="/courses?sort=rating" className="btn btn-info mt-2 mx-auto">مشاهده بیشتر</a>
+                </div>
             </div>
         </section>
     );

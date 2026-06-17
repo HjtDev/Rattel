@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { fadeInUp, staggerContainer } from "@/src/core/motionVariants";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
@@ -10,7 +12,7 @@ function RecentBlogPostCard({ post }: { post: BlogPostCard }) {
   const router = useRouter();
 
   return (
-    <div className="col-sm-6 col-lg-4 col-xl-3">
+    <motion.div className="col-sm-6 col-lg-4 col-xl-3" variants={fadeInUp} whileHover={{ y: -6, transition: { duration: 0.2 } }}>
       <div className="card action-trigger-hover border bg-transparent h-100">
         <div className="position-relative overflow-hidden rounded-top">
           <img
@@ -19,7 +21,7 @@ function RecentBlogPostCard({ post }: { post: BlogPostCard }) {
             alt={post.title}
             onClick={(e) => {
               e.preventDefault();
-              router.push(`/blog/${post.id}`);
+              router.push(`/blog/${post.slug}`);
             }}
             style={{ cursor: "pointer" }}
           />
@@ -32,7 +34,7 @@ function RecentBlogPostCard({ post }: { post: BlogPostCard }) {
           </div>
 
           <h5 className="card-title fw-normal">
-            <Link href={`/blog/${post.id}`}>{post.title}</Link>
+            <Link href={`/blog/${post.slug}`}>{post.title}</Link>
           </h5>
 
           <p className="text-truncate-2" dangerouslySetInnerHTML={{ __html: post.short_description }}></p>
@@ -49,7 +51,7 @@ function RecentBlogPostCard({ post }: { post: BlogPostCard }) {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -59,12 +61,18 @@ export default function RecentBlogPosts() {
   return (
     <section>
       <div className="container">
-        <div className="row mb-4">
+        <motion.div
+          className="row mb-4"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={fadeInUp}
+        >
           <div className="col-lg-8 mx-auto text-center">
             <h2 className="fs-3">جدیدترین مطالب وبلاگ</h2>
             <p className="mb-0">آخرین پست های منتشرشده برای یادگیری سریع تر و عمیق تر</p>
           </div>
-        </div>
+        </motion.div>
 
         <LoadingSkeleton
           isLoading={isLoadingBlogs}
@@ -72,11 +80,17 @@ export default function RecentBlogPosts() {
           height={360}
           count={4}
           Content={() => (
-            <div className="row g-4">
+            <motion.div
+              className="row g-4"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.05 }}
+            >
               {blogsData?.posts.map((post) => (
                 <RecentBlogPostCard key={post.id} post={post} />
               ))}
-            </div>
+            </motion.div>
           )}
         />
       </div>

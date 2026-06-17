@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import AuthMessage from "@/src/components/auth/AuthMessage";
 import { toast } from "react-toastify";
 
-export default function LoginPage() {
+function LoginContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const next = searchParams.get("next") || "";
     const { login, isAuthenticated } = useAuth();
     const [username, setUsername] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +51,7 @@ export default function LoginPage() {
 
             if (result.success && result.indicator) {
                 toast.success("کد تایید به شماره تلفن شما ارسال شد");
-                router.push(`/auth/verify?indicator=${result.indicator}`);
+                router.push(`/auth/verify?indicator=${result.indicator}${next ? `&next=${encodeURIComponent(next)}` : ""}`);
             } else {
                 toast.error(getErrorMessage(result.error));
             }
@@ -60,7 +62,7 @@ export default function LoginPage() {
         }
     };
 
-    if(isAuthenticated) router.back()
+    if(isAuthenticated) router.push(next || "/")
 
     return (
         <main>
@@ -71,12 +73,8 @@ export default function LoginPage() {
                         <div className="col-12 col-lg-6 m-auto">
                             <div className="row my-5">
                                 <div className="col-sm-10 col-xl-8 m-auto">
-                                    <span className="mb-0 fs-1">👋</span>
+                                    <img src="/assets/images/auth/login_icon.png" className="h-40px mb-2" alt="Login Icon" />
                                     <h1 className="fs-4">ورود به حساب کاربری</h1>
-                                    <p className="mb-4">
-                                        از دیدن شما خوشحالم! لطفا نام کاربری یا شماره تلفن خود را وارد کنید.
-                                    </p>
-
                                     <form onSubmit={handleSubmit}>
                                         <div className="mb-4">
                                             <label htmlFor="username" className="form-label">
@@ -118,7 +116,7 @@ export default function LoginPage() {
                                     <div className="mt-4 text-center">
                                         <span>
                                             حساب کاربری ندارید؟{" "}
-                                            <a href="/auth/register">ثبت نام</a>
+                                            <a href={`/auth/register?${next ? `next=${encodeURIComponent(next)}` : ""}`}>ثبت نام</a>
                                         </span>
                                     </div>
                                 </div>
@@ -128,5 +126,13 @@ export default function LoginPage() {
                 </div>
             </section>
         </main>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={null}>
+            <LoginContent />
+        </Suspense>
     );
 }

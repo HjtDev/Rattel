@@ -3,22 +3,6 @@
 import { useFooter } from "@/src/core/hooks/useFooter";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 
-function getSocialIcon(platform: string): string {
-    const icons: { [key: string]: string } = {
-        eitaa: "fab fa-telegram",
-        bale: "fab fa-telegram",
-        aparat: "fab fa-youtube",
-        rubika: "fab fa-telegram",
-        instagram: "fab fa-instagram",
-        telegram: "fab fa-telegram",
-        twitter: "fab fa-twitter",
-        linkedin: "fab fa-linkedin",
-        youtube: "fab fa-youtube",
-        facebook: "fab fa-facebook",
-    };
-    return icons[platform.toLowerCase()] || "fas fa-link";
-}
-
 export default function Footer() {
     const { footerData, isLoadingFooter } = useFooter();
     const trustImages = [
@@ -45,7 +29,7 @@ export default function Footer() {
                                     {
                                         footerData?.social_media_items.map((social_media, index) => (
                                             <li className="list-inline-item" key={index}>
-                                                <a className="btn btn-white btn-sm shadow px-2 text-facebook" href={social_media.social_link.url}>
+                                                <a className="btn btn-white btn-sm shadow px-2 text-facebook" href={social_media.social_link.url} target="_blank">
                                                     {
                                                         ["telegram", "linkedin"].includes(social_media.social_link.platform) ? (
                                                             <i className={"fab fa-fw fa-" + social_media.social_link.platform}>
@@ -73,7 +57,7 @@ export default function Footer() {
                                                 {
                                                     column.column_links.map((link, index) => (
                                                         <li className="nav-item" key={index}>
-                                                            <a className="nav-link" href={link.link.url}>
+                                                            <a className="nav-link" href={link.link.url} target="_blank">
                                                                 {link.label || link.link.name}
                                                             </a>
                                                         </li>
@@ -91,7 +75,7 @@ export default function Footer() {
                                         <ul className="list-unstyled d-flex flex-wrap gap-2 mb-0">
                                             {trustImages.map((imageItem, index) => (
                                                 <li key={index}>
-                                                    <a href="/about-us/#trust-section" className="d-inline-block">
+                                                    <a href="/about-us/#trust-section" className="d-inline-block" target="_blank">
                                                         <img
                                                             src={imageItem.src}
                                                             alt={imageItem.alt}
@@ -148,12 +132,12 @@ export default function Footer() {
                                 <div className="justify-content-center mt-3 mt-lg-0">
                                     <ul className="nav list-inline justify-content-center mb-0">
                                         <li className="list-inline-item">
-                                            <a className="nav-link" href="/about-us">
+                                            <a className="nav-link" href="/about-us" target="_blank">
                                                 درباره ما
                                             </a>
                                         </li>
                                         <li className="list-inline-item">
-                                            <a className="nav-link pe-0" href="/work-with-us">
+                                            <a className="nav-link pe-0" href="/work-with-us" target="_blank">
                                                 همکاری با ما
                                             </a>
                                         </li>

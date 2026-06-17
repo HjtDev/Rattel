@@ -11,6 +11,7 @@ function VerifyPageContent() {
     const searchParams = useSearchParams();
     const { verifyOTP } = useAuth();
 
+    const next = searchParams.get("next") || "";
     const [identifier, setIdentifier] = useState("");
     const [code, setCode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +67,7 @@ function VerifyPageContent() {
 
             if (result.success) {
                 toast.success("ورود موفقیت آمیز بود");
-                router.push("/");
+                router.push(next || "/");
             } else {
                 toast.error(getErrorMessage(result.error));
             }
@@ -95,8 +96,8 @@ function VerifyPageContent() {
                         <div className="col-12 col-lg-6 m-auto">
                             <div className="row my-5">
                                 <div className="col-sm-10 col-xl-8 m-auto">
-                                    <span className="mb-0 fs-1">👋</span>
-                                    <h1 className="fs-4">احراز هویت</h1>
+                                    <img src="/assets/images/auth/login_icon.png" className="h-40px mb-2" alt="Login Icon" />
+                                    <h1 className="fs-4">تایید شماره تلفن</h1>
                                     <p className="mb-4">
                                         لطفا کد تاییدی که به شماره تلفن شما پیامک شده است را در فیلد زیر وارد کنید
                                     </p>

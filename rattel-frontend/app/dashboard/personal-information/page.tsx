@@ -76,7 +76,7 @@ function PersonalInformationContent() {
                 username: user.username || "",
                 email: user.email || "",
             });
-            setPreviewUrl(user.profile_picture ? getMediaUrl(user.profile_picture) : "/assets/images/element/01.svg");
+            setPreviewUrl(user.profile_picture ? getMediaUrl(user.profile_picture) : "/assets/images/auth/default_profile.png");
         }
     }, [user]);
 
@@ -249,7 +249,7 @@ function PersonalInformationContent() {
                             </label>
                             <div className="input-group">
             <span className="input-group-text">
-              rattel.ir
+              exirequran.ir
             </span>
                                 <input type="text" name="username" className={`form-control ${errors.username ? 'is-invalid' : ''}`} value={formData.username} onChange={handleInputChange}/>
                             </div>

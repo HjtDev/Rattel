@@ -1,9 +1,12 @@
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
 from django_resized import ResizedImageField
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+
+from RattelBackend.cache import invalidate_cache
 from RattelBackend.mixins import GetDataMixin
 import os
 
@@ -116,6 +119,12 @@ class User(AbstractBaseUser, PermissionsMixin):
             oldest_courses = self.course_history.all().order_by('coursehistory__id')[:history_count - 8]
             self.course_history.remove(*oldest_courses)
 
+    def save(self, *args, **kwargs):
+        invalidate_cache('UserProfile')
+        invalidate_cache('UserSettings')
+        invalidate_cache('UserInfo')
+        return super().save(*args, **kwargs)
+
     def delete(self, *args, **kwargs):
         if self.profile_picture and self.profile_picture.name:
             self.profile_picture.delete(save=False)
@@ -161,8 +170,7 @@ class Profile(models.Model):
     
     def __str__(self):
         return f"{self.user.username}'s Profile"
-    
-    
+
 class UserSettings(models.Model):
     class Meta:
         verbose_name = 'Setting'

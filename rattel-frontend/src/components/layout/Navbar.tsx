@@ -2,12 +2,17 @@
 import {useNavbar} from "@/src/core/hooks/useNavbar";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {useAuth} from "@/src/core/hooks/useAuth";
+import {useCart} from "@/src/core/hooks/useCart";
+import {useMySubscription} from "@/src/core/hooks/useMySubscription";
 import {useRouter} from "next/navigation";
 import {useState} from "react";
+import {getMediaUrl} from "@/src/core/utils";
 
 export default function Navbar() {
     const {isLoadingNavbar, navbarData, navbarError} = useNavbar();
     const {user, logout, isLoading, isAuthenticated} = useAuth();
+    const {items: cartItems, itemCount, totalPrice, remove: removeFromCart} = useCart();
+    const {subscription} = useMySubscription();
     const [searchQuery, setSearchQuery] = useState<string>("");
     const router = useRouter();
 
@@ -42,13 +47,13 @@ export default function Navbar() {
                                 <li className="nav-item dropdown dropdown-menu-shadow-stacked">
                                 </li>
                             </ul>
-                            <ul className="navbar-nav navbar-nav-scroll me-auto">
+                            <ul className="navbar-nav navbar-nav-scroll me-auto flex-nowrap">
                                 <LoadingSkeleton isLoading={isLoadingNavbar} width={"75px"} height={"40px"} count={3}
                                                  Content={() => (
                                                      navbarData?.navbar_links?.map((item, index) => (
                                                          <li className="nav-item" key={index}>
                                                              <a className="nav-link" href={item.url} id="demoMenu"
-                                                                aria-expanded="false">
+                                                                aria-expanded="false" style={{ whiteSpace: 'nowrap' }}>
                                                                  {item.name}
                                                              </a>
                                                          </li>
@@ -157,6 +162,111 @@ export default function Navbar() {
                                 </div>
                             </div>
                         </div>
+                        {/* Cart */}
+                        <div className="dropdown ms-1">
+                            <a
+                                className="position-relative d-flex align-items-center justify-content-center p-2 text-body"
+                                href="#"
+                                id="cartDropdown"
+                                role="button"
+                                data-bs-auto-close="outside"
+                                data-bs-display="static"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                style={{width: 40, height: 40}}
+                            >
+                                <i className="bi bi-cart3 fs-5"></i>
+                                {itemCount > 0 && (
+                                    <span
+                                        className="position-absolute badge rounded-pill bg-danger"
+                                        style={{top: 0, right: 0, transform: 'translate(30%, -30%)', fontSize: '0.62rem', minWidth: '1.15rem', textAlign: 'center', lineHeight: '1.15rem', padding: '0 0.25rem'}}
+                                    >
+                                        {itemCount > 99 ? '99+' : itemCount}
+                                    </span>
+                                )}
+                            </a>
+                            <ul
+                                className="dropdown-menu dropdown-animation dropdown-menu-end shadow pt-3 px-3"
+                                aria-labelledby="cartDropdown"
+                                style={{minWidth: 300}}
+                            >
+                                {itemCount === 0 ? (
+                                    <li className="text-center py-4 text-muted">
+                                        <i className="bi bi-cart3 fs-2 d-block mb-2 opacity-50"></i>
+                                        <small>سبد خرید خالی است</small>
+                                    </li>
+                                ) : (
+                                    <>
+                                        <li className="mb-1">
+                                            <small className="text-muted fw-semibold">سبد خرید ({itemCount} مورد)</small>
+                                        </li>
+                                        <li><hr className="dropdown-divider my-2"/></li>
+                                        <div style={{maxHeight: 260, overflowY: 'auto'}}>
+                                            {cartItems.map((item, idx) => (
+                                                <li key={idx} className="d-flex align-items-center py-2 gap-2">
+                                                    <div className="flex-shrink-0">
+                                                        {item.picture ? (
+                                                            <img
+                                                                src={getMediaUrl(item.picture)}
+                                                                alt={item.name}
+                                                                className="rounded"
+                                                                style={{width: 42, height: 42, objectFit: 'cover'}}
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                className="bg-light rounded d-flex align-items-center justify-content-center"
+                                                                style={{width: 42, height: 42}}
+                                                            >
+                                                                <i className="bi bi-mortarboard text-muted small"></i>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-grow-1 overflow-hidden">
+                                                        <p className="mb-0 small fw-medium text-truncate">
+                                                            {item.name || 'آیتم'}
+                                                        </p>
+                                                        {item.price !== undefined && (
+                                                            <small className="text-muted">
+                                                                {(item.new_price && item.new_price > 0
+                                                                    ? item.new_price
+                                                                    : item.price
+                                                                ).toLocaleString('fa-IR')} تومان
+                                                            </small>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        className="btn btn-sm p-0 text-danger flex-shrink-0"
+                                                        style={{lineHeight: 1}}
+                                                        title="حذف"
+                                                        onClick={() => removeFromCart(item.app_label, item.model, item.object_id)}
+                                                    >
+                                                        <i className="bi bi-x-lg small"></i>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </div>
+                                        {totalPrice > 0 && (
+                                            <>
+                                                <li><hr className="dropdown-divider my-2"/></li>
+                                                <li className="d-flex justify-content-between align-items-center pb-1">
+                                                    <small className="fw-bold">مجموع:</small>
+                                                    <small className="fw-bold text-primary">
+                                                        {totalPrice.toLocaleString('fa-IR')} تومان
+                                                    </small>
+                                                </li>
+                                            </>
+                                        )}
+                                        <li className="pb-3 pt-2">
+                                            <a href="/cart/" className="btn btn-primary btn-sm w-100">
+                                                مشاهده سبد خرید
+                                            </a>
+                                        </li>
+                                    </>
+                                )}
+                            </ul>
+                        </div>
+
+                        {/* Profile */}
                         <div className="dropdown ms-1 ms-lg-0">
                             {isAuthenticated && !isLoading ? (
                                 <>
@@ -166,7 +276,7 @@ export default function Navbar() {
                                         <LoadingSkeleton isLoading={isLoading} width="40px" height="40px"
                                                          Content={() => (
                                                              <img className="avatar-img rounded-circle"
-                                                                  src={user?.profile_picture || "/assets/images/element/01.svg"}
+                                                                  src={user?.profile_picture || "/assets/images/auth/default_profile.png"}
                                                                   alt={user?.name || "User"}/>
                                                          )}/>
                                     </a>
@@ -198,6 +308,22 @@ export default function Navbar() {
                                                                      )}/>
                                                 </div>
                                             </div>
+                                        </li>
+                                        <li className="px-3 pb-2">
+                                            {subscription?.is_active ? (
+                                                <div className="d-flex align-items-center gap-2 bg-success bg-opacity-10 border border-success rounded-2 px-2 py-1">
+                                                    <i className="bi bi-star-fill text-success small"></i>
+                                                    <small className="text-success fw-semibold">{subscription.plan.name}</small>
+                                                    <small className="text-muted me-auto">
+                                                        تا {new Intl.DateTimeFormat("fa-IR").format(new Date(subscription.ends_in))}
+                                                    </small>
+                                                </div>
+                                            ) : (
+                                                <a href="/subscriptions/" className="btn btn-sm btn-outline-primary w-100">
+                                                    <i className="bi bi-star me-2"></i>
+                                                    خرید اشتراک
+                                                </a>
+                                            )}
                                         </li>
                                         <li>
                                             <hr className="dropdown-divider"/>
@@ -268,7 +394,7 @@ export default function Navbar() {
                                        data-bs-auto-close="outside" data-bs-display="static" data-bs-toggle="dropdown"
                                        aria-expanded="false">
                                         <img className="avatar-img rounded-circle"
-                                             src={"/assets/images/element/01.svg"}
+                                             src={"/assets/images/auth/default_profile.png"}
                                              alt={"Default Profile"}/>
                                     </a>
                                     <ul className="dropdown-menu dropdown-animation dropdown-menu-end shadow pt-3"

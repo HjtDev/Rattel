@@ -34,19 +34,19 @@ export interface BlogDetail {
   updated_at: string;
 }
 
-export function useBlogDetail(postId: string | null) {
+export function useBlogDetail(postSlug: string | null) {
   const [blogDetail, setBlogDetail] = useState<BlogDetail | null>(null);
   const [isLoadingBlogDetail, setIsLoadingBlogDetail] = useState(false);
   const [blogDetailError, setBlogDetailError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!postId) return;
+    if (!postSlug) return;
 
     setIsLoadingBlogDetail(true);
     setBlogDetailError(null);
 
     api
-      .get(`/blog/${postId}/`)
+      .get(`/blog/${postSlug}/`)
       .then((response) => {
         if (response.data.success) {
           setBlogDetail(response.data.post);
@@ -60,14 +60,14 @@ export function useBlogDetail(postId: string | null) {
       .finally(() => {
         setIsLoadingBlogDetail(false);
       });
-  }, [postId]);
+  }, [postSlug]);
 
   return { blogDetail, setBlogDetail, isLoadingBlogDetail, blogDetailError };
 }
 
-export async function sendBlogViewCount(postId: string): Promise<boolean> {
+export async function sendBlogViewCount(postSlug: string): Promise<boolean> {
   try {
-    const response = await api.get(`/blog/${postId}/view-count/?t=${Date.now()}`);
+    const response = await api.get(`/blog/${postSlug}/view-count/?t=${Date.now()}`);
     return !!response.data?.success;
   } catch {
     return false;

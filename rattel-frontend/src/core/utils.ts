@@ -90,3 +90,20 @@ export async function shareCurrentPage(params: { title?: string; text?: string }
         return "failed";
     }
 }
+
+/**
+ * Converts backend user role value to a Farsi label
+ * @param role - User profile role
+ * @returns user's role in Farsi
+ */
+export const getRoleLabel = (role: string) => {
+    return role == 'student' ? 'قرآن آموز' : 'استاد'
+}
+
+export function truncateText(text: string, desktop_characters: number, mobile_characters: number): string {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const limit = isMobile ? mobile_characters : desktop_characters;
+    if (limit === 0) return "";
+    if (text.length <= limit) return text;
+    return text.slice(0, limit) + "...";
+}

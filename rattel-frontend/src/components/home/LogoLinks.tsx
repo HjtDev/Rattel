@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { fadeInUp, staggerContainer } from "@/src/core/motionVariants";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {getMediaUrl} from "@/src/core/utils";
 import {useRouter} from "next/navigation";
@@ -19,7 +21,7 @@ interface LogoLinkSection {
 function LogoLinkCard({logo_link}: {logo_link: Link} ) {
     const router = useRouter();
     return (
-        <div className="col-6 col-sm-6 col-lg-4 col-xl-3">
+        <motion.div className="col-6 col-sm-6 col-lg-4 col-xl-3" variants={fadeInUp} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
             <div className="card text-center h-100" onClick={(e) => {
                 e.preventDefault();
                 router.push(logo_link.url)
@@ -46,7 +48,7 @@ function LogoLinkCard({logo_link}: {logo_link: Link} ) {
                     </h5>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
@@ -56,23 +58,35 @@ export default function LogoLinks({data, isLoading}: { data: LogoLinkSection | n
     return data && (
         <section>
             <div className="container">
-                <div className="row mb-4">
+                <motion.div
+                    className="row mb-4"
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, amount: 0.3 }}
+                    variants={fadeInUp}
+                >
                     <div className="col-lg-8 mx-auto text-center">
                         <h2 className="fs-3">{data?.title}</h2>
                         <p className="mb-0">{data?.description}</p>
                     </div>
-                </div>
+                </motion.div>
                 <LoadingSkeleton
                     isLoading={isLoading}
                     width="100%"
                     height={220}
                     count={4}
                     Content={() => (
-                        <div className="row g-4">
+                        <motion.div
+                            className="row g-4"
+                            variants={staggerContainer}
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true, amount: 0.05 }}
+                        >
                             {data?.list.map((logo_link, index) => (
                                 <LogoLinkCard key={index} logo_link={logo_link}/>
                             ))}
-                        </div>
+                        </motion.div>
                     )}
                 />
             </div>

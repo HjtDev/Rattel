@@ -74,7 +74,7 @@ export default function AboutUs() {
       <section className="pt-0 pt-md-5">
         <div className="container">
           <div className="row mb-4">
-            <div className="col-lg-8">
+            <div className="col-12 px-4">
               <h2>{aboutUsData?.info_section_title}</h2>
               <div dangerouslySetInnerHTML={{ __html: aboutUsData?.info_section_description || "" }} />
             </div>
@@ -100,7 +100,7 @@ export default function AboutUs() {
               </div>
             ))}
             <div key={"ENAMAD_TRUST_LOGO"} className="col-6 col-sm-4 col-lg-2">
-              <div className="p-4 grayscale text-center" dangerouslySetInnerHTML={{ __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=6175469&Code=GKtCGmkr9hUtZIy914X8HJe7tMOWIQuF'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=6175469&Code=GKtCGmkr9hUtZIy914X8HJe7tMOWIQuF' alt='' style='cursor:pointer' code='GKtCGmkr9hUtZIy914X8HJe7tMOWIQuF'></a>` }} />
+              <div className="p-4 grayscale text-center" dangerouslySetInnerHTML={{ __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=730490&Code=GKtCGmkr9hUtZIy914X8HJe7tMOWIQuF'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=730490&Code=GKtCGmkr9hUtZIy914X8HJe7tMOWIQuF' alt='' style='cursor:pointer' code='GKtCGmkr9hUtZIy914X8HJe7tMOWIQuF'></a>` }} />
             </div>
           </div>
         </div>

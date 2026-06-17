@@ -2,10 +2,8 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Navbar from "@/src/components/layout/Navbar";
-import Footer from "@/src/components/layout/Footer";
 import { useCourses, type SortOption, type DifficultyOption, type CategoryOption, type AgeGroupOption } from "@/src/core/hooks/useCourses";
-import { getMediaUrl } from "@/src/core/utils";
+import {getMediaUrl, truncateText} from "@/src/core/utils";
 import { toggleSaveCourse } from "@/src/core/hooks/useSavedCourses";
 import { toast } from "react-toastify";
 import {useAuth} from "@/src/core/hooks/useAuth";
@@ -191,7 +189,9 @@ function CoursesContent() {
                                     </div>
                                     <form className="col-md-4 border rounded p-1 input-borderless">
                                         <select 
-                                            className="form-select js-choice z-index-9"
+                                            className="form-select js-choice z-index-9 text-rtl"
+                                            id="sorting_select"
+                                            name="sorting_select"
                                             value={sort || ''}
                                             onChange={(e) => { setSort(e.target.value as SortOption || undefined); setPage(1); }}
                                         >
@@ -275,7 +275,7 @@ function CoursesContent() {
                                                                 {course.name}
                                                             </a>
                                                         </h5>
-                                                        <p className="text-truncate-2 d-none d-lg-block" dangerouslySetInnerHTML={{__html: course.short_description}}></p>
+                                                        <p className="text-truncate-2 d-none d-lg-block" dangerouslySetInnerHTML={{__html: truncateText(course.short_description, 100, 0)}}></p>
                                                         <ul className="list-inline">
                                                             <li className="list-inline-item h6 fw-light mb-1 mb-sm-0">
                                                                 <i className="far fa-clock text-danger me-2"></i>

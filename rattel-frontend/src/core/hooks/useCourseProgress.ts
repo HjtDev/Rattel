@@ -54,7 +54,10 @@ export function useCourseProgress(courseId: string | null) {
     const [progressError, setProgressError] = useState<string | null>(null);
     const { isAuthenticated } = useAuth();
 
-    const fetchProgress = async () => {
+    const fetchProgress = async (_courseId: string | null = null) => {
+        if(_courseId) {
+            courseId = _courseId;
+        }
         if (!courseId || !isAuthenticated) return;
 
         setIsLoadingProgress(true);

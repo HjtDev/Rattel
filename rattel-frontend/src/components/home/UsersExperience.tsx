@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { fadeInLeft, fadeInRight } from "@/src/core/motionVariants";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import { getMediaUrl } from "@/src/core/utils";
 
@@ -55,10 +59,16 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
   };
   
   return (
-      <section className="bg-light">
+      <section className="bg-light overflow-hidden">
         <div className="container">
           <div className="row g-4 g-lg-5 align-items-center">
-            <div className="col-xl-7 order-2 order-xl-1">
+            <motion.div
+                className="col-xl-7 order-2 order-xl-1"
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.1 }}
+                variants={fadeInLeft}
+            >
               <div className="row mt-0 mt-xl-5">
                 <div className="col-md-7 position-relative mb-0 mt-0 mt-md-5">
                   <figure className="fill-danger opacity-2 position-absolute top-0 start-0 translate-middle mb-3">
@@ -307,8 +317,14 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="col-xl-5 order-1 text-center text-xl-start">
+            </motion.div>
+            <motion.div
+                className="col-xl-5 order-1 text-center text-xl-start"
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={fadeInRight}
+            >
               <LoadingSkeleton isLoading={isLoading} Content={() => (
                   <h2 className="fs-2">
                     {data?.title}
@@ -319,7 +335,7 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                     {data?.description}
                   </p>
               )} width={435} height={90} />
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>

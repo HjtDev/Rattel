@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { scaleIn } from "@/src/core/motionVariants";
 import LoadingSkeleton from "@/src/components/skeleton/loadingSkeleton";
 import {getMediaUrl} from "@/src/core/utils";
 
@@ -22,7 +26,13 @@ export default function ImagedLinks({data, isLoading}: ImagedLinksProps) {
             <div className="container">
                 <div className="row">
                     <div className="col-md-12">
-                        <div className="bg-light rounded-3 p-4">
+                        <motion.div
+                            className="bg-light rounded-3 p-4"
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true, amount: 0.2 }}
+                            variants={scaleIn}
+                        >
                             <div className="tiny-slider arrow-round arrow-creative arrow-blur arrow-hover py-1">
                                 <div className="tns-outer" id="tns1-ow">
                                     <div className="tns-liveregion tns-visually-hidden" aria-live="polite"
@@ -76,7 +86,7 @@ export default function ImagedLinks({data, isLoading}: ImagedLinksProps) {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>
