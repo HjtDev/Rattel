@@ -125,7 +125,7 @@ class UserSubscription(models.Model):
         Plan,
         on_delete=models.PROTECT,
         related_name='subscriptions',
-        verbose_name=_('Plan'),
+        verbose_name=_('Subscription Plan'),
     )
     started_at = models.DateField(auto_now_add=True, verbose_name=_('Started At'))
     ends_in = models.DateField(verbose_name=_('Ends In'))

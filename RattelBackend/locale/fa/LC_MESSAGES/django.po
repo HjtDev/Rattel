@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RattelBackend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-04 15:15+0000\n"
+"POT-Creation-Date: 2026-06-16 08:05+0000\n"
 "PO-Revision-Date: 2026-05-17 14:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -20,6 +20,371 @@ msgstr ""
 #: authentication/apps.py:7
 msgid "Authentication"
 msgstr "احراز هویت"
+
+#: automatic_class/admin.py:37
+msgid "Request"
+msgstr "درخواست"
+
+#: automatic_class/admin.py:40
+msgid "Admin"
+msgstr "ادمین"
+
+#: automatic_class/admin.py:43 automatic_class/admin.py:99
+#: automatic_class/admin.py:162 blog/admin.py:83 courses/admin.py:110
+#: courses/admin.py:190 courses/progress_admin.py:46 gallery/admin.py:43
+#: gallery/admin.py:80 payment/admin.py:97 subscriptions/admin.py:54
+#: tickets/admin.py:79 tickets/admin.py:199
+msgid "Timestamps"
+msgstr "زمان/تاریخ ها"
+
+#: automatic_class/admin.py:48 automatic_class/admin.py:108
+#: automatic_class/admin.py:173 automatic_class/models.py:61
+#: automatic_class/models.py:374 courses/progress_admin.py:88
+#: payment/admin.py:112 tickets/admin.py:90 tickets/models.py:111
+msgid "Status"
+msgstr "وضعیت"
+
+#: automatic_class/admin.py:81
+msgid "Participants"
+msgstr "شرکت کننده ها"
+
+#: automatic_class/admin.py:84
+msgid "Plan Parameters"
+msgstr "متغییر ها"
+
+#: automatic_class/admin.py:90
+msgid "User Availability"
+msgstr "دسترسی کاربر"
+
+#: automatic_class/admin.py:93
+msgid "Status & Notes"
+msgstr "وضعیت و نوت ها"
+
+#: automatic_class/admin.py:96 automatic_class/admin.py:123
+#: courses/progress_admin.py:43
+msgid "Progress"
+msgstr "پیشرفت"
+
+#: automatic_class/admin.py:104 automatic_class/admin.py:167
+msgid "Pages"
+msgstr "صفحات"
+
+#: automatic_class/admin.py:132
+msgid "Total Steps"
+msgstr "کل مراحل"
+
+#: automatic_class/admin.py:150
+msgid "Step"
+msgstr "مرحله"
+
+#: automatic_class/admin.py:153 blog/models.py:102 tickets/models.py:86
+msgid "Content"
+msgstr "محتوا"
+
+#: automatic_class/admin.py:156
+msgid "Schedule & Status"
+msgstr "برنامه و وضعیت"
+
+#: automatic_class/admin.py:159 automatic_class/admin.py:198
+msgid "Notes"
+msgstr "یادداشت/نوت"
+
+#: automatic_class/apps.py:8
+msgid "Automatic Class System"
+msgstr "سیستم کلاس اتوماتیک"
+
+#: automatic_class/models.py:31 automatic_class/models.py:116
+msgid "Class Request"
+msgstr "درخواست کلاس"
+
+#: automatic_class/models.py:32
+msgid "Class Requests"
+msgstr "درخواست های کلاس"
+
+#: automatic_class/models.py:40
+msgid "Pending Admin"
+msgstr "منتظر ادمین"
+
+#: automatic_class/models.py:41
+msgid "Contacted"
+msgstr "تماس کرفته شد"
+
+#: automatic_class/models.py:42
+msgid "Plan Created"
+msgstr "برنامه ایجاد شد"
+
+#: automatic_class/models.py:43
+msgid "Rejected"
+msgstr "رد شده"
+
+#: automatic_class/models.py:51 blog/models.py:100 cart/models.py:22
+#: courses/progress_admin.py:58 courses/progress_models.py:31
+#: payment/models.py:43 subscriptions/models.py:122 tickets/models.py:102
+#: users/models.py:68 users/models.py:151 users/models.py:179
+msgid "User"
+msgstr "کاربر"
+
+#: automatic_class/models.py:54
+msgid "User Notes"
+msgstr "یادداشت های کاربر"
+
+#: automatic_class/models.py:55 automatic_class/models.py:185
+msgid "Admin Notes"
+msgstr "یادداشت های ادمین"
+
+#: automatic_class/models.py:64 automatic_class/models.py:187
+#: automatic_class/models.py:394 blog/models.py:13 blog/models.py:32
+#: blog/models.py:64 blog/models.py:101 courses/models.py:64
+#: courses/models.py:234 courses/models.py:258 courses/progress_models.py:74
+#: gallery/models.py:19 gallery/models.py:59 siteconfig/models.py:494
+#: subscriptions/models.py:60 tickets/models.py:128
+msgid "Created At"
+msgstr "تاریخ ایجاد"
+
+#: automatic_class/models.py:65 automatic_class/models.py:188 blog/models.py:65
+#: courses/models.py:65 courses/models.py:235 gallery/models.py:20
+#: gallery/models.py:60 subscriptions/models.py:61 tickets/models.py:129
+msgid "Updated At"
+msgstr "تاریخ آپدیت"
+
+#: automatic_class/models.py:78
+msgid "Automatic Plan"
+msgstr "برنامه خودکار"
+
+#: automatic_class/models.py:79
+msgid "Automatic Plans"
+msgstr "برنامه های خودکار"
+
+#: automatic_class/models.py:86
+msgid "Per Day"
+msgstr "روزانه"
+
+#: automatic_class/models.py:87
+msgid "Per Two Days"
+msgstr "یک روز در میان"
+
+#: automatic_class/models.py:90
+msgid "Half Page"
+msgstr "نیم صفحه"
+
+#: automatic_class/models.py:91 automatic_class/models.py:327
+msgid "Full Page"
+msgstr "تمام صفحه"
+
+#: automatic_class/models.py:94
+msgid "Odd Days (Sun, Tue, Thu)"
+msgstr "روز های فرد"
+
+#: automatic_class/models.py:95
+msgid "Even Days (Sat, Mon, Wed)"
+msgstr "روز های زوج"
+
+#: automatic_class/models.py:98
+msgid "9 AM – 11 AM"
+msgstr "ساعت ۹ تا ۱۱ صبح"
+
+#: automatic_class/models.py:99
+msgid "3 PM – 5 PM"
+msgstr "ساعت ۳ تا ۵ بعد از ظهر"
+
+#: automatic_class/models.py:100
+msgid "7 PM – 9 PM"
+msgstr "ساعت ۷ تا ۹ شب"
+
+#: automatic_class/models.py:103
+msgid "Draft"
+msgstr "در حال تنظیم"
+
+#: automatic_class/models.py:104 subscriptions/admin.py:13
+#: subscriptions/admin.py:92 users/models.py:84
+msgid "Active"
+msgstr "دسترسی به حساب کاربری"
+
+#: automatic_class/models.py:105 automatic_class/models.py:334
+#: courses/progress_admin.py:82 courses/progress_models.py:51
+msgid "Completed"
+msgstr "کامل شده"
+
+#: automatic_class/models.py:106
+msgid "Cancelled"
+msgstr "کمسل شده"
+
+#: automatic_class/models.py:123 users/models.py:144
+msgid "Student"
+msgstr "قرآن آموز"
+
+#: automatic_class/models.py:131 courses/models.py:39 users/models.py:145
+msgid "Teacher"
+msgstr "استاد"
+
+#: automatic_class/models.py:136
+msgid "Start Page"
+msgstr "صفحه شروع"
+
+#: automatic_class/models.py:140
+msgid "End Page"
+msgstr "صفحه پایان"
+
+#: automatic_class/models.py:143
+msgid "Start Date"
+msgstr "تاریخ شروع"
+
+#: automatic_class/models.py:144
+msgid "Target Finish Date"
+msgstr "تاریخ پایان دوره"
+
+#: automatic_class/models.py:150
+msgid "Study Frequency"
+msgstr "تناوب مطالعه"
+
+#: automatic_class/models.py:157
+msgid "Reading Amount per Session"
+msgstr "مقدار به مطالعه در هر روز"
+
+#: automatic_class/models.py:163
+msgid "Review Every N Pages"
+msgstr "ریویو به ازای هر جند صفحه"
+
+#: automatic_class/models.py:169
+msgid "Available Days"
+msgstr "روز های در دسترسی"
+
+#: automatic_class/models.py:175
+msgid "Preferred Time Slot"
+msgstr "زمان های درر دسترس"
+
+#: automatic_class/models.py:182
+msgid "Plan Status"
+msgstr "وضعیت برنامه"
+
+#: automatic_class/models.py:194
+msgid "Steps Generated"
+msgstr "مراحل ایجاد شدند"
+
+#: automatic_class/models.py:200
+msgid "End page must be greater than start page."
+msgstr "صفحه پایان باید بزرگتر از صفحه شروع باشد"
+
+#: automatic_class/models.py:202
+msgid "Finish date must be after start date."
+msgstr "تاریخ پایان باید از تاریخ شروع جلوتر باشد"
+
+#: automatic_class/models.py:312
+msgid "Plan Step"
+msgstr "مرحله"
+
+#: automatic_class/models.py:313
+msgid "Plan Steps"
+msgstr "مراحل"
+
+#: automatic_class/models.py:322
+msgid "Memorize"
+msgstr "حفظ"
+
+#: automatic_class/models.py:323
+msgid "Review"
+msgstr "بازبینی(ریویو)"
+
+#: automatic_class/models.py:324
+msgid "Final Review"
+msgstr "بازبینی نهایی"
+
+#: automatic_class/models.py:328
+msgid "First Half"
+msgstr "نیمه اول صفحه"
+
+#: automatic_class/models.py:329
+msgid "Second Half"
+msgstr "نیمه دوم صفحه"
+
+#: automatic_class/models.py:332 payment/models.py:36
+msgid "Pending"
+msgstr "در انتظار"
+
+#: automatic_class/models.py:333
+msgid "Delayed"
+msgstr "تاخیر خورده"
+
+#: automatic_class/models.py:335
+msgid "Skipped"
+msgstr "رد شده"
+
+#: automatic_class/models.py:343 automatic_class/models.py:440
+msgid "Plan"
+msgstr "برنامه خودکار"
+
+#: automatic_class/models.py:346
+msgid "Step Number"
+msgstr "شماره مرحله"
+
+#: automatic_class/models.py:351
+msgid "Scheduled Date"
+msgstr "تاریخ برنامه ریزی شده"
+
+#: automatic_class/models.py:357
+msgid "Step Type"
+msgstr "نوع مرحله"
+
+#: automatic_class/models.py:360
+msgid "Page Start"
+msgstr "صفحه شروع"
+
+#: automatic_class/models.py:361
+msgid "Page End"
+msgstr "صفحه پایان"
+
+#: automatic_class/models.py:367
+msgid "Sub Part"
+msgstr "بخش"
+
+#: automatic_class/models.py:379
+msgid "Was Delayed"
+msgstr "تاخیر خورده"
+
+#: automatic_class/models.py:380
+msgid ""
+"True if this step was completed or carried over past its scheduled date."
+msgstr "اگر این مرحله کامل شده است تیک بزنید."
+
+#: automatic_class/models.py:386
+msgid "Original Scheduled Date"
+msgstr "تاریخ برنامه ریزی شده اصلی"
+
+#: automatic_class/models.py:387
+msgid "Set when a pending step is pushed past its scheduled date."
+msgstr "وقتی یک مرحله از زمان برنامه ریزی شده بدون کامل شدن گذشت تنظیم کنید."
+
+#: automatic_class/models.py:390
+msgid "Completed At"
+msgstr "تاریخ تکمیل"
+
+#: automatic_class/models.py:391
+msgid "Delay Reason"
+msgstr "علت تاخیر"
+
+#: automatic_class/models.py:392
+msgid "Admin Note"
+msgstr "یادداشت ادمین"
+
+#: automatic_class/models.py:430
+msgid "Admin Call Log"
+msgstr "تاریخچه تماس ادمین"
+
+#: automatic_class/models.py:431
+msgid "Admin Call Logs"
+msgstr "تاریخچه تماس های ادمین"
+
+#: automatic_class/models.py:448
+msgid "Called By"
+msgstr "تماس گیرنده"
+
+#: automatic_class/models.py:451
+msgid "Call Notes"
+msgstr "یادداشت های تماس"
+
+#: automatic_class/models.py:452
+msgid "Call Date"
+msgstr "تاریخ تماس"
 
 #: blog/admin.py:15 blog/admin.py:29
 msgid "Basic Info"
@@ -48,13 +413,6 @@ msgstr "وضعیت و انتشار"
 #: blog/admin.py:80
 msgid "Engagement"
 msgstr "فعالیت های کاربران"
-
-#: blog/admin.py:83 courses/admin.py:110 courses/admin.py:190
-#: courses/progress_admin.py:46 gallery/admin.py:43 gallery/admin.py:80
-#: payment/admin.py:97 subscriptions/admin.py:54 tickets/admin.py:79
-#: tickets/admin.py:199
-msgid "Timestamps"
-msgstr "زمان/تاریخ ها"
 
 #: blog/admin.py:88 blog/models.py:61 courses/models.py:41
 msgid "Saved By"
@@ -101,13 +459,6 @@ msgstr "نام"
 #: blog/models.py:12 blog/models.py:31 blog/models.py:51
 msgid "Slug"
 msgstr "اسلاگ"
-
-#: blog/models.py:13 blog/models.py:32 blog/models.py:64 blog/models.py:101
-#: courses/models.py:64 courses/models.py:234 courses/models.py:258
-#: courses/progress_models.py:74 gallery/models.py:19 gallery/models.py:59
-#: siteconfig/models.py:494 subscriptions/models.py:60 tickets/models.py:128
-msgid "Created At"
-msgstr "تاریخ ایجاد"
 
 #: blog/models.py:16
 msgid "Blog Category"
@@ -181,12 +532,6 @@ msgstr "نمایش در سایت"
 msgid "Published At"
 msgstr "منتشر شده در"
 
-#: blog/models.py:65 courses/models.py:65 courses/models.py:235
-#: gallery/models.py:20 gallery/models.py:60 subscriptions/models.py:61
-#: tickets/models.py:129
-msgid "Updated At"
-msgstr "تاریخ آپدیت"
-
 #: blog/models.py:68
 msgid "Blog Post"
 msgstr "پست"
@@ -194,17 +539,6 @@ msgstr "پست"
 #: blog/models.py:69
 msgid "Blog Posts"
 msgstr "پست ها"
-
-#: blog/models.py:100 cart/models.py:22 courses/progress_admin.py:58
-#: courses/progress_models.py:31 payment/models.py:43
-#: subscriptions/models.py:122 tickets/models.py:102 users/models.py:68
-#: users/models.py:151 users/models.py:179
-msgid "User"
-msgstr "کاربر"
-
-#: blog/models.py:102 tickets/models.py:86
-msgid "Content"
-msgstr "محتوا"
 
 #: blog/models.py:109
 msgid "Reply To"
@@ -318,10 +652,6 @@ msgstr "تدبر"
 #: courses/models.py:36
 msgid "Course ID"
 msgstr "آیدی دوره"
-
-#: courses/models.py:39 users/models.py:145
-msgid "Teacher"
-msgstr "استاد"
 
 #: courses/models.py:40 subscriptions/models.py:55
 msgid "Bought By"
@@ -438,22 +768,9 @@ msgstr "شمارش شده"
 msgid "User & Content"
 msgstr "متن نظر برگزیده اول"
 
-#: courses/progress_admin.py:43
-msgid "Progress"
-msgstr "پیشرفت"
-
-#: courses/progress_admin.py:82 courses/progress_models.py:51
-msgid "Completed"
-msgstr "کامل شده"
-
 #: courses/progress_admin.py:86 tickets/models.py:73
 msgid "In Progress"
 msgstr "در حال مشاهده"
-
-#: courses/progress_admin.py:88 payment/admin.py:112 tickets/admin.py:90
-#: tickets/models.py:111
-msgid "Status"
-msgstr "وضعیت"
 
 #: courses/progress_models.py:17 courses/progress_models.py:18
 msgid "Episode Progress"
@@ -507,7 +824,7 @@ msgstr "متوسط"
 msgid "Has File"
 msgstr "فایل"
 
-#: gallery/models.py:12 gallery/models.py:52
+#: gallery/apps.py:8 gallery/models.py:12 gallery/models.py:52
 msgid "Gallery"
 msgstr "گالری"
 
@@ -642,10 +959,6 @@ msgstr "مالیات"
 #: payment/models.py:33
 msgid "Adjustment"
 msgstr "فایل"
-
-#: payment/models.py:36
-msgid "Pending"
-msgstr "در انتظار پرداخت"
 
 #: payment/models.py:37
 msgid "Success"
@@ -1795,10 +2108,6 @@ msgstr "جواب"
 msgid "Order of the FAQ. Lower number appears first."
 msgstr "ترتیب نمایش سوالات"
 
-#: subscriptions/admin.py:13 subscriptions/admin.py:92 users/models.py:84
-msgid "Active"
-msgstr "دسترسی به حساب کاربری"
-
 #: subscriptions/admin.py:48
 msgid "Features"
 msgstr "ویژگی ها"
@@ -1808,11 +2117,10 @@ msgid "Subscribers"
 msgstr "خریداران"
 
 #: subscriptions/apps.py:8
-#| msgid "User Subscriptions"
 msgid "Subscriptions"
 msgstr "اشتراک ها"
 
-#: subscriptions/models.py:15
+#: subscriptions/models.py:15 subscriptions/models.py:128
 msgid "Subscription Plan"
 msgstr "پلن"
 
@@ -1871,10 +2179,6 @@ msgstr "اشتراک کاربر"
 #: subscriptions/models.py:115
 msgid "User Subscriptions"
 msgstr "اشتراک کاربران"
-
-#: subscriptions/models.py:128
-msgid "Plan"
-msgstr "اشتراک"
 
 #: subscriptions/models.py:130
 msgid "Started At"
@@ -2063,10 +2367,6 @@ msgstr "تاریخ ایجاد حساب"
 #: users/models.py:90
 msgid "Course History"
 msgstr "سابقه دوره های مشاهده شده"
-
-#: users/models.py:144
-msgid "Student"
-msgstr "قرآن آموز"
 
 #: users/models.py:148
 msgid "Male"

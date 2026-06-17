@@ -107,6 +107,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - INTERNAL_API_URL=http://backend:8000/api/v1
       - WATCHPACK_POLLING=true
     depends_on:
       backend:
