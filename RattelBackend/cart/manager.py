@@ -118,7 +118,13 @@ class CartManager:
             if item_obj is None:
                 logger.error(f'Object with id={object_id} does not exist for "{app_label}.{model}".')
                 return False, 'Item does not exist.'
-            if hasattr(item_obj, 'bought_by') and item_obj.bought_by.filter(pk=self.user.pk).exists():
+            if hasattr(item_obj, 'is_owned_by'):
+                already_owned = item_obj.is_owned_by(self.user)
+            elif hasattr(item_obj, 'bought_by'):
+                already_owned = item_obj.bought_by.filter(pk=self.user.pk).exists()
+            else:
+                already_owned = False
+            if already_owned:
                 logger.info(
                     f'User {self.user.pk} already owns "{app_label}.{model}" id={object_id}. '
                     f'Blocked cart add.'

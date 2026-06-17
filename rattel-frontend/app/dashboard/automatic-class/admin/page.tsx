@@ -703,7 +703,7 @@ function AdminClassContent() {
             // Refresh requests so the linked request card reflects plan_created status
             fetchAdminRequests(reqStatusFilter === "all" ? undefined : reqStatusFilter);
         } else {
-            toast.error(result.message || "خطا در ایجاد برنامه");
+            toast.error("خطا در ایجاد برنامه");
         }
     };
 
@@ -712,7 +712,7 @@ function AdminClassContent() {
         if (result.success) {
             toast.success("وضعیت درخواست به‌روز شد");
         } else {
-            toast.error(result.message || "خطا");
+            toast.error("خطا در به‌روزرسانی وضعیت درخواست");
         }
     };
 
@@ -728,7 +728,7 @@ function AdminClassContent() {
             toast.success("وضعیت برنامه به‌روز شد");
             fetchAdminPlanDetail(activePlan.id);
         } else {
-            toast.error(result.message || "خطا");
+            toast.error("خطا در به‌روزرسانی وضعیت برنامه");
         }
     };
 
@@ -737,7 +737,7 @@ function AdminClassContent() {
         if (result.success) {
             toast.success("مرحله به‌روز شد");
         } else {
-            toast.error(result.message || "خطا");
+            toast.error("خطا در به‌روزرسانی مرحله");
         }
     };
 
@@ -747,7 +747,7 @@ function AdminClassContent() {
         if (result.success) {
             toast.success("تماس ثبت شد");
         } else {
-            toast.error(result.message || "خطا");
+            toast.error("خطا در ثبت تماس");
         }
     };
 
@@ -1000,7 +1000,7 @@ function QuickCallForm({ plans, onLog }: { plans: AdminPlan[]; onLog: (planId: s
             toast.success("تماس ثبت شد");
             setNotes("");
         } else {
-            toast.error(result.message || "خطا");
+            toast.error("خطا در ثبت تماس");
         }
         setSaving(false);
     };
