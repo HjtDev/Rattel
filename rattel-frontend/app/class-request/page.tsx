@@ -116,12 +116,12 @@ export default function ClassRequestPage() {
         setSubmitting(true);
         const result = await submitClassRequest(notes);
         if (result.success) {
-            toast.success(result.message || "درخواست شما با موفقیت ثبت شد");
+            toast.success("درخواست شما با موفقیت ثبت شد");
             setNotes("");
         } else if (result.error === -1) {
             toast.warning("شما قبلاً یک درخواست فعال ثبت کرده‌اید.");
         } else {
-            toast.error(result.message || "خطا در ثبت درخواست");
+            toast.error("خطا در ثبت درخواست");
         }
         setSubmitting(false);
     };

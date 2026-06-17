@@ -75,6 +75,15 @@ class Plan(models.Model):
     def has_online_class_access(self):
         return self.online_class_limit > self.OnlineClassLimit.NONE
 
+    def is_owned_by(self, user):
+        """Returns True only if the user has an active (non-expired) subscription for this exact plan."""
+        today = timezone.now().date()
+        try:
+            sub = user.subscription
+            return sub.plan_id == self.pk and sub.ends_in >= today
+        except UserSubscription.DoesNotExist:
+            return False
+
     def add_user(self, user):
         """Called by payment system on successful purchase. Creates or extends the user's subscription."""
         self.bought_by.add(user)

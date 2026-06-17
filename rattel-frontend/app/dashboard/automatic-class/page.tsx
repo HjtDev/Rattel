@@ -279,7 +279,7 @@ function AutomaticClassContent() {
             fetchTodaySteps();
             if (progressData) fetchProgress();
         } else {
-            toast.error(r.message || "خطا");
+            toast.error("خطا در تکمیل مرحله");
         }
     };
 
@@ -288,7 +288,7 @@ function AutomaticClassContent() {
         if (r.success) {
             toast.info("دلیل تأخیر ثبت شد.");
         } else {
-            toast.error(r.message || "خطا");
+            toast.error("خطا در ثبت تأخیر");
         }
     };
 
