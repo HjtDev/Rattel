@@ -6,7 +6,7 @@ import DashboardBase from "@/src/components/dashboard/DashboardBase";
 import { useAutomaticClass } from "@/src/core/hooks/useAutomaticClass";
 import { toast } from "react-toastify";
 import { fadeInUp, staggerContainer, scaleIn } from "@/src/core/motionVariants";
-import type { PlanStep } from "@/src/core/automatic-class/automaticClassManager";
+import type { PlanStep, UserCallSession } from "@/src/core/automatic-class/automaticClassManager";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -18,12 +18,14 @@ function formatDate(d: string | null): string {
 function stepTypeIcon(type: string): string {
     if (type === "memorize") return "bi-book-fill";
     if (type === "review") return "bi-arrow-repeat";
+    if (type === "extra_review") return "bi-arrow-counterclockwise";
     return "bi-trophy-fill";
 }
 
 function stepTypeColor(type: string): string {
     if (type === "memorize") return "primary";
     if (type === "review") return "warning";
+    if (type === "extra_review") return "info";
     return "success";
 }
 
@@ -45,6 +47,7 @@ function statusLabel(status: string): string | null {
 function stepTypeLabel(type: string): string {
     if (type === "memorize") return "حفظ";
     if (type === "review") return "مرور";
+    if (type === "extra_review") return "مرور اضافه";
     return "مرور نهایی";
 }
 
@@ -581,6 +584,24 @@ function AutomaticClassContent() {
                                                 </motion.div>
                                             ))}
 
+                                            {/* Extra review range — only shown when configured */}
+                                            {plan.extra_review_pages_per_session > 0 && plan.extra_review_start_page != null && plan.extra_review_end_page != null && (
+                                                <motion.div className="col-12" variants={fadeInUp}>
+                                                    <div className="card border-0 bg-info bg-opacity-10 rounded-3 p-3">
+                                                        <div className="d-flex align-items-center gap-2 mb-2">
+                                                            <i className="bi bi-arrow-counterclockwise text-info" />
+                                                            <span className="small text-muted fw-semibold">بازه مرور اضافی</span>
+                                                        </div>
+                                                        <div className="fw-bold">
+                                                            صفحات {plan.extra_review_start_page} تا {plan.extra_review_end_page}
+                                                            <span className="fw-normal text-muted small ms-2">
+                                                                ({plan.extra_review_pages_per_session} صفحه در هر جلسه، حلقوی)
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+
                                             {plan.teacher_display && (
                                                 <motion.div className="col-12" variants={fadeInUp}>
                                                     <div className="card border-0 bg-light rounded-3 p-3">
@@ -592,6 +613,43 @@ function AutomaticClassContent() {
                                                                 <div className="small text-muted">استاد شما</div>
                                                                 <div className="fw-bold">{plan.teacher_display.username}</div>
                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+
+                                            {/* Online call sessions — read-only view for student */}
+                                            {plan.call_sessions && plan.call_sessions.length > 0 && (
+                                                <motion.div className="col-12" variants={fadeInUp}>
+                                                    <div className="card border-0 bg-light rounded-3 p-3">
+                                                        <div className="d-flex align-items-center gap-2 mb-3">
+                                                            <i className="bi bi-headset text-primary" />
+                                                            <span className="fw-semibold small">جلسات تماس آنلاین</span>
+                                                            <span className="text-muted small ms-auto">
+                                                                {plan.call_sessions.filter((s: UserCallSession) => s.status === "completed").length}/{plan.call_sessions.length} برگزار شده
+                                                            </span>
+                                                        </div>
+                                                        <div className="d-flex flex-wrap gap-2">
+                                                            {plan.call_sessions.map((session: UserCallSession) => (
+                                                                <div
+                                                                    key={session.id}
+                                                                    className={`d-flex align-items-center gap-2 rounded-3 px-3 py-2 small fw-semibold ${
+                                                                        session.status === "completed"
+                                                                            ? "bg-success bg-opacity-10 text-success"
+                                                                            : session.status === "no_answer"
+                                                                            ? "bg-warning bg-opacity-10 text-warning"
+                                                                            : "bg-white border text-muted"
+                                                                    }`}
+                                                                >
+                                                                    <i className={`bi ${session.status === "completed" ? "bi-check-circle-fill" : session.status === "no_answer" ? "bi-telephone-x-fill" : "bi-circle"}`} />
+                                                                    جلسه {session.session_number}
+                                                                    {session.status === "completed" && session.completed_at && (
+                                                                        <span className="fw-normal opacity-75" style={{ fontSize: "0.7rem" }}>
+                                                                            {new Intl.DateTimeFormat("fa-IR", { month: "short", day: "numeric" }).format(new Date(session.completed_at))}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 </motion.div>
