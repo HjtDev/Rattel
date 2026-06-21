@@ -8,6 +8,9 @@ import { useAuth } from "@/src/core/hooks/useAuth";
 import { toast } from "react-toastify";
 import { fadeInUp, staggerContainer, scaleIn } from "@/src/core/motionVariants";
 import type { AdminClassRequest, AdminPlan, CallSessionStatus, CreatePlanPayload, OnlineCallSession } from "@/src/core/automatic-class/automaticClassManager";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -53,6 +56,17 @@ function stepStatusColor(status: string): string {
     if (status === "delayed") return "danger";
     if (status === "skipped") return "secondary";
     return "primary";
+}
+
+function parseGregorianToDate(s: string): Date | null {
+    if (!s) return null;
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d);
+}
+
+function dateObjToGregorian(dateObj: any): string {
+    const d: Date = dateObj.toDate();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 // ─── Create Plan Modal ────────────────────────────────────────────────────────
@@ -182,22 +196,30 @@ function CreatePlanModal({
                                 </div>
                                 <div className="col-sm-6">
                                     <label className="form-label fw-semibold">تاریخ شروع *</label>
-                                    <input
-                                        type="date"
-                                        className="form-control rounded-3"
-                                        value={form.start_date}
-                                        onChange={(e) => set("start_date", e.target.value)}
-                                        required
+                                    <DatePicker
+                                        value={parseGregorianToDate(form.start_date)}
+                                        onChange={(dateObj: any) => set("start_date", dateObj ? dateObjToGregorian(dateObj) : "")}
+                                        calendar={persian}
+                                        locale={persian_fa}
+                                        format="YYYY/MM/DD"
+                                        inputClass="form-control rounded-3"
+                                        containerStyle={{ width: "100%" }}
+                                        portal
+                                        zIndex={1200}
                                     />
                                 </div>
                                 <div className="col-sm-6">
                                     <label className="form-label fw-semibold">هدف پایان *</label>
-                                    <input
-                                        type="date"
-                                        className="form-control rounded-3"
-                                        value={form.time_to_finish}
-                                        onChange={(e) => set("time_to_finish", e.target.value)}
-                                        required
+                                    <DatePicker
+                                        value={parseGregorianToDate(form.time_to_finish)}
+                                        onChange={(dateObj: any) => set("time_to_finish", dateObj ? dateObjToGregorian(dateObj) : "")}
+                                        calendar={persian}
+                                        locale={persian_fa}
+                                        format="YYYY/MM/DD"
+                                        inputClass="form-control rounded-3"
+                                        containerStyle={{ width: "100%" }}
+                                        portal
+                                        zIndex={1200}
                                     />
                                 </div>
                                 <div className="col-sm-6">

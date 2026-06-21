@@ -16,6 +16,7 @@
     "next": "16.0.10",
     "react": "19.2.1",
     "react-dom": "19.2.1",
+    "react-multi-date-picker": "^4.5.2",
     "react-toastify": "^11.0.5"
   },
   "devDependencies": {
