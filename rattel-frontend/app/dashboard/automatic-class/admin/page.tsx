@@ -432,6 +432,63 @@ function RequestCard({
     );
 }
 
+// ─── Confirm Dialog ──────────────────────────────────────────────────────────
+
+function ConfirmDialog({
+    title,
+    message,
+    confirmLabel,
+    onConfirm,
+    onCancel,
+}: {
+    title: string;
+    message: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+}) {
+    const shouldReduceMotion = useReducedMotion();
+    return (
+        <motion.div
+            className="modal show d-block"
+            tabIndex={-1}
+            style={{ backgroundColor: "rgba(0,0,0,0.7)", zIndex: 1060 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+        >
+            <motion.div
+                className="modal-dialog modal-dialog-centered"
+                style={{ maxWidth: 420 }}
+                initial={shouldReduceMotion ? false : { scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+            >
+                <div className="modal-content rounded-4 border-0 shadow-lg">
+                    <div className="modal-body p-4 text-center">
+                        <div className="mb-3">
+                            <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10" style={{ width: 56, height: 56 }}>
+                                <i className="bi bi-exclamation-triangle-fill text-danger fs-4" />
+                            </span>
+                        </div>
+                        <h6 className="fw-bold mb-2">{title}</h6>
+                        <p className="text-muted small mb-4">{message}</p>
+                        <div className="d-flex gap-2 justify-content-center">
+                            <button className="btn btn-outline-secondary rounded-pill px-4" onClick={onCancel}>
+                                انصراف
+                            </button>
+                            <button className="btn btn-danger rounded-pill px-4" onClick={onConfirm}>
+                                {confirmLabel}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+}
+
 // ─── Plan Detail Drawer ───────────────────────────────────────────────────────
 
 function PlanDetailDrawer({
@@ -456,6 +513,7 @@ function PlanDetailDrawer({
     const [loggingCall, setLoggingCall] = useState(false);
     const [editingStep, setEditingStep] = useState<string | null>(null);
     const [stepNote, setStepNote] = useState("");
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
     const handleLogCall = async () => {
         if (!callNotes.trim()) { toast.warning("یادداشت تماس را وارد کنید"); return; }
@@ -524,7 +582,7 @@ function PlanDetailDrawer({
                                             </button>
                                         )}
                                         {plan.status === "active" && (
-                                            <button className="btn btn-outline-danger btn-sm rounded-pill" onClick={() => onStatusChange("cancelled")}>
+                                            <button className="btn btn-outline-danger btn-sm rounded-pill" onClick={() => setShowCancelConfirm(true)}>
                                                 <i className="bi bi-stop-fill me-1" />لغو
                                             </button>
                                         )}
@@ -767,6 +825,18 @@ function PlanDetailDrawer({
                     </div>
                 </div>
             </motion.div>
+
+            <AnimatePresence>
+                {showCancelConfirm && (
+                    <ConfirmDialog
+                        title="لغو برنامه"
+                        message="آیا مطمئن هستید که می‌خواهید این برنامه را لغو کنید؟ کاربر دیگر نمی‌تواند پیشرفتی ثبت کند."
+                        confirmLabel="بله، لغو شود"
+                        onConfirm={() => { setShowCancelConfirm(false); onStatusChange("cancelled"); }}
+                        onCancel={() => setShowCancelConfirm(false)}
+                    />
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
