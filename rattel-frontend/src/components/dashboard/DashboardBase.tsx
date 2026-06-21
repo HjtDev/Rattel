@@ -159,7 +159,7 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     </i>
                                                     پست های نشان شده
                                                 </a>
-                                                <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class", pathname) ? "active" : ""}`} href="/dashboard/automatic-class">
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class", pathname, true) ? "active" : ""}`} href="/dashboard/automatic-class">
                                                     <i className="bi bi-journal-bookmark-fill fa-fw me-2">
                                                     </i>
                                                     کلاس خودکار حفظ
