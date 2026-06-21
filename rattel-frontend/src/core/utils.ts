@@ -25,15 +25,11 @@ export function getMediaUrl(path: string | null | undefined): string {
  * @param pathname - Current pathname from usePathname()
  * @returns true if the link should be active
  */
-export function isLinkActive(href: string, pathname: string): boolean {
-    // Exact match for root paths
-    if (href === '/' || href === '/dashboard') {
+export function isLinkActive(href: string, pathname: string, exact = false): boolean {
+    if (exact || href === '/' || href === '/dashboard') {
         return pathname === href;
     }
-    
-    // For other paths, check if pathname starts with href
-    // This handles nested routes like /dashboard/personal-information
-    return pathname.startsWith(href);
+    return pathname === href || pathname.startsWith(href + '/');
 }
 
 /**

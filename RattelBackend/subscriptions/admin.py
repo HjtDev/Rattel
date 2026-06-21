@@ -10,7 +10,7 @@ class UserSubscriptionInline(admin.TabularInline):
     fields = ('user', 'started_at', 'ends_in', 'is_active_display')
     readonly_fields = ('is_active_display', 'started_at')
 
-    @admin.display(description=_('Active'))
+    @admin.display(description=_('Active Subscription'))
     def is_active_display(self, obj):
         if obj.is_active:
             return format_html('<span style="color:green;font-weight:bold;">✓</span>')
@@ -89,7 +89,7 @@ class UserSubscriptionAdmin(admin.ModelAdmin):
     list_select_related = ('user', 'plan')
     readonly_fields = ('is_active_display', 'started_at')
 
-    @admin.display(description=_('Active'))
+    @admin.display(description=_('Active Subscription'))
     def is_active_display(self, obj):
         if obj.is_active:
             return format_html('<span style="color:green;font-weight:bold;">Active</span>')

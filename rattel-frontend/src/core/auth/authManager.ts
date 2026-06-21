@@ -45,6 +45,7 @@ class AuthManager {
     private user: User | null = null;
     private tokens: AuthTokens | null = null;
     private refreshTimeout: NodeJS.Timeout | null = null;
+    private refreshInProgress: Promise<boolean> | null = null;
     private listeners: Set<(user: User | null) => void> = new Set();
 
     private constructor() {
@@ -180,6 +181,22 @@ class AuthManager {
             return false;
         }
 
+        if (this.refreshInProgress) {
+            return this.refreshInProgress;
+        }
+
+        this.refreshInProgress = this._doRefreshAccessToken().finally(() => {
+            this.refreshInProgress = null;
+        });
+
+        return this.refreshInProgress;
+    }
+
+    private async _doRefreshAccessToken(): Promise<boolean> {
+        if (!this.tokens?.refresh) {
+            return false;
+        }
+
         try {
             const response = await api.post("/auth/refresh/", {
                 refresh: this.tokens.refresh,
@@ -187,7 +204,7 @@ class AuthManager {
 
             if (response.data.success) {
                 this.tokens.access = response.data.access;
-                
+
                 // Update refresh token if rotated
                 if (response.data.refresh) {
                     this.tokens.refresh = response.data.refresh;

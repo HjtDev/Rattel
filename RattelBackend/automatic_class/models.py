@@ -101,7 +101,7 @@ class AutomaticPlan(models.Model):
 
     class Status(models.TextChoices):
         DRAFT = 'draft', _('Draft')
-        ACTIVE = 'active', _('Active')
+        ACTIVE = 'active', _('Active Plan')
         COMPLETED = 'completed', _('Completed')
         CANCELLED = 'cancelled', _('Cancelled')
 
