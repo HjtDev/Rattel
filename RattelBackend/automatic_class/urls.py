@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     AdminCallLogCreateView,
+    AdminCallSessionUpdateView,
     AdminClassRequestDetailView,
     AdminClassRequestListView,
     AdminPlanDetailView,
@@ -40,4 +41,7 @@ urlpatterns = [
 
     # Admin — call log
     path('admin/calls/', AdminCallLogCreateView.as_view(), name='admin-call-log'),
+
+    # Admin — online call sessions
+    path('admin/call-sessions/<uuid:session_id>/', AdminCallSessionUpdateView.as_view(), name='admin-call-session-update'),
 ]

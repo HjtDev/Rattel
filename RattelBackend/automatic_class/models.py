@@ -163,6 +163,25 @@ class AutomaticPlan(models.Model):
         verbose_name=_('Review Every N Pages'),
     )
 
+    extra_review_start_page = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+        verbose_name=_('Extra Review Start Page'),
+    )
+
+    extra_review_end_page = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+        verbose_name=_('Extra Review End Page'),
+    )
+
+    extra_review_pages_per_session = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_('Extra Review Pages per Session'),
+    )
+
     user_day_availability = models.CharField(
         max_length=20,
         choices=DayAvailability.choices,
@@ -200,6 +219,12 @@ class AutomaticPlan(models.Model):
             raise ValidationError({'end_page': _('End page must be greater than start page.')})
         if self.start_date and self.time_to_finish and self.start_date >= self.time_to_finish:
             raise ValidationError({'time_to_finish': _('Finish date must be after start date.')})
+        has_start = self.extra_review_start_page is not None
+        has_end = self.extra_review_end_page is not None
+        if has_start != has_end:
+            raise ValidationError(_('Both extra review start and end pages must be set together.'))
+        if has_start and has_end and self.extra_review_start_page >= self.extra_review_end_page:
+            raise ValidationError({'extra_review_end_page': _('Extra review end page must be greater than start page.')})
 
     def save(self, *args, **kwargs):
         is_new = self._state.adding
@@ -221,67 +246,107 @@ class AutomaticPlan(models.Model):
         if activating:
             self._generate_steps()
             AutomaticPlan.objects.filter(pk=self.pk).update(_steps_generated=True)
+            self._create_call_sessions()
 
     def _generate_steps(self):
-        steps_data = []  # (step_type, page_start, page_end, sub_part)
-        current_page = self.start_page
-        pages_since_review = 0
+        has_extra = (
+            self.extra_review_start_page is not None
+            and self.extra_review_end_page is not None
+            and self.extra_review_pages_per_session > 0
+        )
+        extra_cursor = self.extra_review_start_page if has_extra else None
 
-        while current_page <= self.end_page:
+        # Build sessions: each session is a list of (step_type, page_start, page_end, sub_part)
+        # Steps within a session share the same scheduled_date.
+        all_sessions = []
+
+        for p in range(self.start_page, self.end_page + 1):
+            pages_fully_before = p - self.start_page
+
             if self.reading_freq == self.ReadingFrequency.FULL_PAGE:
-                steps_data.append((
-                    PlanStep.StepType.MEMORIZE,
-                    current_page, current_page,
-                    PlanStep.SubPart.FULL,
-                ))
-                pages_since_review += 1
-            else:  # HALF_PAGE — two sessions per page
-                steps_data.append((
-                    PlanStep.StepType.MEMORIZE,
-                    current_page, current_page,
-                    PlanStep.SubPart.FIRST_HALF,
-                ))
-                steps_data.append((
-                    PlanStep.StepType.MEMORIZE,
-                    current_page, current_page,
-                    PlanStep.SubPart.SECOND_HALF,
-                ))
-                pages_since_review += 1
+                sub_parts = [PlanStep.SubPart.FULL]
+            else:
+                sub_parts = [PlanStep.SubPart.FIRST_HALF, PlanStep.SubPart.SECOND_HALF]
 
-            current_page += 1
+            for sub_part in sub_parts:
+                session = [(PlanStep.StepType.MEMORIZE, p, p, sub_part)]
 
-            if pages_since_review >= self.review_freq:
-                review_start = current_page - pages_since_review
-                steps_data.append((
-                    PlanStep.StepType.REVIEW,
-                    review_start, current_page - 1,
-                    PlanStep.SubPart.FULL,
-                ))
-                pages_since_review = 0
+                # Rolling-window review: cover the previous review_freq pages
+                if pages_fully_before > 0:
+                    review_count = min(pages_fully_before, self.review_freq)
+                    session.append((
+                        PlanStep.StepType.REVIEW,
+                        p - review_count, p - 1,
+                        PlanStep.SubPart.FULL,
+                    ))
 
-        # Final comprehensive review
-        steps_data.append((
+                # Cycling extra-review range
+                if has_extra:
+                    extra_end = min(
+                        extra_cursor + self.extra_review_pages_per_session - 1,
+                        self.extra_review_end_page,
+                    )
+                    session.append((
+                        PlanStep.StepType.EXTRA_REVIEW,
+                        extra_cursor, extra_end,
+                        PlanStep.SubPart.FULL,
+                    ))
+                    extra_cursor = extra_end + 1
+                    if extra_cursor > self.extra_review_end_page:
+                        extra_cursor = self.extra_review_start_page
+
+                all_sessions.append(session)
+
+        # Final comprehensive review gets its own session
+        all_sessions.append([(
             PlanStep.StepType.FINAL_REVIEW,
             self.start_page, self.end_page,
             PlanStep.SubPart.FULL,
-        ))
+        )])
 
-        study_dates = _get_study_dates(self.start_date, self.time_freq, len(steps_data))
+        study_dates = _get_study_dates(self.start_date, self.time_freq, len(all_sessions))
 
         plan_steps = []
-        for i, (step_type, page_start, page_end, sub_part) in enumerate(steps_data):
+        step_number = 1
+        for i, session in enumerate(all_sessions):
             scheduled_date = study_dates[i] if i < len(study_dates) else None
-            plan_steps.append(PlanStep(
-                plan=self,
-                step_number=i + 1,
-                scheduled_date=scheduled_date,
-                step_type=step_type,
-                page_start=page_start,
-                page_end=page_end,
-                sub_part=sub_part,
-            ))
+            for (step_type, page_start, page_end, sub_part) in session:
+                plan_steps.append(PlanStep(
+                    plan=self,
+                    step_number=step_number,
+                    scheduled_date=scheduled_date,
+                    step_type=step_type,
+                    page_start=page_start,
+                    page_end=page_end,
+                    sub_part=sub_part,
+                ))
+                step_number += 1
 
         PlanStep.objects.bulk_create(plan_steps)
+
+    def _create_call_sessions(self):
+        from subscriptions.models import UserSubscription
+        from django.utils import timezone
+        try:
+            today = timezone.now().date()
+            sub = (
+                UserSubscription.objects
+                .select_related('plan')
+                .filter(user=self.user, started_at__lte=today, ends_in__gte=today)
+                .order_by('-ends_in')
+                .first()
+            )
+            limit = sub.plan.online_class_limit if sub else 0
+        except Exception:
+            limit = 0
+
+        if limit <= 0:
+            return
+
+        OnlineCallSession.objects.bulk_create([
+            OnlineCallSession(plan=self, session_number=n)
+            for n in range(1, limit + 1)
+        ])
 
     @property
     def total_steps(self):
@@ -321,6 +386,7 @@ class PlanStep(models.Model):
     class StepType(models.TextChoices):
         MEMORIZE = 'memorize', _('Memorize')
         REVIEW = 'review', _('Review')
+        EXTRA_REVIEW = 'extra_review', _('Extra Review')
         FINAL_REVIEW = 'final_review', _('Final Review')
 
     class SubPart(models.TextChoices):
@@ -454,3 +520,61 @@ class AdminCallLog(models.Model):
 
     def __str__(self):
         return f'Call by {self.called_by} on plan {self.plan_id} at {self.call_date:%Y-%m-%d %H:%M}'
+
+
+class OnlineCallSession(models.Model):
+    """
+    Tracks individual structured online call sessions allocated by a student's subscription.
+    Created automatically when a plan is first activated.
+    """
+
+    class Meta:
+        verbose_name = _('Online Call Session')
+        verbose_name_plural = _('Online Call Sessions')
+        ordering = ['session_number']
+        unique_together = [('plan', 'session_number')]
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', _('Pending')
+        COMPLETED = 'completed', _('Completed')
+        NO_ANSWER = 'no_answer', _('No Answer')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    plan = models.ForeignKey(
+        AutomaticPlan,
+        on_delete=models.CASCADE,
+        related_name='call_sessions',
+        verbose_name=_('Plan'),
+    )
+
+    session_number = models.PositiveIntegerField(verbose_name=_('Session Number'))
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        verbose_name=_('Status'),
+    )
+
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Completed At'),
+    )
+
+    notes = models.TextField(blank=True, verbose_name=_('Notes'))
+
+    marked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='marked_call_sessions',
+        verbose_name=_('Marked By'),
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+
+    def __str__(self):
+        return f'Call session {self.session_number} for plan {self.plan_id} [{self.get_status_display()}]'

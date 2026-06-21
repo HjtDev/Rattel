@@ -1,6 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
-from .models import AutomaticPlan, ClassRequest, PlanStep, AdminCallLog
+from .models import AutomaticPlan, ClassRequest, PlanStep, AdminCallLog, OnlineCallSession
 
 
 class ClassRequestSerializer(serializers.ModelSerializer):
@@ -86,6 +86,7 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
     total_steps = serializers.IntegerField(read_only=True)
     completed_steps = serializers.IntegerField(read_only=True)
     progress_percent = serializers.IntegerField(read_only=True)
+    call_sessions = serializers.SerializerMethodField()
 
     class Meta:
         model = AutomaticPlan
@@ -94,14 +95,30 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
             'time_freq', 'time_freq_display',
             'reading_freq', 'reading_freq_display',
             'review_freq',
+            'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
             'user_day_availability', 'user_day_availability_display',
             'user_time_availability', 'user_time_availability_display',
             'status', 'status_display',
             'teacher_display',
             'total_steps', 'completed_steps', 'progress_percent',
+            'call_sessions',
             'created_at',
         )
         read_only_fields = fields
+
+    def get_call_sessions(self, obj):
+        sessions = obj.call_sessions.all()
+        return [
+            {
+                'id': str(s.id),
+                'session_number': s.session_number,
+                'status': s.status,
+                'status_display': s.get_status_display(),
+                'completed_at': s.completed_at.isoformat() if s.completed_at else None,
+                'notes': s.notes,
+            }
+            for s in sessions
+        ]
 
     def get_teacher_display(self, obj):
         if not obj.teacher:
@@ -122,6 +139,7 @@ class AdminPlanCreateSerializer(serializers.ModelSerializer):
             'id', 'request', 'user', 'teacher',
             'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
+            'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
             'user_day_availability', 'user_time_availability',
             'status', 'admin_notes',
         )
@@ -148,6 +166,7 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
         fields = (
             'teacher', 'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
+            'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
             'user_day_availability', 'user_time_availability',
             'status', 'admin_notes',
         )
@@ -166,14 +185,62 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class AdminPlanListSerializer(AutomaticPlanSerializer):
+    """Lightweight plan serializer for the admin list view — adds user_display without nested steps."""
+    user_display = serializers.SerializerMethodField()
+
+    class Meta(AutomaticPlanSerializer.Meta):
+        fields = AutomaticPlanSerializer.Meta.fields + ('user_display', 'admin_notes')
+        read_only_fields = fields
+
+    def get_user_display(self, obj):
+        u = obj.user
+        if not u:
+            return None
+        return {
+            'id': u.pk,
+            'username': getattr(u, 'username', str(u)),
+            'phone': getattr(u, 'phone', None),
+        }
+
+    def get_call_sessions(self, obj):
+        return []
+
+
+class OnlineCallSessionSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    marked_by_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OnlineCallSession
+        fields = (
+            'id', 'session_number', 'status', 'status_display',
+            'completed_at', 'notes', 'marked_by_display', 'created_at',
+        )
+        read_only_fields = fields
+
+    def get_marked_by_display(self, obj):
+        if not obj.marked_by:
+            return None
+        return getattr(obj.marked_by, 'username', str(obj.marked_by))
+
+
+class AdminCallSessionUpdateSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=OnlineCallSession.Status.choices)
+    notes = serializers.CharField(required=False, allow_blank=True, max_length=2000)
+
+
 class AdminPlanDetailSerializer(AutomaticPlanSerializer):
     """Extended plan serializer for admin — includes all fields plus steps summary."""
     user_display = serializers.SerializerMethodField()
     steps = PlanStepSerializer(many=True, read_only=True)
+    call_sessions = OnlineCallSessionSerializer(many=True, read_only=True)
+    subscription_info = serializers.SerializerMethodField()
 
     class Meta(AutomaticPlanSerializer.Meta):
         fields = AutomaticPlanSerializer.Meta.fields + (
             'user_display', 'admin_notes', '_steps_generated', 'steps',
+            'call_sessions', 'subscription_info',
         )
         read_only_fields = fields
 
@@ -184,6 +251,28 @@ class AdminPlanDetailSerializer(AutomaticPlanSerializer):
             'username': getattr(u, 'username', str(u)),
             'phone': getattr(u, 'phone', None),
         }
+
+    def get_subscription_info(self, obj):
+        from subscriptions.models import UserSubscription
+        from django.utils import timezone
+        try:
+            today = timezone.now().date()
+            sub = (
+                UserSubscription.objects
+                .select_related('plan')
+                .filter(user=obj.user)
+                .order_by('-ends_in')
+                .first()
+            )
+            if not sub:
+                return None
+            return {
+                'plan_name': sub.plan.name,
+                'online_class_limit': sub.plan.online_class_limit,
+                'is_active': sub.is_active,
+            }
+        except Exception:
+            return None
 
 
 class StepCompleteSerializer(serializers.Serializer):

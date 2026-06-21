@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from .models import AdminCallLog, AutomaticPlan, ClassRequest, PlanStep
+from .models import AdminCallLog, AutomaticPlan, ClassRequest, OnlineCallSession, PlanStep
 
 
 class PlanStepInline(admin.TabularInline):
@@ -22,6 +22,14 @@ class AdminCallLogInline(admin.TabularInline):
     fields = ('called_by', 'call_date', 'notes')
     readonly_fields = ('called_by', 'call_date')
     ordering = ('-call_date',)
+
+
+class OnlineCallSessionInline(admin.TabularInline):
+    model = OnlineCallSession
+    extra = 0
+    fields = ('session_number', 'status', 'completed_at', 'marked_by', 'notes')
+    readonly_fields = ('session_number', 'completed_at', 'marked_by')
+    ordering = ('session_number',)
 
 
 @admin.register(ClassRequest)
@@ -75,7 +83,7 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
         'total_steps_display', 'created_at', 'updated_at',
     )
     list_select_related = ('user', 'teacher')
-    inlines = [PlanStepInline, AdminCallLogInline]
+    inlines = [PlanStepInline, AdminCallLogInline, OnlineCallSessionInline]
 
     fieldsets = (
         (_('Participants'), {
@@ -85,6 +93,13 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
             'fields': (
                 'start_page', 'end_page', 'start_date', 'time_to_finish',
                 'time_freq', 'reading_freq', 'review_freq',
+            ),
+        }),
+        (_('Extra Review Range'), {
+            'classes': ('collapse',),
+            'fields': (
+                'extra_review_start_page', 'extra_review_end_page',
+                'extra_review_pages_per_session',
             ),
         }),
         (_('User Availability'), {
@@ -198,3 +213,27 @@ class AdminCallLogAdmin(admin.ModelAdmin):
     @admin.display(description=_('Notes'))
     def notes_preview(self, obj):
         return obj.notes[:80] + '…' if len(obj.notes) > 80 else obj.notes
+
+
+@admin.register(OnlineCallSession)
+class OnlineCallSessionAdmin(admin.ModelAdmin):
+    list_display = ('plan', 'session_number', 'status_badge', 'completed_at', 'marked_by')
+    list_filter = ('status',)
+    search_fields = ('plan__user__username', 'notes')
+    ordering = ('plan', 'session_number')
+    readonly_fields = ('id', 'completed_at', 'marked_by', 'created_at')
+    list_select_related = ('plan__user', 'marked_by')
+
+    @admin.display(description=_('Status'))
+    def status_badge(self, obj):
+        colors = {
+            OnlineCallSession.Status.PENDING: '#f0ad4e',
+            OnlineCallSession.Status.COMPLETED: '#5cb85c',
+            OnlineCallSession.Status.NO_ANSWER: '#d9534f',
+        }
+        color = colors.get(obj.status, '#aaa')
+        return format_html(
+            '<span style="padding:2px 8px;border-radius:8px;background:{};'
+            'color:#fff;font-weight:600;">{}</span>',
+            color, obj.get_status_display(),
+        )
