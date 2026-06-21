@@ -5,7 +5,8 @@ import { api } from "../api";
 // ─── Shared types ─────────────────────────────────────────────────────────────
 
 export type StepStatus = "pending" | "delayed" | "completed" | "skipped";
-export type StepType = "memorize" | "review" | "final_review";
+export type StepType = "memorize" | "review" | "extra_review" | "final_review";
+export type CallSessionStatus = "pending" | "completed" | "no_answer";
 export type PlanStatus = "draft" | "active" | "completed" | "cancelled";
 export type RequestStatus = "pending" | "contacted" | "plan_created" | "rejected";
 
@@ -29,6 +30,15 @@ export interface PlanStep {
     is_overdue: boolean;
 }
 
+export interface UserCallSession {
+    id: string;
+    session_number: number;
+    status: CallSessionStatus;
+    status_display: string;
+    completed_at: string | null;
+    notes: string;
+}
+
 export interface AutomaticPlan {
     id: string;
     start_page: number;
@@ -40,6 +50,9 @@ export interface AutomaticPlan {
     reading_freq: string;
     reading_freq_display: string;
     review_freq: number;
+    extra_review_start_page: number | null;
+    extra_review_end_page: number | null;
+    extra_review_pages_per_session: number;
     user_day_availability: string;
     user_day_availability_display: string;
     user_time_availability: string;
@@ -50,6 +63,7 @@ export interface AutomaticPlan {
     total_steps: number;
     completed_steps: number;
     progress_percent: number;
+    call_sessions: UserCallSession[];
     created_at: string;
 }
 
@@ -98,6 +112,11 @@ export interface AdminPlan extends AutomaticPlan {
     admin_notes: string;
     _steps_generated: boolean;
     steps: PlanStep[];
+    call_sessions: OnlineCallSession[];
+    subscription_info: SubscriptionInfo | null;
+    extra_review_start_page: number | null;
+    extra_review_end_page: number | null;
+    extra_review_pages_per_session: number;
 }
 
 export interface AdminCallLog {
@@ -108,6 +127,23 @@ export interface AdminCallLog {
     notes: string;
     call_date: string;
     created_at: string;
+}
+
+export interface OnlineCallSession {
+    id: string;
+    session_number: number;
+    status: CallSessionStatus;
+    status_display: string;
+    completed_at: string | null;
+    notes: string;
+    marked_by_display: string | null;
+    created_at: string;
+}
+
+export interface SubscriptionInfo {
+    plan_name: string;
+    online_class_limit: number;
+    is_active: boolean;
 }
 
 export interface CreatePlanPayload {
@@ -121,6 +157,9 @@ export interface CreatePlanPayload {
     time_freq: string;
     reading_freq: string;
     review_freq: number;
+    extra_review_start_page?: number | null;
+    extra_review_end_page?: number | null;
+    extra_review_pages_per_session?: number;
     user_day_availability: string;
     user_time_availability: string;
     status: string;
@@ -513,6 +552,33 @@ class AutomaticClassManager {
             return { success: false, message: res.data.message };
         } catch (e: any) {
             return { success: false, message: "خطا در بروزرسانی مرحله" };
+        }
+    }
+
+    public async updateCallSession(
+        sessionId: string,
+        status: CallSessionStatus,
+        notes?: string,
+    ): Promise<ACResult & { session?: OnlineCallSession }> {
+        try {
+            const res = await api.patch(
+                `/class/automatic/admin/call-sessions/${sessionId}/`,
+                { status, notes: notes ?? "" },
+                { cache: false } as any,
+            );
+            if (res.data.success && this.activePlan) {
+                this.activePlan = {
+                    ...this.activePlan,
+                    call_sessions: this.activePlan.call_sessions.map((s) =>
+                        s.id === sessionId ? res.data.session : s,
+                    ),
+                };
+                this.notify();
+                return { success: true, session: res.data.session };
+            }
+            return { success: false, message: res.data.message };
+        } catch (e: any) {
+            return { success: false, message: "خطا در بروزرسانی جلسه تماس" };
         }
     }
 

@@ -7,7 +7,7 @@ import { useAdminClassPanel } from "@/src/core/hooks/useAdminClassPanel";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import { toast } from "react-toastify";
 import { fadeInUp, staggerContainer, scaleIn } from "@/src/core/motionVariants";
-import type { AdminClassRequest, AdminPlan, CreatePlanPayload } from "@/src/core/automatic-class/automaticClassManager";
+import type { AdminClassRequest, AdminPlan, CallSessionStatus, CreatePlanPayload, OnlineCallSession } from "@/src/core/automatic-class/automaticClassManager";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -37,12 +37,14 @@ const PLAN_STATUS_MAP: Record<string, { color: string; label: string }> = {
 function stepTypeColor(type: string): string {
     if (type === "memorize") return "primary";
     if (type === "review") return "warning";
+    if (type === "extra_review") return "info";
     return "success";
 }
 
 function stepTypeIcon(type: string): string {
     if (type === "memorize") return "bi-book-fill";
     if (type === "review") return "bi-arrow-repeat";
+    if (type === "extra_review") return "bi-arrow-counterclockwise";
     return "bi-trophy-fill";
 }
 
@@ -70,6 +72,9 @@ const EMPTY_PLAN: CreatePlanPayload = {
     user_time_availability: "morning",
     status: "draft",
     admin_notes: "",
+    extra_review_start_page: null,
+    extra_review_end_page: null,
+    extra_review_pages_per_session: 0,
 };
 
 function CreatePlanModal({
@@ -251,6 +256,54 @@ function CreatePlanModal({
                                         placeholder="یادداشت داخلی (برای کاربر نمایش داده نمی‌شود)..."
                                     />
                                 </div>
+
+                                {/* Extra review range — optional */}
+                                <div className="col-12">
+                                    <div className="border rounded-3 p-3 bg-light">
+                                        <div className="fw-semibold small mb-2 text-secondary">
+                                            <i className="bi bi-arrow-repeat me-2" />
+                                            بازه مرور اضافی (اختیاری)
+                                        </div>
+                                        <div className="row g-2">
+                                            <div className="col-sm-4">
+                                                <label className="form-label small">صفحه شروع</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control form-control-sm rounded-3"
+                                                    min={1}
+                                                    value={form.extra_review_start_page ?? ""}
+                                                    onChange={(e) => set("extra_review_start_page", e.target.value ? +e.target.value : null)}
+                                                    placeholder="مثلاً ۱"
+                                                />
+                                            </div>
+                                            <div className="col-sm-4">
+                                                <label className="form-label small">صفحه پایان</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control form-control-sm rounded-3"
+                                                    min={form.extra_review_start_page ?? 1}
+                                                    value={form.extra_review_end_page ?? ""}
+                                                    onChange={(e) => set("extra_review_end_page", e.target.value ? +e.target.value : null)}
+                                                    placeholder="مثلاً ۵۰"
+                                                />
+                                            </div>
+                                            <div className="col-sm-4">
+                                                <label className="form-label small">حجم مرور(صفحه)</label>
+                                                <input
+                                                    type="number"
+                                                    className="form-control form-control-sm rounded-3"
+                                                    min={0}
+                                                    value={form.extra_review_pages_per_session ?? 0}
+                                                    onChange={(e) => set("extra_review_pages_per_session", +e.target.value)}
+                                                    placeholder="۰"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="text-muted mt-1" style={{ fontSize: "0.72rem" }}>
+                                            در صورت تنظیم، هر جلسه یک بخش مرور اضافی از این بازه صفحات دریافت می‌کند (حلقوی).
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div className="d-flex justify-content-end gap-2 mt-4">
                                 <button type="button" className="btn btn-outline-secondary rounded-pill px-4" onClick={onClose}>
@@ -388,6 +441,7 @@ function PlanDetailDrawer({
     onStatusChange,
     onStepUpdate,
     onLogCall,
+    onUpdateCallSession,
 }: {
     plan: AdminPlan;
     callLogs: any[];
@@ -395,6 +449,7 @@ function PlanDetailDrawer({
     onStatusChange: (status: string) => void;
     onStepUpdate: (stepId: string, data: any) => void;
     onLogCall: (notes: string) => void;
+    onUpdateCallSession: (sessionId: string, status: CallSessionStatus) => void;
 }) {
     const shouldReduceMotion = useReducedMotion();
     const [callNotes, setCallNotes] = useState("");
@@ -441,8 +496,16 @@ function PlanDetailDrawer({
                                     ص {plan.start_page}–{plan.end_page}
                                 </span>
                             </h5>
-                            <div className="text-muted small">
+                            <div className="d-flex align-items-center gap-3 flex-wrap text-muted small mt-1">
                                 {plan.user_display.phone && <span><i className="bi bi-telephone me-1" />{plan.user_display.phone}</span>}
+                                {plan.subscription_info && (
+                                    <span className={`badge rounded-pill ${plan.subscription_info.is_active ? "bg-success" : "bg-secondary"} bg-opacity-15 text-${plan.subscription_info.is_active ? "success" : "secondary"} border border-${plan.subscription_info.is_active ? "success" : "secondary"} border-opacity-25`}>
+                                        <i className="bi bi-award me-1" />
+                                        {plan.subscription_info.plan_name}
+                                        {" · "}
+                                        {plan.subscription_info.online_class_limit} جلسه آنلاین
+                                    </span>
+                                )}
                             </div>
                         </div>
                         <button type="button" className="btn-close" onClick={onClose} />
@@ -502,7 +565,7 @@ function PlanDetailDrawer({
                                                         )}
                                                     </div>
                                                     <div className="d-flex gap-1 align-items-center flex-shrink-0">
-                                                        <span className="text-muted" style={{ fontSize: "0.7rem" }}>{step.scheduled_date || "—"}</span>
+                                                        <span className="text-muted" style={{ fontSize: "0.7rem" }}>{formatDate(step.scheduled_date)}</span>
                                                         <button
                                                             className="btn btn-sm btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center"
                                                             style={{ width: 24, height: 24 }}
@@ -547,10 +610,14 @@ function PlanDetailDrawer({
                                     <h6 className="fw-bold mb-3">جزئیات برنامه</h6>
                                     <div className="row g-2 text-center">
                                         {[
-                                            { l: "شروع", v: plan.start_date },
-                                            { l: "پایان هدف", v: plan.time_to_finish },
-                                            { l: "تناوب", v: plan.time_freq_display },
-                                            { l: "حجم", v: plan.reading_freq_display },
+                                            { l: "شروع", v: formatDate(plan.start_date) },
+                                            { l: "پایان هدف", v: formatDate(plan.time_to_finish) },
+                                            { l: "تناوب مطالعه", v: plan.time_freq_display },
+                                            { l: "حجم هر جلسه", v: plan.reading_freq_display },
+                                            { l: "مرور هر چند صفحه", v: `هر ${plan.review_freq} صفحه` },
+                                            { l: "روزهای مطالعه", v: plan.user_day_availability_display },
+                                            { l: "بازه زمانی", v: plan.user_time_availability_display },
+                                            { l: "محدوده حفظ", v: `ص ${plan.start_page}–${plan.end_page}` },
                                         ].map((i, idx) => (
                                             <div key={idx} className="col-6">
                                                 <div className="bg-white rounded-3 p-2">
@@ -560,6 +627,15 @@ function PlanDetailDrawer({
                                             </div>
                                         ))}
                                     </div>
+                                    {plan.extra_review_pages_per_session > 0 && plan.extra_review_start_page != null && plan.extra_review_end_page != null && (
+                                        <div className="mt-2 bg-white rounded-3 p-2 text-center">
+                                            <div className="small text-muted">مرور اضافی</div>
+                                            <div className="fw-semibold small">
+                                                ص {plan.extra_review_start_page}–{plan.extra_review_end_page}
+                                                <span className="text-muted fw-normal ms-1">({plan.extra_review_pages_per_session} صفحه/جلسه)</span>
+                                            </div>
+                                        </div>
+                                    )}
                                     {/* Progress bar */}
                                     <div className="mt-3">
                                         <div className="d-flex justify-content-between small mb-1">
@@ -578,6 +654,66 @@ function PlanDetailDrawer({
                                             {plan.completed_steps} از {plan.total_steps} مرحله تکمیل شده
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* Online call sessions */}
+                                <div className="mb-4">
+                                    <h6 className="fw-bold mb-3">
+                                        <i className="bi bi-headset me-2 text-primary" />
+                                        جلسات تماس آنلاین
+                                        {plan.call_sessions && plan.call_sessions.length > 0 && (
+                                            <span className="ms-2 text-muted fw-normal small">
+                                                ({plan.call_sessions.filter(s => s.status === "completed").length}/{plan.call_sessions.length})
+                                            </span>
+                                        )}
+                                    </h6>
+                                    {plan.call_sessions && plan.call_sessions.length > 0 ? (
+                                        <div className="d-flex flex-column gap-2">
+                                            {plan.call_sessions.map((session) => (
+                                                <div key={session.id} className={`card border-0 rounded-3 p-2 ${session.status === "completed" ? "bg-success bg-opacity-10" : session.status === "no_answer" ? "bg-warning bg-opacity-10" : "bg-light"}`}>
+                                                    <div className="d-flex align-items-center gap-2">
+                                                        <span className="text-muted small fw-semibold" style={{ minWidth: 24 }}>#{session.session_number}</span>
+                                                        <div className="flex-grow-1">
+                                                            {session.status !== "pending" && session.completed_at && (
+                                                                <div className="text-muted" style={{ fontSize: "0.7rem" }}>
+                                                                    {formatDateTime(session.completed_at)}
+                                                                    {session.marked_by_display && <span className="ms-1">· {session.marked_by_display}</span>}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="d-flex gap-1">
+                                                            <button
+                                                                className={`btn btn-sm rounded-pill px-2 py-0 ${session.status === "completed" ? "btn-success" : "btn-outline-success"}`}
+                                                                style={{ fontSize: "0.7rem" }}
+                                                                onClick={() => onUpdateCallSession(session.id, "completed")}
+                                                                title="تماس برقرار شد"
+                                                            >
+                                                                <i className="bi bi-check-lg" />
+                                                            </button>
+                                                            <button
+                                                                className={`btn btn-sm rounded-pill px-2 py-0 ${session.status === "no_answer" ? "btn-warning" : "btn-outline-warning"}`}
+                                                                style={{ fontSize: "0.7rem" }}
+                                                                onClick={() => onUpdateCallSession(session.id, "no_answer")}
+                                                                title="بی‌پاسخ"
+                                                            >
+                                                                <i className="bi bi-telephone-x" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-muted small bg-light rounded-3 p-3">
+                                            <i className="bi bi-info-circle me-2" />
+                                            {plan.subscription_info
+                                                ? plan.subscription_info.online_class_limit > 0
+                                                    ? `اشتراک کاربر ${plan.subscription_info.online_class_limit} جلسه آنلاین دارد. جلسات پس از فعال‌سازی برنامه ایجاد می‌شوند.`
+                                                    : "اشتراک کاربر شامل جلسه تماس آنلاین نمی‌شود."
+                                                : "جلسه تماس آنلاین برای این برنامه ثبت نشده است."
+                                            }
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Call log */}
@@ -665,7 +801,7 @@ function AdminClassContent() {
         adminRequests, adminPlans, activePlan, callLogs, isLoading,
         fetchAdminRequests, updateAdminRequest, fetchAdminPlans,
         fetchAdminPlanDetail, createPlan, updatePlan, updateAdminStep,
-        logCall, clearActivePlan,
+        logCall, updateCallSession, clearActivePlan,
     } = useAdminClassPanel();
     const shouldReduceMotion = useReducedMotion();
 
@@ -748,6 +884,15 @@ function AdminClassContent() {
             toast.success("تماس ثبت شد");
         } else {
             toast.error("خطا در ثبت تماس");
+        }
+    };
+
+    const handleUpdateCallSession = async (sessionId: string, status: CallSessionStatus) => {
+        const result = await updateCallSession(sessionId, status);
+        if (result.success) {
+            toast.success("جلسه تماس به‌روز شد");
+        } else {
+            toast.error("خطا در به‌روزرسانی جلسه تماس");
         }
     };
 
@@ -905,7 +1050,7 @@ function AdminClassContent() {
                                                                 </div>
                                                                 <div className="text-muted" style={{ fontSize: "0.7rem" }}>{plan.progress_percent}%</div>
                                                             </td>
-                                                            <td className="text-muted small">{plan.start_date || "—"}</td>
+                                                            <td className="text-muted small">{formatDate(plan.start_date)}</td>
                                                             <td>
                                                                 <button
                                                                     className="btn btn-sm btn-outline-primary rounded-pill"
@@ -976,6 +1121,7 @@ function AdminClassContent() {
                         onStatusChange={handlePlanStatusChange}
                         onStepUpdate={handleStepUpdate}
                         onLogCall={handleLogCall}
+                        onUpdateCallSession={handleUpdateCallSession}
                     />
                 )}
             </AnimatePresence>

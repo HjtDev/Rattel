@@ -6,7 +6,9 @@ import {
     AdminClassRequest,
     AdminPlan,
     AdminCallLog,
+    CallSessionStatus,
     CreatePlanPayload,
+    OnlineCallSession,
 } from "../automatic-class/automaticClassManager";
 
 export function useAdminClassPanel() {
@@ -47,6 +49,7 @@ export function useAdminClassPanel() {
         updatePlan: automaticClassManager.updatePlan.bind(automaticClassManager),
         updateAdminStep: automaticClassManager.updateAdminStep.bind(automaticClassManager),
         logCall: automaticClassManager.logCall.bind(automaticClassManager),
+        updateCallSession: automaticClassManager.updateCallSession.bind(automaticClassManager),
         clearActivePlan: automaticClassManager.clearActivePlan.bind(automaticClassManager),
     };
 }
