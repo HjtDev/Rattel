@@ -5,16 +5,19 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 
 from RattelBackend.mixins import ResponseBuilderMixin
-from .models import AutomaticPlan, ClassRequest, PlanStep, AdminCallLog
+from .models import AutomaticPlan, ClassRequest, PlanStep, AdminCallLog, OnlineCallSession
 from .permissions import HasAutomaticClassAccess
 from .serializers import (
     AdminCallLogSerializer,
+    AdminCallSessionUpdateSerializer,
     AdminClassRequestSerializer,
     AdminPlanCreateSerializer,
     AdminPlanDetailSerializer,
+    AdminPlanListSerializer,
     AdminPlanUpdateSerializer,
     AutomaticPlanSerializer,
     ClassRequestSerializer,
+    OnlineCallSessionSerializer,
     PlanStepSerializer,
     StepCompleteSerializer,
     StepReportDelaySerializer,
@@ -116,7 +119,7 @@ class MyPlanView(APIView, ResponseBuilderMixin):
         try:
             plan = AutomaticPlan.objects.filter(
                 user=request.user, status=AutomaticPlan.Status.ACTIVE
-            ).first()
+            ).prefetch_related('call_sessions').first()
             if not plan:
                 return self.build_response(
                     status.HTTP_404_NOT_FOUND,
@@ -482,7 +485,7 @@ class AdminPlanListView(APIView, ResponseBuilderMixin):
             return self.build_response(
                 status.HTTP_200_OK,
                 success=True, message='Successful',
-                plans=AutomaticPlanSerializer(qs, many=True).data,
+                plans=AdminPlanListSerializer(qs, many=True).data,
                 total=qs.count(),
             )
         except Exception as e:
@@ -501,7 +504,7 @@ class AdminPlanListView(APIView, ResponseBuilderMixin):
                     success=False, error=-2,
                     message='Invalid data.', errors=serializer.errors,
                 )
-            plan = serializer.save()
+            plan = serializer.save(teacher=request.user)
 
             # Sync the linked request status
             if plan.request:
@@ -537,7 +540,7 @@ class AdminPlanDetailView(APIView, ResponseBuilderMixin):
         try:
             return (
                 AutomaticPlan.objects
-                .prefetch_related('steps', 'call_logs__called_by')
+                .prefetch_related('steps', 'call_logs__called_by', 'call_sessions__marked_by')
                 .select_related('user', 'teacher', 'request')
                 .get(id=plan_id)
             )
@@ -652,3 +655,43 @@ class AdminCallLogCreateView(APIView, ResponseBuilderMixin):
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 success=False, error=-2, message='Something went wrong.',
             )
+
+
+class AdminCallSessionUpdateView(APIView, ResponseBuilderMixin):
+    """
+    PATCH — Mark an online call session as completed or no_answer.
+
+    Permissions: IsAdminUser
+    """
+
+    permission_classes = (IsAdminUser,)
+    throttle_scope = 'main-throttle'
+
+    def patch(self, request, session_id):
+        try:
+            session = OnlineCallSession.objects.select_related('plan').get(id=session_id)
+        except OnlineCallSession.DoesNotExist:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False, error=-1, message='Call session not found.',
+            )
+
+        serializer = AdminCallSessionUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False, error=-2,
+                message='Invalid data.', errors=serializer.errors,
+            )
+
+        session.status = serializer.validated_data['status']
+        session.notes = serializer.validated_data.get('notes', session.notes)
+        session.completed_at = timezone.now()
+        session.marked_by = request.user
+        session.save(update_fields=['status', 'notes', 'completed_at', 'marked_by'])
+
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True, message='Call session updated.',
+            session=OnlineCallSessionSerializer(session).data,
+        )
