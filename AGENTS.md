@@ -71,6 +71,8 @@ The backend `entrypoint.sh` runs migrations then tests (if `RUN_TESTS=1`) before
 | `gallery` | Image gallery |
 | `notifications` | Provider-based SMS (Melipayamak) and email (SMTP) dispatch |
 | `siteconfig` | Site-wide settings exposed via API |
+| `subscriptions` | Subscription plans (`Plan`) and per-user active subscription (`UserSubscription`) |
+| `automatic_class` | Personalised memorisation plans with auto-generated steps, online call sessions, and admin call logs |
 
 Configuration lives in `RattelBackend/RattelBackend/settings.py` and is loaded via `python-decouple` from `.env`.
 
@@ -97,25 +99,38 @@ Registration and login are both 2-step:
 
 Token refresh: `/api/v1/auth/refresh/`. Tokens stored in `localStorage` on the frontend.
 
-### Frontend Architecture (`rattel-frontend/src/`)
-
-- **`core/api.ts`** — single axios instance (`api`) with auth interceptor (injects Bearer token) and 401-handling (auto-refresh, then logout + redirect on failure). Never use raw axios elsewhere.
-- **`core/auth/authManager.ts`** — singleton `AuthManager` class; owns token storage, user state, refresh scheduling, and listener subscriptions.
-- **`core/hooks/useAuth.ts`** — React hook wrapping `AuthManager`; use this in components.
-- **`core/hooks/use*.ts`** — one hook per domain (courses, blog, gallery, etc.) for data fetching.
-- **`core/*/Manager.ts`** — domain manager classes (auth, dashboard, tickets, transactions) for API calls not tied to a single hook.
-- **`app/`** — Next.js App Router pages mirroring the domain structure (auth, blog, courses, dashboard, gallery).
-
 ### Notifications
 
 `notifications/` uses a provider pattern: `SMSHandler(provider_class, api_key)` or `EmailHandler(provider_class, ...)`. Add new providers by implementing `BaseSMSProvider` or `BaseEmailProvider`. Celery tasks dispatch notifications asynchronously when `EMAIL_USE_CELERY=True`.
+
+### Subscription & Access Control
+
+`subscriptions/` owns two models: `Plan` (what's for sale) and `UserSubscription` (OneToOne per user, `ends_in` date). The `Plan.add_user()` method handles purchase and extension — the payment app calls it on success.
+
+`HasAutomaticClassAccess` permission in `automatic_class/permissions.py` checks `UserSubscription.has_feature_online_class()`. Wrap any view that requires an active subscription with this.
+
+### automatic_class App
+
+`AutomaticPlan.save()` auto-generates `PlanStep` rows (via `_generate_steps()`) and `OnlineCallSession` rows (via `_create_call_sessions()`, count driven by `UserSubscription.plan.online_class_limit`) the first time a plan transitions to `status=active`. This is a one-shot side effect guarded by the `_steps_generated` flag — do not re-trigger it manually.
+
+`PlanStep.mark_delayed()` is called by the nightly Celery beat task for any pending step whose `scheduled_date` has passed.
+
+### Frontend Architecture (`rattel-frontend/`)
+
+Pages live in the top-level `app/` directory (Next.js App Router), not inside `src/`. Domain logic lives in `src/`:
+
+- **`src/core/api.ts`** — single axios instance; never use raw axios elsewhere.
+- **`src/core/auth/authManager.ts`** — singleton managing tokens, refresh scheduling, listeners.
+- **`src/core/hooks/use*.ts`** — one hook per domain (courses, blog, cart, subscriptions, automatic class, etc.).
+- **`src/core/*/Manager.ts`** — `subscriptionManager.ts`, `automaticClassManager.ts`, `authManager.ts`, etc. for imperative API calls.
+- **`src/core/motionVariants.ts`** — shared Framer Motion variants; import from here instead of defining inline.
 
 ### API URL Structure
 
 All endpoints are under `/api/v1/`:
 ```
-/api/v1/auth/        login, register, verify, refresh
-/api/v1/users/       profile, settings, info, dashboard
+/api/v1/auth/                    login, register, verify, refresh
+/api/v1/users/                   profile, settings, info, dashboard
 /api/v1/blog/
 /api/v1/courses/
 /api/v1/cart/
@@ -123,5 +138,8 @@ All endpoints are under `/api/v1/`:
 /api/v1/tickets/
 /api/v1/gallery/
 /api/v1/site/
+/api/v1/subscriptions/plans/     public plan list
+/api/v1/subscriptions/my/        authenticated user's active subscription
+/api/v1/class/automatic/         automatic class (user + admin endpoints)
 /api/v1/editor/upload/
 ```
