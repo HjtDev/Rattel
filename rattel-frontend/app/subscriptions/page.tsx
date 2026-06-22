@@ -158,43 +158,30 @@ function PlanCard({ plan, activePlanId, hasActiveSub }: PlanCardProps) {
 
             <div className="card-body pt-0">
                 <ul className="list-unstyled mt-2 mb-0">
-                    <li className="mb-3 h6 fw-light">
-                        {plan.has_early_news_access ? (
+                    {plan.has_early_news_access && (
+                        <li className="mb-3 h6 fw-light">
                             <i className="bi bi-patch-check-fill text-success me-2" />
-                        ) : (
-                            <i className="bi bi-x-octagon-fill text-danger me-2" />
-                        )}
-                        دریافت اخبار زودتر
-                    </li>
-                    <li className="mb-3 h6 fw-light">
-                        {plan.has_quiz_access ? (
+                            دریافت اخبار زودتر
+                        </li>
+                    )}
+                    {plan.has_quiz_access && (
+                        <li className="mb-3 h6 fw-light">
                             <i className="bi bi-patch-check-fill text-success me-2" />
-                        ) : (
-                            <i className="bi bi-x-octagon-fill text-danger me-2" />
-                        )}
-                        دسترسی به بخش آزمون
-                    </li>
-                    <li className="mb-3 h6 fw-light">
-                        {plan.has_free_course_access ? (
+                            دسترسی به بخش آزمون
+                        </li>
+                    )}
+                    {plan.has_free_course_access && (
+                        <li className="mb-3 h6 fw-light">
                             <i className="bi bi-patch-check-fill text-success me-2" />
-                        ) : (
-                            <i className="bi bi-x-octagon-fill text-danger me-2" />
-                        )}
-                        دسترسی به دوره های رایگان
-                    </li>
-                    <li className="h6 fw-light">
-                        {plan.online_class_limit > 0 ? (
-                            <>
-                                <i className="bi bi-patch-check-fill text-success me-2" />
-                                {classLabel}
-                            </>
-                        ) : (
-                            <>
-                                <i className="bi bi-x-octagon-fill text-danger me-2" />
-                                کلاس آنلاین
-                            </>
-                        )}
-                    </li>
+                            دسترسی به دوره های رایگان
+                        </li>
+                    )}
+                    {plan.online_class_limit > 0 && (
+                        <li className="h6 fw-light">
+                            <i className="bi bi-patch-check-fill text-success me-2" />
+                            {classLabel}
+                        </li>
+                    )}
                 </ul>
             </div>
 
