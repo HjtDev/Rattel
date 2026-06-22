@@ -46,8 +46,8 @@ function statusLabel(status: string): string | null {
 
 function stepTypeLabel(type: string): string {
     if (type === "memorize") return "حفظ";
-    if (type === "review") return "مرور";
-    if (type === "extra_review") return "مرور اضافه";
+    if (type === "review") return "۱۰ درس";
+    if (type === "extra_review") return "مرور";
     return "مرور نهایی";
 }
 
@@ -119,7 +119,7 @@ function StepCard({
                                 )}
                             </div>
                         </div>
-                        <p className="text-muted small mb-2">
+                        <p className="small mb-2">
                             {step.page_start === step.page_end
                                 ? `صفحه ${step.page_start}`
                                 : `صفحات ${step.page_start} تا ${step.page_end}`}
@@ -303,10 +303,10 @@ function AutomaticClassContent() {
             animate="show"
         >
             <motion.div variants={scaleIn}>
-                <i className="bi bi-book display-1 text-muted" />
+                <i className="bi bi-book display-1" />
             </motion.div>
             <motion.h4 className="mt-3 fw-bold" variants={fadeInUp}>هنوز برنامه‌ای ندارید</motion.h4>
-            <motion.p className="text-muted mb-4" variants={fadeInUp}>
+            <motion.p className="mb-4" variants={fadeInUp}>
                 برای دریافت برنامه حفظ شخصی، درخواست کلاس ثبت کنید.
             </motion.p>
             <motion.a
@@ -331,10 +331,10 @@ function AutomaticClassContent() {
                 <i className="bi bi-lock-fill display-1 text-warning" />
             </motion.div>
             <motion.h4 className="mt-3 fw-bold" variants={fadeInUp}>اشتراک فعال ندارید</motion.h4>
-            <motion.p className="text-muted mb-2" variants={fadeInUp}>
+            <motion.p className="mb-2" variants={fadeInUp}>
                 برای دسترسی به پنل کلاس خودکار، باید یک اشتراک با امکان کلاس آنلاین داشته باشید.
             </motion.p>
-            <motion.p className="text-muted small mb-4" variants={fadeInUp}>
+            <motion.p className="small mb-4" variants={fadeInUp}>
                 بعد از خرید اشتراک، می‌توانید درخواست کلاس ثبت کنید و برنامه شخصی خود را دریافت کنید.
             </motion.p>
             <motion.a
@@ -358,7 +358,7 @@ function AutomaticClassContent() {
                             <h3 className="mb-0 fs-5 fw-bold">کلاس خودکار حفظ</h3>
                         </div>
                         {plan && (
-                            <span className="text-muted small">
+                            <span className="small">
                                 صفحات {plan.start_page}–{plan.end_page}
                             </span>
                         )}
@@ -422,7 +422,7 @@ function AutomaticClassContent() {
                                                     {todayData.today_steps.length === 0 ? (
                                                         <div className="text-center py-4 bg-light rounded-3">
                                                             <i className="bi bi-check-circle-fill text-success fs-3 mb-2 d-block" />
-                                                            <p className="text-muted mb-0">همه وظایف امروز را تکمیل کردید!</p>
+                                                            <p className="mb-0">همه وظایف امروز را تکمیل کردید!</p>
                                                         </div>
                                                     ) : (
                                                         <>
@@ -436,19 +436,19 @@ function AutomaticClassContent() {
                                                 {todayData.upcoming_steps.length > 0 && (
                                                     <div>
                                                         <div className="d-flex align-items-center gap-2 mb-3">
-                                                            <i className="bi bi-arrow-right-circle text-muted" />
-                                                            <h6 className="mb-0 text-muted fw-semibold">جلسات بعدی</h6>
+                                                            <i className="bi bi-arrow-right-circle" />
+                                                            <h6 className="mb-0 fw-semibold">جلسات بعدی</h6>
                                                         </div>
                                                         {todayData.upcoming_steps.map((step) => (
                                                             <div key={step.id} className="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-2 opacity-75">
                                                                 <i className={`bi ${stepTypeIcon(step.step_type)} text-${stepTypeColor(step.step_type)}`} />
                                                                 <div className="flex-grow-1">
                                                                     <span className="fw-semibold small">{stepTypeLabel(step.step_type)}</span>
-                                                                    <span className="text-muted small ms-2">
+                                                                    <span className="small ms-2">
                                                                         ص {step.page_start === step.page_end ? step.page_start : `${step.page_start}–${step.page_end}`}
                                                                     </span>
                                                                 </div>
-                                                                <span className="text-muted small">{formatDate(step.scheduled_date)}</span>
+                                                                <span className="small">{formatDate(step.scheduled_date)}</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -485,7 +485,7 @@ function AutomaticClassContent() {
                                                             <ProgressRing percent={progressData.stats.progress_percent} size={140} />
                                                             <div className="position-absolute text-center">
                                                                 <div className="fs-4 fw-bold text-primary">{progressData.stats.progress_percent}%</div>
-                                                                <div className="small text-muted">پیشرفت</div>
+                                                                <div className="small">پیشرفت</div>
                                                             </div>
                                                         </div>
                                                     </motion.div>
@@ -501,7 +501,7 @@ function AutomaticClassContent() {
                                                                     <div className={`card border-0 bg-${stat.color} bg-opacity-10 rounded-3 p-3 text-center`}>
                                                                         <i className={`bi ${stat.icon} text-${stat.color} mb-1`} />
                                                                         <div className={`fs-4 fw-bold text-${stat.color}`}>{stat.value}</div>
-                                                                        <div className="small text-muted">{stat.label}</div>
+                                                                        <div className="small">{stat.label}</div>
                                                                     </div>
                                                                 </motion.div>
                                                             ))}
@@ -525,7 +525,7 @@ function AutomaticClassContent() {
                                                             </div>
                                                             <div className="flex-grow-1">
                                                                 <div className="fw-semibold small">{stepTypeLabel(step.step_type)}</div>
-                                                                <div className="text-muted" style={{ fontSize: "0.75rem" }}>
+                                                                <div className="" style={{ fontSize: "0.75rem" }}>
                                                                     ص {step.page_start === step.page_end ? step.page_start : `${step.page_start}–${step.page_end}`}
                                                                     {step.sub_part !== "full" && <span className="ms-1">({step.sub_part === "first_half" ? "نیمه اول" : "نیمه دوم"})</span>}
                                                                 </div>
@@ -536,7 +536,7 @@ function AutomaticClassContent() {
                                                                         {statusLabel(step.status)}
                                                                     </span>
                                                                 )}
-                                                                <div className="text-muted" style={{ fontSize: "0.7rem" }}>
+                                                                <div className="" style={{ fontSize: "0.7rem" }}>
                                                                     {formatDate(step.scheduled_date)}
                                                                 </div>
                                                             </div>
@@ -577,7 +577,7 @@ function AutomaticClassContent() {
                                                     <div className={`card border-0 bg-${item.color} bg-opacity-10 rounded-3 p-3 h-100`}>
                                                         <div className="d-flex align-items-center gap-2 mb-1">
                                                             <i className={`bi ${item.icon} text-${item.color}`} />
-                                                            <span className="small text-muted">{item.label}</span>
+                                                            <span className="small">{item.label}</span>
                                                         </div>
                                                         <div className="fw-bold">{item.value}</div>
                                                     </div>
@@ -590,11 +590,11 @@ function AutomaticClassContent() {
                                                     <div className="card border-0 bg-info bg-opacity-10 rounded-3 p-3">
                                                         <div className="d-flex align-items-center gap-2 mb-2">
                                                             <i className="bi bi-arrow-counterclockwise text-info" />
-                                                            <span className="small text-muted fw-semibold">بازه مرور اضافی</span>
+                                                            <span className="small fw-semibold">بازه مرور اضافی</span>
                                                         </div>
                                                         <div className="fw-bold">
                                                             صفحات {plan.extra_review_start_page} تا {plan.extra_review_end_page}
-                                                            <span className="fw-normal text-muted small ms-2">
+                                                            <span className="fw-normal small ms-2">
                                                                 ({plan.extra_review_pages_per_session} صفحه در هر جلسه، حلقوی)
                                                             </span>
                                                         </div>
@@ -610,7 +610,7 @@ function AutomaticClassContent() {
                                                                 <i className="bi bi-person-badge-fill fs-5" />
                                                             </div>
                                                             <div>
-                                                                <div className="small text-muted">استاد شما</div>
+                                                                <div className="small">استاد شما</div>
                                                                 <div className="fw-bold">{plan.teacher_display.username}</div>
                                                             </div>
                                                         </div>
@@ -625,7 +625,7 @@ function AutomaticClassContent() {
                                                         <div className="d-flex align-items-center gap-2 mb-3">
                                                             <i className="bi bi-headset text-primary" />
                                                             <span className="fw-semibold small">جلسات تماس آنلاین</span>
-                                                            <span className="text-muted small ms-auto">
+                                                            <span className="small ms-auto">
                                                                 {plan.call_sessions.filter((s: UserCallSession) => s.status === "completed").length}/{plan.call_sessions.length} برگزار شده
                                                             </span>
                                                         </div>
@@ -638,7 +638,7 @@ function AutomaticClassContent() {
                                                                             ? "bg-success bg-opacity-10 text-success"
                                                                             : session.status === "no_answer"
                                                                             ? "bg-warning bg-opacity-10 text-warning"
-                                                                            : "bg-white border text-muted"
+                                                                            : "bg-white border"
                                                                     }`}
                                                                 >
                                                                     <i className={`bi ${session.status === "completed" ? "bi-check-circle-fill" : session.status === "no_answer" ? "bi-telephone-x-fill" : "bi-circle"}`} />

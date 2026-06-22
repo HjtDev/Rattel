@@ -321,7 +321,7 @@ function CreatePlanModal({
                                                 />
                                             </div>
                                         </div>
-                                        <div className="text-muted mt-1" style={{ fontSize: "0.72rem" }}>
+                                        <div className="mt-1" style={{ fontSize: "0.72rem" }}>
                                             در صورت تنظیم، هر جلسه یک بخش مرور اضافی از این بازه صفحات دریافت می‌کند (حلقوی).
                                         </div>
                                     </div>
@@ -373,7 +373,7 @@ function RequestCard({
                             </div>
                             <div>
                                 <h6 className="mb-0 fw-bold">{req.user_display.username}</h6>
-                                <div className="text-muted small d-flex align-items-center gap-2 mt-1">
+                                <div className="small d-flex align-items-center gap-2 mt-1">
                                     {req.user_display.phone && (
                                         <span><i className="bi bi-telephone me-1" />{req.user_display.phone}</span>
                                     )}
@@ -408,7 +408,7 @@ function RequestCard({
                                 <div className="mt-3 pt-3 border-top">
                                     {req.notes && (
                                         <div className="bg-light rounded-3 p-3 mb-3 small">
-                                            <div className="text-muted mb-1 fw-semibold">یادداشت کاربر:</div>
+                                            <div className="mb-1 fw-semibold">یادداشت کاربر:</div>
                                             <p className="mb-0">{req.notes}</p>
                                         </div>
                                     )}
@@ -495,7 +495,7 @@ function ConfirmDialog({
                             </span>
                         </div>
                         <h6 className="fw-bold mb-2">{title}</h6>
-                        <p className="text-muted small mb-4">{message}</p>
+                        <p className="small mb-4">{message}</p>
                         <div className="d-flex gap-2 justify-content-center">
                             <button className="btn btn-outline-secondary rounded-pill px-4" onClick={onCancel}>
                                 انصراف
@@ -576,7 +576,7 @@ function PlanDetailDrawer({
                                     ص {plan.start_page}–{plan.end_page}
                                 </span>
                             </h5>
-                            <div className="d-flex align-items-center gap-3 flex-wrap text-muted small mt-1">
+                            <div className="d-flex align-items-center gap-3 flex-wrap small mt-1">
                                 {plan.user_display.phone && <span><i className="bi bi-telephone me-1" />{plan.user_display.phone}</span>}
                                 {plan.subscription_info && (
                                     <span className={`badge rounded-pill ${plan.subscription_info.is_active ? "bg-success" : "bg-secondary"} bg-opacity-15 text-${plan.subscription_info.is_active ? "success" : "secondary"} border border-${plan.subscription_info.is_active ? "success" : "secondary"} border-opacity-25`}>
@@ -630,11 +630,11 @@ function PlanDetailDrawer({
                                                     <div className="flex-grow-1">
                                                         <div className="d-flex align-items-center gap-2 flex-wrap">
                                                             <span className="small fw-semibold">{step.step_type_display}</span>
-                                                            <span className="text-muted" style={{ fontSize: "0.72rem" }}>ص {step.page_start}–{step.page_end}</span>
+                                                            <span className="" style={{ fontSize: "0.72rem" }}>ص {step.page_start}–{step.page_end}</span>
                                                             <span className={`badge bg-${stepStatusColor(step.status)} bg-opacity-10 text-${stepStatusColor(step.status)} rounded-pill`} style={{ fontSize: "0.65rem" }}>{step.status_display}</span>
                                                         </div>
                                                         {step.admin_note && (
-                                                            <div className="text-muted mt-1" style={{ fontSize: "0.72rem" }}>
+                                                            <div className="mt-1" style={{ fontSize: "0.72rem" }}>
                                                                 <i className="bi bi-chat-square-text me-1" />{step.admin_note}
                                                             </div>
                                                         )}
@@ -645,7 +645,7 @@ function PlanDetailDrawer({
                                                         )}
                                                     </div>
                                                     <div className="d-flex gap-1 align-items-center flex-shrink-0">
-                                                        <span className="text-muted" style={{ fontSize: "0.7rem" }}>{formatDate(step.scheduled_date)}</span>
+                                                        <span className="fw-bold" style={{ fontSize: "0.7rem" }}>{formatDate(step.scheduled_date)}</span>
                                                         <button
                                                             className="btn btn-sm btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center"
                                                             style={{ width: 24, height: 24 }}
@@ -701,7 +701,7 @@ function PlanDetailDrawer({
                                         ].map((i, idx) => (
                                             <div key={idx} className="col-6">
                                                 <div className="bg-white rounded-3 p-2">
-                                                    <div className="small text-muted">{i.l}</div>
+                                                    <div className="small">{i.l}</div>
                                                     <div className="fw-semibold small">{i.v || "—"}</div>
                                                 </div>
                                             </div>
@@ -709,17 +709,17 @@ function PlanDetailDrawer({
                                     </div>
                                     {plan.extra_review_pages_per_session > 0 && plan.extra_review_start_page != null && plan.extra_review_end_page != null && (
                                         <div className="mt-2 bg-white rounded-3 p-2 text-center">
-                                            <div className="small text-muted">مرور اضافی</div>
+                                            <div className="small">مرور اضافی</div>
                                             <div className="fw-semibold small">
                                                 ص {plan.extra_review_start_page}–{plan.extra_review_end_page}
-                                                <span className="text-muted fw-normal ms-1">({plan.extra_review_pages_per_session} صفحه/جلسه)</span>
+                                                <span className="fw-normal ms-1">({plan.extra_review_pages_per_session} صفحه/جلسه)</span>
                                             </div>
                                         </div>
                                     )}
                                     {/* Progress bar */}
                                     <div className="mt-3">
                                         <div className="d-flex justify-content-between small mb-1">
-                                            <span className="text-muted">پیشرفت</span>
+                                            <span className="">پیشرفت</span>
                                             <span className="fw-bold text-primary">{plan.progress_percent}%</span>
                                         </div>
                                         <div className="progress rounded-pill" style={{ height: 8 }}>
@@ -730,7 +730,7 @@ function PlanDetailDrawer({
                                                 transition={{ duration: 1, ease: "easeOut" }}
                                             />
                                         </div>
-                                        <div className="text-muted small mt-1">
+                                        <div className="small mt-1">
                                             {plan.completed_steps} از {plan.total_steps} مرحله تکمیل شده
                                         </div>
                                     </div>
@@ -742,7 +742,7 @@ function PlanDetailDrawer({
                                         <i className="bi bi-headset me-2 text-primary" />
                                         جلسات تماس آنلاین
                                         {plan.call_sessions && plan.call_sessions.length > 0 && (
-                                            <span className="ms-2 text-muted fw-normal small">
+                                            <span className="ms-2 fw-normal small">
                                                 ({plan.call_sessions.filter(s => s.status === "completed").length}/{plan.call_sessions.length})
                                             </span>
                                         )}
@@ -752,10 +752,10 @@ function PlanDetailDrawer({
                                             {plan.call_sessions.map((session) => (
                                                 <div key={session.id} className={`card border-0 rounded-3 p-2 ${session.status === "completed" ? "bg-success bg-opacity-10" : session.status === "no_answer" ? "bg-warning bg-opacity-10" : "bg-light"}`}>
                                                     <div className="d-flex align-items-center gap-2">
-                                                        <span className="text-muted small fw-semibold" style={{ minWidth: 24 }}>#{session.session_number}</span>
+                                                        <span className="small fw-semibold" style={{ minWidth: 24 }}>#{session.session_number}</span>
                                                         <div className="flex-grow-1">
                                                             {session.status !== "pending" && session.completed_at && (
-                                                                <div className="text-muted" style={{ fontSize: "0.7rem" }}>
+                                                                <div className="" style={{ fontSize: "0.7rem" }}>
                                                                     {formatDateTime(session.completed_at)}
                                                                     {session.marked_by_display && <span className="ms-1">· {session.marked_by_display}</span>}
                                                                 </div>
@@ -784,7 +784,7 @@ function PlanDetailDrawer({
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-muted small bg-light rounded-3 p-3">
+                                        <div className="small bg-light rounded-3 p-3">
                                             <i className="bi bi-info-circle me-2" />
                                             {plan.subscription_info
                                                 ? plan.subscription_info.online_class_limit > 0
@@ -832,7 +832,7 @@ function PlanDetailDrawer({
                                         <div style={{ maxHeight: 220, overflowY: "auto" }}>
                                             {callLogs.map((log) => (
                                                 <div key={log.id} className="card border-0 bg-light rounded-3 p-3 mb-2 small">
-                                                    <div className="d-flex justify-content-between text-muted mb-1">
+                                                    <div className="d-flex justify-content-between mb-1">
                                                         <span><i className="bi bi-person-fill me-1" />{log.called_by_display || "استاد"}</span>
                                                         <span>{formatDateTime(log.call_date)}</span>
                                                     </div>
@@ -1058,7 +1058,7 @@ function AdminClassContent() {
                                 {isLoading ? (
                                     <div className="text-center py-5"><div className="spinner-border text-primary" /></div>
                                 ) : adminRequests.length === 0 ? (
-                                    <div className="text-center py-5 text-muted">
+                                    <div className="text-center py-5">
                                         <i className="bi bi-inbox display-4 d-block mb-3" />
                                         درخواستی یافت نشد
                                     </div>
@@ -1101,7 +1101,7 @@ function AdminClassContent() {
                                 {isLoading ? (
                                     <div className="text-center py-5"><div className="spinner-border text-primary" /></div>
                                 ) : adminPlans.length === 0 ? (
-                                    <div className="text-center py-5 text-muted">
+                                    <div className="text-center py-5">
                                         <i className="bi bi-journal-x display-4 d-block mb-3" />
                                         برنامه‌ای یافت نشد
                                     </div>
@@ -1125,9 +1125,9 @@ function AdminClassContent() {
                                                         <tr key={plan.id}>
                                                             <td>
                                                                 <div className="fw-semibold">{plan.user_display?.username || "—"}</div>
-                                                                <div className="text-muted small">{plan.user_display?.phone || ""}</div>
+                                                                <div className="small">{plan.user_display?.phone || ""}</div>
                                                             </td>
-                                                            <td className="text-muted small">{plan.start_page}–{plan.end_page}</td>
+                                                            <td className="small">{plan.start_page}–{plan.end_page}</td>
                                                             <td>
                                                                 <span className={`badge bg-${cfg.color} bg-opacity-10 text-${cfg.color} rounded-pill`}>
                                                                     {cfg.label}
@@ -1140,9 +1140,9 @@ function AdminClassContent() {
                                                                         style={{ width: `${plan.progress_percent}%` }}
                                                                     />
                                                                 </div>
-                                                                <div className="text-muted" style={{ fontSize: "0.7rem" }}>{plan.progress_percent}%</div>
+                                                                <div className="" style={{ fontSize: "0.7rem" }}>{plan.progress_percent}%</div>
                                                             </td>
-                                                            <td className="text-muted small">{formatDate(plan.start_date)}</td>
+                                                            <td className="small">{formatDate(plan.start_date)}</td>
                                                             <td>
                                                                 <button
                                                                     className="btn btn-sm btn-outline-primary rounded-pill"
@@ -1183,7 +1183,7 @@ function AdminClassContent() {
                                     <div className="col-lg-6">
                                         <div className="card border-0 shadow-sm rounded-4 p-4">
                                             <h6 className="fw-bold mb-3">
-                                                <i className="bi bi-clock-history text-muted me-2" />
+                                                <i className="bi bi-clock-history me-2" />
                                                 آخرین تماس‌ها
                                             </h6>
                                             <RecentCallsSummary plans={adminPlans} />
@@ -1283,9 +1283,9 @@ function QuickCallForm({ plans, onLog }: { plans: AdminPlan[]; onLog: (planId: s
 }
 
 function RecentCallsSummary({ plans }: { plans: AdminPlan[] }) {
-    if (plans.length === 0) return <p className="text-muted small">ابتدا برنامه‌ای فعال کنید.</p>;
+    if (plans.length === 0) return <p className="small">ابتدا برنامه‌ای فعال کنید.</p>;
     return (
-        <p className="text-muted small">
+        <p className="small">
             برای مشاهده تاریخچه تماس‌ها، از تب «برنامه‌ها» روی دکمه «جزئیات» کلیک کنید.
         </p>
     );
