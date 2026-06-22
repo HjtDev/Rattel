@@ -310,11 +310,11 @@ msgstr "حفظ"
 
 #: automatic_class/models.py:388
 msgid "Review"
-msgstr "بازبینی(ریویو)"
+msgstr "۱۰ درس"
 
 #: automatic_class/models.py:389
 msgid "Extra Review"
-msgstr "مرور اضافه"
+msgstr "مرور"
 
 #: automatic_class/models.py:390
 msgid "Final Review"
