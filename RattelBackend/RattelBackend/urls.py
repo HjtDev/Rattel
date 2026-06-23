@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/v1/gallery/', include('gallery.urls', namespace='gallery')),
     path('api/v1/subscriptions/', include('subscriptions.urls', namespace='subscriptions')),
     path('api/v1/class/automatic/', include('automatic_class.urls', namespace='automatic')),
+    path('api/v1/class/in-person/', include('in_person_class.urls', namespace='in_person_class')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

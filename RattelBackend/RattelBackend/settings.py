@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'gallery.apps.GalleryConfig',
     'subscriptions.apps.SubscriptionsConfig',
     'automatic_class.apps.AutomaticClassConfig',
+    'in_person_class.apps.InPersonClassConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -414,7 +415,8 @@ GATEWAY_PROVIDER = 'payment.providers.zibal.ZibalGateway'
 # Cart
 CART_ALLOWED_CONTENT_TYPES = [
     'courses.course',
-    'subscriptions.plan'
+    'subscriptions.plan',
+    'in_person_class.inpersonclassregistration',
 ]
 
 # Site Settings
