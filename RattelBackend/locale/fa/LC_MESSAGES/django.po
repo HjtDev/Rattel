@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RattelBackend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-21 07:26+0000\n"
+"POT-Creation-Date: 2026-06-23 09:10+0000\n"
 "PO-Revision-Date: 2026-05-17 14:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -32,8 +32,9 @@ msgstr "ادمین"
 #: automatic_class/admin.py:51 automatic_class/admin.py:114
 #: automatic_class/admin.py:177 blog/admin.py:83 courses/admin.py:110
 #: courses/admin.py:190 courses/progress_admin.py:46 gallery/admin.py:43
-#: gallery/admin.py:80 payment/admin.py:97 subscriptions/admin.py:54
-#: tickets/admin.py:79 tickets/admin.py:199
+#: gallery/admin.py:80 in_person_class/admin.py:76 in_person_class/admin.py:148
+#: payment/admin.py:97 subscriptions/admin.py:54 tickets/admin.py:79
+#: tickets/admin.py:199
 msgid "Timestamps"
 msgstr "زمان/تاریخ ها"
 
@@ -143,13 +144,15 @@ msgstr "یادداشت های ادمین"
 #: blog/models.py:13 blog/models.py:32 blog/models.py:64 blog/models.py:101
 #: courses/models.py:64 courses/models.py:234 courses/models.py:258
 #: courses/progress_models.py:74 gallery/models.py:19 gallery/models.py:59
+#: in_person_class/models.py:76 in_person_class/models.py:138
 #: siteconfig/models.py:494 subscriptions/models.py:60 tickets/models.py:128
 msgid "Created At"
 msgstr "تاریخ ایجاد"
 
 #: automatic_class/models.py:65 automatic_class/models.py:207 blog/models.py:65
 #: courses/models.py:65 courses/models.py:235 gallery/models.py:20
-#: gallery/models.py:60 subscriptions/models.py:61 tickets/models.py:129
+#: gallery/models.py:60 in_person_class/models.py:77 subscriptions/models.py:61
+#: tickets/models.py:129
 msgid "Updated At"
 msgstr "تاریخ آپدیت"
 
@@ -202,7 +205,6 @@ msgid "Draft"
 msgstr "در حال تنظیم"
 
 #: automatic_class/models.py:104
-#| msgid "Active"
 msgid "Active Plan"
 msgstr "دسترسی به برنامه"
 
@@ -232,7 +234,8 @@ msgstr "صفحه شروع"
 msgid "End Page"
 msgstr "صفحه پایان"
 
-#: automatic_class/models.py:143
+#: automatic_class/models.py:143 in_person_class/models.py:71
+#: in_person_class/models.py:126
 msgid "Start Date"
 msgstr "تاریخ شروع"
 
@@ -504,12 +507,13 @@ msgstr "پیام ادمین"
 msgid "Blog"
 msgstr "بلاگ"
 
-#: blog/models.py:11 blog/models.py:30 subscriptions/models.py:27
-#: users/models.py:78
+#: blog/models.py:11 blog/models.py:30 in_person_class/models.py:32
+#: subscriptions/models.py:27 users/models.py:78
 msgid "Name"
 msgstr "نام"
 
 #: blog/models.py:12 blog/models.py:31 blog/models.py:51
+#: in_person_class/models.py:33
 msgid "Slug"
 msgstr "اسلاگ"
 
@@ -534,17 +538,20 @@ msgid "Blog ID"
 msgstr "آیدی"
 
 #: blog/models.py:50 courses/models.py:38 courses/models.py:224
-#: courses/models.py:254 gallery/models.py:17 siteconfig/models.py:507
+#: courses/models.py:254 gallery/models.py:17 in_person_class/models.py:62
+#: siteconfig/models.py:507
 msgid "Title"
 msgstr "تیتر"
 
-#: blog/models.py:52 courses/models.py:43 siteconfig/models.py:129
+#: blog/models.py:52 courses/models.py:43 in_person_class/models.py:63
+#: siteconfig/models.py:129
 msgid "Short Description"
 msgstr "توضیحات کوتاه"
 
 #: blog/models.py:53 courses/admin.py:82 courses/models.py:225
-#: payment/models.py:58 siteconfig/models.py:199 siteconfig/models.py:212
-#: siteconfig/models.py:508 siteconfig/models.py:548 subscriptions/models.py:28
+#: in_person_class/admin.py:52 payment/models.py:58 siteconfig/models.py:199
+#: siteconfig/models.py:212 siteconfig/models.py:508 siteconfig/models.py:548
+#: subscriptions/models.py:28
 msgid "Description"
 msgstr "توضیحات"
 
@@ -552,7 +559,7 @@ msgstr "توضیحات"
 msgid "Conclusion"
 msgstr "نتیجه گیری"
 
-#: blog/models.py:55 gallery/models.py:18
+#: blog/models.py:55 gallery/models.py:18 in_person_class/models.py:61
 msgid "Thumbnail"
 msgstr "عکس بنر"
 
@@ -568,7 +575,8 @@ msgstr "نویسنده"
 msgid "Time To Read (Minutes)"
 msgstr "زمان مورد نیاز برای مطالعه(دقیقه)"
 
-#: blog/models.py:59 courses/models.py:56 tickets/models.py:125
+#: blog/models.py:59 courses/models.py:56 in_person_class/models.py:28
+#: tickets/models.py:125
 msgid "Category"
 msgstr "دسته بندی"
 
@@ -577,7 +585,8 @@ msgid "Tags"
 msgstr "تگ ها"
 
 #: blog/models.py:62 courses/models.py:62 courses/models.py:232
-#: siteconfig/models.py:838 subscriptions/models.py:58
+#: in_person_class/models.py:74 siteconfig/models.py:838
+#: subscriptions/models.py:58
 msgid "Visible"
 msgstr "نمایش در سایت"
 
@@ -625,23 +634,24 @@ msgstr "تعداد"
 msgid "Added At"
 msgstr "تاریخ"
 
-#: courses/admin.py:64 payment/admin.py:60 subscriptions/admin.py:42
+#: courses/admin.py:64 in_person_class/admin.py:46 payment/admin.py:60
+#: subscriptions/admin.py:42
 msgid "Core Information"
 msgstr "اطلاعات اصلی"
 
-#: courses/admin.py:92 subscriptions/admin.py:45
+#: courses/admin.py:92 in_person_class/admin.py:58 subscriptions/admin.py:45
 msgid "Pricing"
 msgstr "قیمت گذاری"
 
-#: courses/admin.py:103
+#: courses/admin.py:103 in_person_class/admin.py:142
 msgid "Students"
 msgstr "قرآن آموزان"
 
-#: courses/admin.py:118 subscriptions/admin.py:59
+#: courses/admin.py:118 in_person_class/admin.py:83 subscriptions/admin.py:59
 msgid "Price"
 msgstr "قیمت گذاری"
 
-#: courses/admin.py:131 subscriptions/admin.py:64
+#: courses/admin.py:131 in_person_class/admin.py:88 subscriptions/admin.py:64
 msgid "Discount"
 msgstr "تخفیف"
 
@@ -706,7 +716,8 @@ msgstr "تدبر"
 msgid "Course ID"
 msgstr "آیدی دوره"
 
-#: courses/models.py:40 subscriptions/models.py:55
+#: courses/models.py:40 in_person_class/models.py:135
+#: subscriptions/models.py:55
 msgid "Bought By"
 msgstr "لیسا خریداران"
 
@@ -722,11 +733,12 @@ msgstr "ویدیو معرفی دوره"
 msgid "Course Image/Banner"
 msgstr "بنر دوره"
 
-#: courses/models.py:49 subscriptions/models.py:31
+#: courses/models.py:49 in_person_class/models.py:65
+#: in_person_class/models.py:128 subscriptions/models.py:31
 msgid "Price (Toman)"
 msgstr "قیمت (تومان)"
 
-#: courses/models.py:50 subscriptions/models.py:32
+#: courses/models.py:50 in_person_class/models.py:66 subscriptions/models.py:32
 msgid "Discounted Price (0 = no discount)"
 msgstr "قیمت با تخفیف (۰ برای حذف استفاده از قیمت بدون تخفیف)"
 
@@ -944,6 +956,85 @@ msgstr "شما نباید صوت آپلود کنید مگر اینکه نوع م
 #: gallery/models.py:90
 msgid "Embed code must be empty unless content type is embed."
 msgstr "شما نباید کد امبد تنظیم کنید مگر اینکه نوع محتوا امبد باشد"
+
+#: in_person_class/admin.py:64
+#| msgid "Scheduled Date"
+msgid "Schedule"
+msgstr "برنامه ریزی"
+
+#: in_person_class/admin.py:70 in_person_class/models.py:29
+#: in_person_class/models.py:69
+#| msgid "Blog Categories"
+msgid "Categories"
+msgstr "دسته بندی ها"
+
+#: in_person_class/admin.py:121
+#| msgid "Register"
+msgid "Registered"
+msgstr "ثبت نام شده"
+
+#: in_person_class/admin.py:130 siteconfig/models.py:461
+msgid "Registration"
+msgstr "ثبت نام"
+
+#: in_person_class/admin.py:136
+#| msgid "Registration"
+msgid "Snapshot at Registration"
+msgstr "اطلاعات ذخیره شده از کلاس"
+
+#: in_person_class/apps.py:8
+#| msgid "Automatic Class System"
+msgid "In-Person Class System"
+msgstr "سیستم کلاس حضوری"
+
+#: in_person_class/models.py:16 in_person_class/models.py:122
+msgid "Time Range"
+msgstr "بازه زمانی"
+
+#: in_person_class/models.py:17
+#| msgid "Time To Read (Minutes)"
+msgid "Time Ranges"
+msgstr "بازه های زمانی"
+
+#: in_person_class/models.py:20
+msgid "Label"
+msgstr "بازه"
+
+#: in_person_class/models.py:52 in_person_class/models.py:116
+msgid "In-Person Class"
+msgstr "کلاس حضوری"
+
+#: in_person_class/models.py:53
+msgid "In-Person Classes"
+msgstr "کلاس های حضوری"
+
+#: in_person_class/models.py:59 in_person_class/models.py:110
+msgid "ID"
+msgstr "آیدی"
+
+#: in_person_class/models.py:68
+#| msgid "Available Days"
+msgid "Available Times"
+msgstr "بازه های موجود"
+
+#: in_person_class/models.py:72 in_person_class/models.py:127
+#| msgid "End Page"
+msgid "End Date"
+msgstr "تاریخ پایان"
+
+#: in_person_class/models.py:106
+#| msgid "Registration"
+msgid "In-Person Class Registration"
+msgstr "ثبت نام"
+
+#: in_person_class/models.py:107
+msgid "In-Person Class Registrations"
+msgstr "ثبت نام ها"
+
+#: in_person_class/models.py:129
+#| msgid "Discount"
+msgid "Discounted Price"
+msgstr "قیمت با تخفیف"
 
 #: notifications/apps.py:7
 msgid "Notifications"
@@ -1861,10 +1952,6 @@ msgstr "زبان ها"
 msgid "Instructor Recruitment Stages"
 msgstr "مراحل استخدام"
 
-#: siteconfig/models.py:461
-msgid "Registration"
-msgstr "ثبت نام"
-
 #: siteconfig/models.py:462
 msgid "<p>Add tab 1 content.</p>"
 msgstr "اطلاعات بخش اول"
@@ -2162,7 +2249,6 @@ msgid "Order of the FAQ. Lower number appears first."
 msgstr "ترتیب نمایش سوالات"
 
 #: subscriptions/admin.py:13 subscriptions/admin.py:92
-#| msgid "User Subscription"
 msgid "Active Subscription"
 msgstr "اشتراک فعال"
 
