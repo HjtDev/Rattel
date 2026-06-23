@@ -73,6 +73,7 @@ The backend `entrypoint.sh` runs migrations then tests (if `RUN_TESTS=1`) before
 | `siteconfig` | Site-wide settings exposed via API |
 | `subscriptions` | Subscription plans (`Plan`) and per-user active subscription (`UserSubscription`) |
 | `automatic_class` | Personalised memorisation plans with auto-generated steps, online call sessions, and admin call logs |
+| `in_person_class` | In-person class offerings with time-range selection, shared-registration deduplication, and cart-system integration |
 
 Configuration lives in `RattelBackend/RattelBackend/settings.py` and is loaded via `python-decouple` from `.env`.
 
@@ -116,6 +117,20 @@ Token refresh: `/api/v1/auth/refresh/`. Tokens stored in `localStorage` on the f
 
 `PlanStep.mark_delayed()` is called by the nightly Celery beat task for any pending step whose `scheduled_date` has passed.
 
+### in_person_class App
+
+Admins create `InPersonClass` offerings (with `TimeRange` M2M and `Category` M2M). Users register via the `/api/v1/class/in-person/register/` endpoint, which returns a shared `InPersonClassRegistration` id. The frontend then adds that id to the cart via `cartManager.add('in_person_class', 'inpersonclassregistration', id, ...)`. Payment and `bought_by` population are handled by the existing cart/payment flow.
+
+**Deduplication:** `InPersonClassRegistration` has `unique_together = [('in_person_class', 'time_range')]`. The register view uses `get_or_create`, so multiple users enrolling in the same class+time slot share one registration record — `bought_by` is the M2M that tracks who paid.
+
+**Cart interface on `InPersonClassRegistration`:** implements `CART_SERIALIZER` (classproperty), `add_user(user)`, and `is_owned_by(user)` — the same contract as `Course` and `Plan`. Add `'in_person_class.inpersonclassregistration'` to `CART_ALLOWED_CONTENT_TYPES` in `settings.py` when setting up a new environment.
+
+**Snapshot fields:** `price`, `new_price`, `start_date`, `end_date` are copied from `InPersonClass` at registration creation time and never updated, so the cart total remains stable even if the class price changes later.
+
+**Frontend pages:**
+- `app/in-person-classes/page.tsx` — public class listing with category filter sidebar, Framer Motion cards, Bootstrap modal for time-range selection, and `next`-URL-aware redirect to login for unauthenticated users.
+- `app/dashboard/registered-classes/page.tsx` — authenticated dashboard tab listing the user's purchased classes with Jalali dates and registered-count badge.
+
 ### Frontend Architecture (`rattel-frontend/`)
 
 Pages live in the top-level `app/` directory (Next.js App Router), not inside `src/`. Domain logic lives in `src/`:
@@ -125,6 +140,7 @@ Pages live in the top-level `app/` directory (Next.js App Router), not inside `s
 - **`src/core/hooks/use*.ts`** — one hook per domain (courses, blog, cart, subscriptions, automatic class, etc.).
 - **`src/core/*/Manager.ts`** — `subscriptionManager.ts`, `automaticClassManager.ts`, `authManager.ts`, etc. for imperative API calls.
 - **`src/core/motionVariants.ts`** — shared Framer Motion variants; import from here instead of defining inline.
+- **`src/core/utils.ts`** — shared utilities including `getMediaUrl`, `isLinkActive`, `toJalali` (Gregorian → Jalali display via `react-date-object`), and label helpers.
 
 ### API URL Structure
 
@@ -142,5 +158,9 @@ All endpoints are under `/api/v1/`:
 /api/v1/subscriptions/plans/     public plan list
 /api/v1/subscriptions/my/        authenticated user's active subscription
 /api/v1/class/automatic/         automatic class (user + admin endpoints)
+/api/v1/class/in-person/         in-person class list (public, paginated, category filter)
+/api/v1/class/in-person/categories/    category list for filter UI
+/api/v1/class/in-person/register/      create or retrieve a shared UserRequest (authenticated)
+/api/v1/class/in-person/my-registrations/   classes the current user has purchased
 /api/v1/editor/upload/
 ```

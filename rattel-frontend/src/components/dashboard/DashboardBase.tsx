@@ -159,6 +159,10 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     </i>
                                                     پست های نشان شده
                                                 </a>
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/registered-classes", pathname) ? "active" : ""}`} href="/dashboard/registered-classes">
+                                                    <i className="bi bi-calendar-check fa-fw me-2"></i>
+                                                    کلاس‌های حضوری
+                                                </a>
                                                 <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class", pathname, true) ? "active" : ""}`} href="/dashboard/automatic-class">
                                                     <i className="bi bi-journal-bookmark-fill fa-fw me-2">
                                                     </i>
