@@ -163,6 +163,16 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     <i className="bi bi-calendar-check fa-fw me-2"></i>
                                                     کلاس‌های حضوری
                                                 </a>
+                                                <a className={`list-group-item ${isLinkActive("/dashboard/quiz", pathname, true) ? "active" : ""}`} href="/dashboard/quiz">
+                                                    <i className="bi bi-patch-question-fill fa-fw me-2"></i>
+                                                    آزمون‌ها
+                                                </a>
+                                                {(user as any)?.is_staff && (
+                                                    <a className={`list-group-item ${isLinkActive("/quiz/admin", pathname, true) ? "active" : ""}`} href="/quiz/admin">
+                                                        <i className="bi bi-shield-check fa-fw me-2"></i>
+                                                        مدیریت آزمون‌ها
+                                                    </a>
+                                                )}
                                                 <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class", pathname, true) ? "active" : ""}`} href="/dashboard/automatic-class">
                                                     <i className="bi bi-journal-bookmark-fill fa-fw me-2">
                                                     </i>
