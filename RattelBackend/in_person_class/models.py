@@ -22,6 +22,15 @@ class TimeRange(models.Model):
     def __str__(self):
         return self.label
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        invalidate_cache('in_person_class_list')
+
+    def delete(self, *args, **kwargs):
+        result = super().delete(*args, **kwargs)
+        invalidate_cache('in_person_class_list')
+        return result
+
 
 class Category(models.Model):
     class Meta:
