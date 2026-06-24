@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'subscriptions.apps.SubscriptionsConfig',
     'automatic_class.apps.AutomaticClassConfig',
     'in_person_class.apps.InPersonClassConfig',
+    'quiz.apps.QuizConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
