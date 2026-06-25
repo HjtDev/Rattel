@@ -8,6 +8,7 @@ from django.utils import timezone
 from jalali_date import date2jalali, datetime2jalali
 from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
 from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 from .models import Category, InPersonClass, InPersonClassRegistration, TimeRange
 
@@ -21,40 +22,84 @@ def export_registrations_excel(modeladmin, request, queryset):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "ثبت‌نام‌ها"
+    ws.sheet_view.rightToLeft = True
 
-    headers = [
-        "نام کلاس", "بازه زمانی", "تاریخ شروع", "تاریخ پایان",
-        "قیمت (تومان)", "قیمت جدید (تومان)",
-        "نام کاربری", "نام کامل", "شماره تلفن", "ایمیل",
-        "کد ملی", "جنسیت", "شهر", "شناسه تلگرام", "تاریخ عضویت",
-    ]
-    ws.append(headers)
+    center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    thin = Side(style='thin')
+    full_border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    header_font = Font(bold=True)
+    header_fill = PatternFill(fill_type='solid', fgColor='D9D9D9')
+
+    def write_cell(row, col, value, border=None):
+        cell = ws.cell(row=row, column=col, value=value)
+        cell.alignment = center
+        if border:
+            cell.border = border
+        return cell
 
     qs = queryset.prefetch_related(
         'bought_by', 'bought_by__profile',
         'in_person_class', 'time_range',
     )
 
+    current_row = 1
+    user_headers = [
+        "نام کاربری", "نام کامل", "شماره تلفن", "ایمیل",
+        "کد ملی", "جنسیت", "شهر", "تلگرام", "ایتا", "اینستاگرام",
+    ]
+
     for reg in qs:
+        start_jalali = date2jalali(reg.start_date).strftime('%Y/%m/%d')
+        end_jalali = date2jalali(reg.end_date).strftime('%Y/%m/%d')
+        price_str = f"{reg.price:,} تومان"
+        new_price_str = f"{reg.new_price:,} تومان" if reg.new_price else "—"
+
+        meta_rows = [
+            ("نام کلاس", reg.in_person_class.title),
+            ("بازه زمانی", reg.time_range.label),
+            ("تاریخ شروع", start_jalali),
+            ("تاریخ پایان", end_jalali),
+            ("قیمت", price_str),
+            ("قیمت جدید", new_price_str),
+        ]
+        for label, value in meta_rows:
+            label_cell = write_cell(current_row, 1, label)
+            label_cell.font = Font(bold=True)
+            write_cell(current_row, 2, value)
+            current_row += 1
+
+        current_row += 1
+
+        for col_idx, header in enumerate(user_headers, start=1):
+            cell = write_cell(current_row, col_idx, header, border=full_border)
+            cell.font = header_font
+            cell.fill = header_fill
+        current_row += 1
+
         for user in reg.bought_by.all():
             profile = getattr(user, 'profile', None)
-            ws.append([
-                reg.in_person_class.title,
-                reg.time_range.label,
-                str(reg.start_date),
-                str(reg.end_date),
-                reg.price,
-                reg.new_price,
+            gender_display = profile.get_gender_display() if profile and profile.gender else ""
+            row_data = [
                 user.username,
                 user.name,
                 user.phone,
                 user.email or "",
                 getattr(profile, 'national_code', "") or "",
-                getattr(profile, 'gender', "") or "",
+                gender_display,
                 getattr(profile, 'city', "") or "",
                 getattr(profile, 'telegram_id', "") or "",
-                str(user.date_joined.date()),
-            ])
+                getattr(profile, 'eitaa_id', "") or "",
+                getattr(profile, 'instagram_id', "") or "",
+            ]
+            for col_idx, value in enumerate(row_data, start=1):
+                write_cell(current_row, col_idx, value, border=full_border)
+            current_row += 1
+
+        current_row += 2
+
+    col_widths = [18, 20, 15, 25, 14, 10, 14, 16, 16, 18]
+    for col_idx, width in enumerate(col_widths, start=1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col_idx)].width = width
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
