@@ -34,13 +34,13 @@ function StarRating({ rating }: { rating: number }) {
     );
 }
 
-function CourseCard({ course }: { course: Course }) {
+function CourseCard({ course, className }: { course: Course; className?: string }) {
     const effectivePrice = course.new_price > 0 ? course.new_price : course.price;
     const hasDiscount = course.new_price > 0;
     const router = useRouter();
 
     return (
-        <motion.div className="col-sm-6 col-lg-4 col-xl-4" variants={fadeInUp} whileHover={{ y: -6, transition: { duration: 0.2 } }}>
+        <motion.div className={`col-md-6 col-lg-4${className ? ` ${className}` : ""}`} variants={fadeInUp} whileHover={{ y: -6, transition: { duration: 0.2 } }}>
             <div className="card shadow h-100">
                 {course.image && (
                     <img
@@ -105,7 +105,7 @@ function CourseCard({ course }: { course: Course }) {
 }
 
 export default function PopularCourses() {
-    const { coursesData, isLoadingCourses } = useCourses({ sort: "rating", count: 3 });
+    const { coursesData, isLoadingCourses } = useCourses({ sort: "rating", count: 4 });
 
     return (
         <section>
@@ -137,8 +137,8 @@ export default function PopularCourses() {
                             whileInView="show"
                             viewport={{ once: true, amount: 0.05 }}
                         >
-                            {coursesData?.courses.map((course) => (
-                                <CourseCard key={course.id} course={course} />
+                            {coursesData?.courses.map((course, idx) => (
+                                <CourseCard key={course.id} course={course} className={idx === 3 ? "d-none d-md-block d-lg-none" : ""} />
                             ))}
                         </motion.div>
                     )}
