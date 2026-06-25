@@ -25,6 +25,7 @@ RUN echo "deb https://debian-main.devneeds.ir/ bookworm main" > /etc/apt/sources
     pkg-config \
     libdbus-1-dev \
     libglib2.0-dev \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -55,6 +56,7 @@ RUN echo "deb https://debian-main.devneeds.ir/ bookworm main" > /etc/apt/sources
     apt-get install -y \
     postgresql-client \
     curl \
+    libwebp7 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
