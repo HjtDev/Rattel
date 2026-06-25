@@ -54,6 +54,7 @@ class InPersonClassListSerializer(serializers.ModelSerializer):
             'categories',
             'start_date',
             'end_date',
+            'meeting_url',
         )
 
     def get_thumbnail(self, obj: InPersonClass):

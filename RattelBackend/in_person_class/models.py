@@ -80,6 +80,8 @@ class InPersonClass(models.Model):
     start_date = models.DateField(verbose_name=_('Start Date'))
     end_date = models.DateField(verbose_name=_('End Date'))
 
+    meeting_url = models.URLField(blank=True, null=True, verbose_name=_('Online Meeting URL'))
+
     is_visible = models.BooleanField(default=True, verbose_name=_('Visible'))
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
