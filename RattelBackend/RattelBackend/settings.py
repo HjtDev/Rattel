@@ -187,7 +187,7 @@ LANGUAGES = [
     ('fa', 'Persian'),
 ]
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 LOCALE_PATHS = [

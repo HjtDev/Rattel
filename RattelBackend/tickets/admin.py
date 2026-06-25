@@ -1,7 +1,18 @@
 from django.contrib import admin
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
+from django.utils import timezone
+from jalali_date import datetime2jalali
+from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
+from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
+
 from .models import Ticket, Message
+
+_JALALI_FORMFIELD_OVERRIDES = {
+    models.DateField: {'form_class': JalaliDateField, 'widget': AdminJalaliDateWidget},
+    models.DateTimeField: {'form_class': SplitJalaliDateTimeField, 'widget': AdminSplitJalaliDateTime},
+}
 
 
 class MessageInline(admin.StackedInline):
@@ -13,10 +24,12 @@ class MessageInline(admin.StackedInline):
     ordering = ('created_at',)
     verbose_name = _('پیام')
     verbose_name_plural = _('پیام ها')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
 
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
     list_display = (
         'id',
         'subject',
@@ -25,7 +38,7 @@ class TicketAdmin(admin.ModelAdmin):
         'priority_badge',
         'category',
         'message_count',
-        'updated_at',
+        'updated_at_jalali',
     )
 
     list_filter = (
@@ -87,16 +100,12 @@ class TicketAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description=_('Updated At'))
+    def updated_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.updated_at)).strftime('%Y/%m/%d %H:%M')
+
     @admin.display(description=_('Status'))
     def status_badge(self, obj):
-        """Render a colored badge for ticket status.
-
-        Args:
-            obj: Ticket instance.
-
-        Returns:
-            SafeData: HTML badge.
-        """
         color_map = {
             Ticket.StatusChoices.OPEN: '#28a745',
             Ticket.StatusChoices.IN_PROGRESS: '#007bff',
@@ -113,14 +122,6 @@ class TicketAdmin(admin.ModelAdmin):
 
     @admin.display(description=_('Priority'))
     def priority_badge(self, obj):
-        """Render a colored badge for ticket priority.
-
-        Args:
-            obj: Ticket instance.
-
-        Returns:
-            SafeData: HTML badge.
-        """
         color_map = {
             Ticket.PriorityChoices.LOW: '#6c757d',
             Ticket.PriorityChoices.MEDIUM: '#17a2b8',
@@ -137,14 +138,6 @@ class TicketAdmin(admin.ModelAdmin):
 
     @admin.display(description=_('Messages'))
     def message_count(self, obj):
-        """Return the total message count for this ticket.
-
-        Args:
-            obj: Ticket instance.
-
-        Returns:
-            int: Message count.
-        """
         return obj.message_count
 
     def get_queryset(self, request):
@@ -153,13 +146,14 @@ class TicketAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
     list_display = (
         'id',
         'ticket',
         'sender',
         'is_staff_reply',
         'has_attachment',
-        'created_at',
+        'created_at_jalali',
     )
 
     list_filter = (
@@ -204,16 +198,12 @@ class MessageAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')
+
     @admin.display(description=_('Attachment'), boolean=True)
     def has_attachment(self, obj):
-        """Return True if this message has an attachment.
-
-        Args:
-            obj: Message instance.
-
-        Returns:
-            bool: Whether an attachment exists.
-        """
         return bool(obj.attachment)
 
     def get_queryset(self, request):
