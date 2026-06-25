@@ -1,9 +1,19 @@
 from django.contrib import admin
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
+from django.utils import timezone
+from jalali_date import datetime2jalali
+from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
+from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
 
 from .models import Course, Chapter, Episode
 from .progress_admin import *  # Import progress admin
+
+_JALALI_FORMFIELD_OVERRIDES = {
+    models.DateField: {'form_class': JalaliDateField, 'widget': AdminJalaliDateWidget},
+    models.DateTimeField: {'form_class': SplitJalaliDateTimeField, 'widget': AdminSplitJalaliDateTime},
+}
 
 
 class ChapterInline(admin.StackedInline):
@@ -22,6 +32,7 @@ class EpisodeInline(admin.StackedInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
     list_display = (
         'name',
         'teacher',
@@ -32,7 +43,7 @@ class CourseAdmin(admin.ModelAdmin):
         'discount_display',
         'total_sell',
         'is_visible',
-        'created_at',
+        'created_at_jalali',
     )
 
     list_filter = (
@@ -115,29 +126,17 @@ class CourseAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')
+
     @admin.display(description=_('Price'))
     def price_display(self, obj):
-        """Display effective price with Toman label.
-
-        Args:
-            obj: Course instance.
-
-        Returns:
-            str: Formatted price string.
-        """
         effective = obj.new_price if obj.new_price else obj.price
         return f'{effective:,} تومان'
 
     @admin.display(description=_('Discount'))
     def discount_display(self, obj):
-        """Display discount badge if applicable.
-
-        Args:
-            obj: Course instance.
-
-        Returns:
-            str or SafeData: Discount badge HTML or dash.
-        """
         d = obj.discount
         if d:
             return format_html(
@@ -153,6 +152,7 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(Chapter)
 class ChapterAdmin(admin.ModelAdmin):
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
     list_display = (
         'title',
         'course',
@@ -161,7 +161,7 @@ class ChapterAdmin(admin.ModelAdmin):
         'number_of_videos',
         'is_free',
         'is_visible',
-        'created_at',
+        'created_at_jalali',
     )
 
     list_filter = ('is_free', 'is_visible', 'course')
@@ -194,12 +194,21 @@ class ChapterAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')
+
 
 @admin.register(Episode)
 class EpisodeAdmin(admin.ModelAdmin):
-    list_display = ('title', 'chapter', 'type', 'created_at')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+    list_display = ('title', 'chapter', 'type', 'created_at_jalali')
     list_filter = ('type', 'chapter__course')
     search_fields = ('title', 'chapter__title', 'chapter__course__name')
     list_select_related = ('chapter', 'chapter__course')
     ordering = ('chapter', 'id')
     readonly_fields = ('created_at',)
+
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')

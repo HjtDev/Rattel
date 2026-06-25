@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'jalali_date',
     'users.apps.UsersConfig',
     'notifications.apps.NotificationsConfig',
     'payment.apps.PaymentConfig',
@@ -83,6 +84,18 @@ INSTALLED_APPS = [
     'tinymce',
     'sortedm2m',
 ]
+
+JALALI_DATE_DEFAULTS = {
+    'LIST_DISPLAY_AUTO_CONVERT': False,
+    'Strftime': {
+        'date': '%Y/%m/%d',
+        'datetime': '%Y/%m/%d %H:%M',
+    },
+    'Static': {
+        'js': ['admin/js/django_jalali.min.js'],
+        'css': {'all': ['admin/css/django_jalali.min.css']},
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -174,7 +187,7 @@ LANGUAGES = [
     ('fa', 'Persian'),
 ]
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 LOCALE_PATHS = [

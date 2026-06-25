@@ -26,6 +26,7 @@ export interface InPersonClass {
     categories: InPersonClassCategory[];
     start_date: string;
     end_date: string;
+    meeting_url?: string | null;
 }
 
 export interface InPersonClassRegistration {

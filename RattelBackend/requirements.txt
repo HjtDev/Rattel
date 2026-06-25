@@ -25,6 +25,7 @@ dj-database-url==3.0.1
 Django==5.2.9
 django-celery-beat==2.8.1
 django-cors-headers==4.9.0
+django-jalali-date
 django-health-check==3.20.0
 django-jazzmin==3.0.1
 django-redis==6.0.0
@@ -60,6 +61,7 @@ Markdown==3.10.2
 MarkupSafe==3.0.2
 more-itertools==10.8.0
 multidict==6.7.0
+openpyxl==3.1.5
 packaging==26.0
 pillow==11.3.0
 platformdirs==4.5.1

@@ -74,6 +74,7 @@ The backend `entrypoint.sh` runs migrations then tests (if `RUN_TESTS=1`) before
 | `subscriptions` | Subscription plans (`Plan`) and per-user active subscription (`UserSubscription`) |
 | `automatic_class` | Personalised memorisation plans with auto-generated steps, online call sessions, and admin call logs |
 | `in_person_class` | In-person class offerings with time-range selection, shared-registration deduplication, and cart-system integration |
+| `quiz` | Interactive quiz system with multiple question types, access requirements, attempt tracking, scoring, and leaderboards |
 
 Configuration lives in `RattelBackend/RattelBackend/settings.py` and is loaded via `python-decouple` from `.env`.
 
@@ -130,6 +131,29 @@ Admins create `InPersonClass` offerings (with `TimeRange` M2M and `Category` M2M
 - `app/in-person-classes/page.tsx` — public class listing with category filter sidebar, Framer Motion cards, Bootstrap modal for time-range selection, and `next`-URL-aware redirect to login for unauthenticated users.
 - `app/dashboard/registered-classes/page.tsx` — authenticated dashboard tab listing the user's purchased classes with Jalali dates and registered-count badge.
 
+### Quiz App
+
+`quiz/` manages the full quiz lifecycle: categories, quizzes, questions, attempts, and answers.
+
+**Question types:** `multiple_choice`, `fill_blank`, `true_false`, `matching`. The `type` field drives both the admin builder UI and the player UI.
+
+**Matching questions (anti-cheat):** `MatchingPair` stores two independent UUIDs — `left_id` and `right_id`. The player API returns `left_items` (by `left_id`) and `right_items` (by `right_id`, randomly shuffled). Knowing one ID gives no information about the other, so the correct pairing cannot be reverse-engineered client-side. Submitted answers are stored in `AttemptAnswer.matching_answer` as `{left_id: right_id, ...}` JSON. Scoring is all-or-nothing: full `question.score` only when every pair is correct.
+
+**Access requirements:** `QuizAccessRequirement` gates a quiz behind `free`, `completed_quiz`, `min_score`, or `subscription` conditions. All are checked in `QuizStartView` before creating an attempt.
+
+**Attempt flow:**
+1. POST `…/start/` → creates `QuizAttempt` (status `in_progress`), returns questions (right_items shuffled for matching)
+2. POST `…/submit/<attempt_id>/` per question → records `AttemptAnswer`; optionally reveals answer when `reveal_answers_during_quiz=True`
+3. POST `…/finish/<attempt_id>/` → finalises score, marks attempt `completed` (or `expired` if timer elapsed)
+
+**Frontend pages:**
+- `app/quiz/page.tsx` — public quiz listing with category filter
+- `app/quiz/[id]/page.tsx` — interactive player (countdown timer, per-type answer UI, optional answer reveal, results screen)
+- `app/quiz/leaderboard/page.tsx` — top-scores leaderboard
+- `app/quiz/admin/page.tsx` — admin quiz list/create
+- `app/quiz/admin/[id]/page.tsx` — admin quiz builder (questions, pair editor for matching, access requirements, participants table)
+- `app/dashboard/quiz/page.tsx` — authenticated user's attempt history
+
 ### Frontend Architecture (`rattel-frontend/`)
 
 Pages live in the top-level `app/` directory (Next.js App Router), not inside `src/`. Domain logic lives in `src/`:
@@ -161,5 +185,22 @@ All endpoints are under `/api/v1/`:
 /api/v1/class/in-person/categories/    category list for filter UI
 /api/v1/class/in-person/register/      create or retrieve a shared UserRequest (authenticated)
 /api/v1/class/in-person/my-registrations/   classes the current user has purchased
+/api/v1/quiz/                        public quiz list (paginated, category filter)
+/api/v1/quiz/categories/             category list
+/api/v1/quiz/leaderboard/            top scores across all quizzes
+/api/v1/quiz/my-attempts/            authenticated user's attempt history
+/api/v1/quiz/<id>/                   quiz detail
+/api/v1/quiz/<id>/start/             create attempt, returns questions
+/api/v1/quiz/<id>/submit/<attempt_id>/    submit one answer
+/api/v1/quiz/<id>/finish/<attempt_id>/    finalise attempt and score
+/api/v1/quiz/admin/                  admin quiz list/create
+/api/v1/quiz/admin/<id>/             admin quiz detail/update/delete
+/api/v1/quiz/admin/<id>/questions/   admin question CRUD
+/api/v1/quiz/admin/<id>/requirements/    access requirement CRUD
+/api/v1/quiz/admin/<id>/participants/    attempt participant list
+/api/v1/quiz/admin/questions/<id>/   admin question detail/update/delete
+/api/v1/quiz/admin/questions/reorder/    bulk question reorder
+/api/v1/quiz/admin/requirements/<id>/    requirement detail/delete
+/api/v1/quiz/admin/categories/       admin category list
 /api/v1/editor/upload/
 ```

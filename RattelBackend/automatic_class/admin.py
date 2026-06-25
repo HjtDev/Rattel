@@ -1,7 +1,18 @@
 from django.contrib import admin
+from django.db import models
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from jalali_date import date2jalali, datetime2jalali
+from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
+from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
+
 from .models import AdminCallLog, AutomaticPlan, ClassRequest, OnlineCallSession, PlanStep
+
+_JALALI_FORMFIELD_OVERRIDES = {
+    models.DateField: {'form_class': JalaliDateField, 'widget': AdminJalaliDateWidget},
+    models.DateTimeField: {'form_class': SplitJalaliDateTimeField, 'widget': AdminSplitJalaliDateTime},
+}
 
 
 class PlanStepInline(admin.TabularInline):
@@ -14,6 +25,7 @@ class PlanStepInline(admin.TabularInline):
     readonly_fields = ('step_number', 'is_delayed', 'completed_at', 'created_at')
     ordering = ('step_number',)
     show_change_link = True
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
 
 
 class AdminCallLogInline(admin.TabularInline):
@@ -22,6 +34,7 @@ class AdminCallLogInline(admin.TabularInline):
     fields = ('called_by', 'call_date', 'notes')
     readonly_fields = ('called_by', 'call_date')
     ordering = ('-call_date',)
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
 
 
 class OnlineCallSessionInline(admin.TabularInline):
@@ -30,11 +43,13 @@ class OnlineCallSessionInline(admin.TabularInline):
     fields = ('session_number', 'status', 'completed_at', 'marked_by', 'notes')
     readonly_fields = ('session_number', 'completed_at', 'marked_by')
     ordering = ('session_number',)
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
 
 
 @admin.register(ClassRequest)
 class ClassRequestAdmin(admin.ModelAdmin):
-    list_display = ('user', 'status_badge', 'created_at', 'updated_at')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+    list_display = ('user', 'status_badge', 'created_at_jalali', 'updated_at_jalali')
     list_filter = ('status', 'created_at')
     search_fields = ('user__username', 'user__phone', 'notes')
     ordering = ('-created_at',)
@@ -52,6 +67,14 @@ class ClassRequestAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at'),
         }),
     )
+
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')
+
+    @admin.display(description=_('Updated At'))
+    def updated_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.updated_at)).strftime('%Y/%m/%d %H:%M')
 
     @admin.display(description=_('Status'))
     def status_badge(self, obj):
@@ -71,9 +94,10 @@ class ClassRequestAdmin(admin.ModelAdmin):
 
 @admin.register(AutomaticPlan)
 class AutomaticPlanAdmin(admin.ModelAdmin):
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
     list_display = (
         'user', 'teacher', 'page_range', 'status_badge',
-        'progress_display', 'start_date', 'time_to_finish', 'created_at',
+        'progress_display', 'start_date_jalali', 'time_to_finish_jalali', 'created_at_jalali',
     )
     list_filter = ('status', 'time_freq', 'reading_freq', 'user_day_availability')
     search_fields = ('user__username', 'user__phone', 'teacher__username')
@@ -116,6 +140,18 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
         }),
     )
 
+    @admin.display(description=_('Start Date'))
+    def start_date_jalali(self, obj):
+        return date2jalali(obj.start_date).strftime('%Y/%m/%d')
+
+    @admin.display(description=_('Finish Date'))
+    def time_to_finish_jalali(self, obj):
+        return date2jalali(obj.time_to_finish).strftime('%Y/%m/%d')
+
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')
+
     @admin.display(description=_('Pages'))
     def page_range(self, obj):
         return f'{obj.start_page} – {obj.end_page}'
@@ -151,9 +187,10 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
 
 @admin.register(PlanStep)
 class PlanStepAdmin(admin.ModelAdmin):
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
     list_display = (
         'plan', 'step_number', 'step_type', 'page_range',
-        'scheduled_date', 'status_badge', 'is_delayed',
+        'scheduled_date_jalali', 'status_badge', 'is_delayed',
     )
     list_filter = ('status', 'step_type', 'is_delayed', 'scheduled_date')
     search_fields = ('plan__user__username', 'delay_reason', 'admin_note')
@@ -179,6 +216,10 @@ class PlanStepAdmin(admin.ModelAdmin):
         }),
     )
 
+    @admin.display(description=_('Scheduled Date'))
+    def scheduled_date_jalali(self, obj):
+        return date2jalali(obj.scheduled_date).strftime('%Y/%m/%d')
+
     @admin.display(description=_('Pages'))
     def page_range(self, obj):
         if obj.page_start == obj.page_end:
@@ -203,12 +244,17 @@ class PlanStepAdmin(admin.ModelAdmin):
 
 @admin.register(AdminCallLog)
 class AdminCallLogAdmin(admin.ModelAdmin):
-    list_display = ('called_by', 'plan', 'call_date', 'notes_preview')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+    list_display = ('called_by', 'plan', 'call_date_jalali', 'notes_preview')
     list_filter = ('call_date',)
     search_fields = ('plan__user__username', 'called_by__username', 'notes')
     ordering = ('-call_date',)
     readonly_fields = ('id', 'created_at')
     list_select_related = ('called_by', 'plan__user')
+
+    @admin.display(description=_('Call Date'))
+    def call_date_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.call_date)).strftime('%Y/%m/%d %H:%M')
 
     @admin.display(description=_('Notes'))
     def notes_preview(self, obj):
@@ -217,12 +263,17 @@ class AdminCallLogAdmin(admin.ModelAdmin):
 
 @admin.register(OnlineCallSession)
 class OnlineCallSessionAdmin(admin.ModelAdmin):
-    list_display = ('plan', 'session_number', 'status_badge', 'completed_at', 'marked_by')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+    list_display = ('plan', 'session_number', 'status_badge', 'completed_at_jalali', 'marked_by')
     list_filter = ('status',)
     search_fields = ('plan__user__username', 'notes')
     ordering = ('plan', 'session_number')
     readonly_fields = ('id', 'completed_at', 'marked_by', 'created_at')
     list_select_related = ('plan__user', 'marked_by')
+
+    @admin.display(description=_('Completed At'))
+    def completed_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.completed_at)).strftime('%Y/%m/%d %H:%M') if obj.completed_at else '—'
 
     @admin.display(description=_('Status'))
     def status_badge(self, obj):

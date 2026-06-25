@@ -1,5 +1,10 @@
 from django.contrib import admin
+from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from jalali_date import datetime2jalali
+from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
+from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
 
 from .models import (
     AttemptAnswer,
@@ -10,6 +15,11 @@ from .models import (
     QuizAccessRequirement,
     QuizAttempt,
 )
+
+_JALALI_FORMFIELD_OVERRIDES = {
+    models.DateField: {'form_class': JalaliDateField, 'widget': AdminJalaliDateWidget},
+    models.DateTimeField: {'form_class': SplitJalaliDateTimeField, 'widget': AdminSplitJalaliDateTime},
+}
 
 
 @admin.register(Category)
@@ -28,7 +38,8 @@ class QuizAccessRequirementInline(admin.TabularInline):
 
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
-    list_display = ('title', 'difficulty', 'is_active', 'start_date', 'end_date', 'created_at')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+    list_display = ('title', 'difficulty', 'is_active', 'start_date_jalali', 'end_date_jalali', 'created_at_jalali')
     list_filter = ('is_active', 'difficulty', 'categories')
     search_fields = ('title',)
     ordering = ('-created_at',)
@@ -57,6 +68,18 @@ class QuizAdmin(admin.ModelAdmin):
         }),
     )
 
+    @admin.display(description=_('Start Date'))
+    def start_date_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.start_date)).strftime('%Y/%m/%d %H:%M') if obj.start_date else '—'
+
+    @admin.display(description=_('End Date'))
+    def end_date_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.end_date)).strftime('%Y/%m/%d %H:%M') if obj.end_date else '—'
+
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')
+
 
 class QuestionOptionInline(admin.TabularInline):
     model = QuestionOption
@@ -67,6 +90,7 @@ class QuestionOptionInline(admin.TabularInline):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
     list_display = ('text_short', 'quiz', 'type', 'order', 'score', 'time_to_answer')
     list_filter = ('quiz', 'type')
     search_fields = ('text',)
@@ -81,7 +105,8 @@ class QuestionAdmin(admin.ModelAdmin):
 
 @admin.register(QuizAttempt)
 class QuizAttemptAdmin(admin.ModelAdmin):
-    list_display = ('user', 'quiz', 'score', 'correct_count', 'incorrect_count', 'status', 'started_at', 'finished_at')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+    list_display = ('user', 'quiz', 'score', 'correct_count', 'incorrect_count', 'status', 'started_at_jalali', 'finished_at_jalali')
     list_filter = ('status', 'quiz')
     search_fields = ('user__username',)
     ordering = ('-started_at',)
@@ -90,6 +115,14 @@ class QuizAttemptAdmin(admin.ModelAdmin):
         'score', 'correct_count', 'incorrect_count', 'time_spent', 'status',
         'created_at', 'updated_at',
     )
+
+    @admin.display(description=_('Started At'))
+    def started_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.started_at)).strftime('%Y/%m/%d %H:%M')
+
+    @admin.display(description=_('Finished At'))
+    def finished_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.finished_at)).strftime('%Y/%m/%d %H:%M') if obj.finished_at else '—'
 
     def has_add_permission(self, request):
         return False
@@ -100,6 +133,7 @@ class QuizAttemptAdmin(admin.ModelAdmin):
 
 @admin.register(AttemptAnswer)
 class AttemptAnswerAdmin(admin.ModelAdmin):
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
     list_display = ('attempt', 'question', 'selected_option', 'is_correct', 'time_taken')
     list_filter = ('is_correct',)
     readonly_fields = ('attempt', 'question', 'selected_option', 'is_correct', 'time_taken')

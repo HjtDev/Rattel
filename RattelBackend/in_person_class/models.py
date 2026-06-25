@@ -22,6 +22,15 @@ class TimeRange(models.Model):
     def __str__(self):
         return self.label
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        invalidate_cache('in_person_class_list')
+
+    def delete(self, *args, **kwargs):
+        result = super().delete(*args, **kwargs)
+        invalidate_cache('in_person_class_list')
+        return result
+
 
 class Category(models.Model):
     class Meta:
@@ -70,6 +79,8 @@ class InPersonClass(models.Model):
 
     start_date = models.DateField(verbose_name=_('Start Date'))
     end_date = models.DateField(verbose_name=_('End Date'))
+
+    meeting_url = models.URLField(blank=True, null=True, verbose_name=_('Online Meeting URL'))
 
     is_visible = models.BooleanField(default=True, verbose_name=_('Visible'))
 

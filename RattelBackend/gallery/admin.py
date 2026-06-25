@@ -1,7 +1,17 @@
 from django.contrib import admin
+from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from jalali_date import datetime2jalali
+from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
+from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
 
 from .models import Gallery, GalleryContent
+
+_JALALI_FORMFIELD_OVERRIDES = {
+    models.DateField: {'form_class': JalaliDateField, 'widget': AdminJalaliDateWidget},
+    models.DateTimeField: {'form_class': SplitJalaliDateTimeField, 'widget': AdminSplitJalaliDateTime},
+}
 
 
 class GalleryContentInline(admin.StackedInline):
@@ -20,11 +30,13 @@ class GalleryContentInline(admin.StackedInline):
     )
     readonly_fields = ('created_at', 'updated_at')
     ordering = ('order', 'id')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
 
 
 @admin.register(Gallery)
 class GalleryAdmin(admin.ModelAdmin):
-    list_display = ('title', 'content_count', 'created_at', 'updated_at')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+    list_display = ('title', 'content_count', 'created_at_jalali', 'updated_at_jalali')
     list_display_links = ('title',)
     search_fields = ('title',)
     ordering = ('-created_at',)
@@ -48,6 +60,14 @@ class GalleryAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')
+
+    @admin.display(description=_('Updated At'))
+    def updated_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.updated_at)).strftime('%Y/%m/%d %H:%M')
+
     @admin.display(description=_('Content Count'))
     def content_count(self, obj):
         return obj.content.count()
@@ -55,7 +75,8 @@ class GalleryAdmin(admin.ModelAdmin):
 
 @admin.register(GalleryContent)
 class GalleryContentAdmin(admin.ModelAdmin):
-    list_display = ('gallery', 'content_type', 'order', 'has_file', 'created_at')
+    formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+    list_display = ('gallery', 'content_type', 'order', 'has_file', 'created_at_jalali')
     list_filter = ('content_type', 'gallery', 'created_at')
     search_fields = ('gallery__title', 'embed_code')
     ordering = ('gallery', 'order', 'id')
@@ -84,6 +105,10 @@ class GalleryContentAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+    @admin.display(description=_('Created At'))
+    def created_at_jalali(self, obj):
+        return datetime2jalali(timezone.localtime(obj.created_at)).strftime('%Y/%m/%d %H:%M')
 
     @admin.display(boolean=True, description=_('Has File'))
     def has_file(self, obj):

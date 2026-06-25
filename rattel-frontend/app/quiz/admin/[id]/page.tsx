@@ -959,7 +959,7 @@ export default function AdminQuizBuilderPage() {
                                     <div className="mb-3">
                                         <label className="form-label mb-2">
                                             جفت‌ها
-                                            <small className="ms-2">(هر سطر یک جفت: سمت چپ ↔ سمت راست)</small>
+                                            <small className="ms-2">(هر سطر یک جفت: سمت راست ↔ سمت چپ)</small>
                                         </label>
                                         <div className="d-flex flex-column gap-2">
                                             {questionForm.pairs.map((pair, idx) => (
@@ -967,7 +967,7 @@ export default function AdminQuizBuilderPage() {
                                                     <input
                                                         type="text"
                                                         className="form-control form-control-sm"
-                                                        placeholder={`سمت چپ ${idx + 1}`}
+                                                        placeholder={`سمت راست ${idx + 1}`}
                                                         value={pair.left_text}
                                                         onChange={(e) => handlePairText(idx, "left_text", e.target.value)}
                                                     />
@@ -975,7 +975,7 @@ export default function AdminQuizBuilderPage() {
                                                     <input
                                                         type="text"
                                                         className="form-control form-control-sm"
-                                                        placeholder={`سمت راست ${idx + 1}`}
+                                                        placeholder={`سمت چپ ${idx + 1}`}
                                                         value={pair.right_text}
                                                         onChange={(e) => handlePairText(idx, "right_text", e.target.value)}
                                                     />

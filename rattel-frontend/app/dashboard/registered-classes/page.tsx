@@ -44,7 +44,8 @@ function RegisteredClassesContent() {
                                         <th scope="col" className="border-0">تاریخ شروع</th>
                                         <th scope="col" className="border-0">تاریخ پایان</th>
                                         <th scope="col" className="border-0">ثبت‌نام‌شدگان</th>
-                                        <th scope="col" className="border-0 rounded-end">قیمت پرداختی</th>
+                                        <th scope="col" className="border-0">قیمت پرداختی</th>
+                                        <th scope="col" className="border-0 rounded-end">لینک آنلاین</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -92,6 +93,21 @@ function RegisteredClassesContent() {
                                                 <span className="text-success fw-semibold">
                                                     {formatPrice(reg.new_price > 0 ? reg.new_price : reg.price)} تومان
                                                 </span>
+                                            </td>
+                                            <td>
+                                                {reg.in_person_class.meeting_url ? (
+                                                    <a
+                                                        href={reg.in_person_class.meeting_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="btn btn-sm btn-outline-primary"
+                                                    >
+                                                        <i className="bi bi-camera-video me-1"></i>
+                                                        ورود به جلسه
+                                                    </a>
+                                                ) : (
+                                                    <span className="text-muted">—</span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
