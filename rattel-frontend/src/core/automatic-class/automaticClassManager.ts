@@ -73,6 +73,7 @@ export interface ClassRequest {
     status: RequestStatus;
     status_display: string;
     plan_is_cancelled: boolean;
+    plan_is_completed: boolean;
     created_at: string;
     updated_at: string;
 }

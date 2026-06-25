@@ -6,17 +6,26 @@ from .models import AutomaticPlan, ClassRequest, PlanStep, AdminCallLog, OnlineC
 class ClassRequestSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     plan_is_cancelled = serializers.SerializerMethodField()
+    plan_is_completed = serializers.SerializerMethodField()
 
     class Meta:
         model = ClassRequest
-        fields = ('id', 'notes', 'status', 'status_display', 'plan_is_cancelled', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'status', 'status_display', 'plan_is_cancelled', 'created_at', 'updated_at')
+        fields = ('id', 'notes', 'status', 'status_display', 'plan_is_cancelled', 'plan_is_completed', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'status', 'status_display', 'plan_is_cancelled', 'plan_is_completed', 'created_at', 'updated_at')
 
     def get_plan_is_cancelled(self, obj):
         if obj.status != ClassRequest.Status.PLAN_CREATED:
             return False
         try:
             return obj.plan.status == AutomaticPlan.Status.CANCELLED
+        except AutomaticPlan.DoesNotExist:
+            return False
+
+    def get_plan_is_completed(self, obj):
+        if obj.status != ClassRequest.Status.PLAN_CREATED:
+            return False
+        try:
+            return obj.plan.status == AutomaticPlan.Status.COMPLETED
         except AutomaticPlan.DoesNotExist:
             return False
 

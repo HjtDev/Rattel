@@ -69,11 +69,14 @@ class ClassRequestView(APIView, ResponseBuilderMixin):
                 status__in=[ClassRequest.Status.PENDING, ClassRequest.Status.CONTACTED],
             ).exists()
 
-            # Also block plan_created requests UNLESS the linked plan was cancelled
+            # Also block plan_created requests UNLESS the linked plan was cancelled or completed
             plan_created_blocking = ClassRequest.objects.filter(
                 user=request.user,
                 status=ClassRequest.Status.PLAN_CREATED,
-            ).exclude(plan__status=AutomaticPlan.Status.CANCELLED).exists()
+            ).exclude(plan__status__in=[
+                AutomaticPlan.Status.CANCELLED,
+                AutomaticPlan.Status.COMPLETED,
+            ]).exists()
 
             if pending or plan_created_blocking:
                 return self.build_response(

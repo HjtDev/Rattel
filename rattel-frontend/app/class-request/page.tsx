@@ -126,7 +126,7 @@ export default function ClassRequestPage() {
         setSubmitting(false);
     };
 
-    const canRequest = !classRequest || classRequest.status === "rejected" || classRequest.plan_is_cancelled;
+    const canRequest = !classRequest || classRequest.status === "rejected" || classRequest.plan_is_cancelled || classRequest.plan_is_completed;
 
     return (
         <main>
@@ -302,6 +302,12 @@ export default function ClassRequestPage() {
                                             <div className="alert alert-warning rounded-3 small mb-4">
                                                 <i className="bi bi-x-circle me-2" />
                                                 برنامه قبلی شما لغو شده است. می‌توانید درخواست جدید ثبت کنید.
+                                            </div>
+                                        )}
+                                        {classRequest?.plan_is_completed && (
+                                            <div className="alert alert-success rounded-3 small mb-4">
+                                                <i className="bi bi-trophy me-2" />
+                                                تبریک! برنامه قبلی شما با موفقیت تکمیل شد. می‌توانید درخواست برنامه جدید ثبت کنید.
                                             </div>
                                         )}
 
