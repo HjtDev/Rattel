@@ -64,6 +64,21 @@ const staticPages: MetadataRoute.Sitemap = [
     priority: 0.9,
   },
   {
+    url: `${baseUrl}/in-person-classes`,
+    changeFrequency: "weekly",
+    priority: 0.9,
+  },
+  {
+    url: `${baseUrl}/quiz`,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  },
+  {
+    url: `${baseUrl}/quiz/leaderboard`,
+    changeFrequency: "daily",
+    priority: 0.7,
+  },
+  {
     url: `${baseUrl}/gallery`,
     changeFrequency: "weekly",
     priority: 0.8,
