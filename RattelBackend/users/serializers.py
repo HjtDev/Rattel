@@ -44,8 +44,8 @@ class BaseUserSerializer(ModelSerializer, UserProfileBuilderMixin):
     
     class Meta:
         model = User
-        fields = ('username', 'email', 'name', 'phone', 'profile_picture', 'score')
-        read_only_fields = ('phone', 'score')
+        fields = ('username', 'email', 'name', 'phone', 'profile_picture', 'score', 'is_staff', 'is_superuser')
+        read_only_fields = ('phone', 'score', 'is_staff', 'is_superuser')
     
     def update(self, instance, validated_data):
         profile_picture = validated_data.pop('profile_picture', None)

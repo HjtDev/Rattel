@@ -5,6 +5,20 @@ import DashboardBase from "@/src/components/dashboard/DashboardBase";
 import {useAuth} from "@/src/core/hooks/useAuth";
 import { toast } from "react-toastify";
 import {Properties} from "csstype";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
+
+function parseGregorianToDate(s: string): Date | null {
+    if (!s) return null;
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d);
+}
+
+function dateObjToGregorian(dateObj: any): string {
+    const d: Date = dateObj.toDate();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 // Validation regex patterns
 const NATIONAL_CODE_REGEX = /^\d{10}$/;
@@ -303,12 +317,20 @@ function ProfileContent() {
                             <label className="form-label">
                                 تاریخ تولد
                             </label>
-                            <input 
-                                type="date" 
-                                name="birthday" 
-                                className={`form-control ${errors.birthday ? 'is-invalid' : ''}`} 
-                                value={formData.birthday} 
-                                onChange={handleInputChange}
+                            <DatePicker
+                                value={parseGregorianToDate(formData.birthday)}
+                                onChange={(dateObj: any) => {
+                                    const val = dateObj ? dateObjToGregorian(dateObj) : "";
+                                    setFormData(prev => ({ ...prev, birthday: val }));
+                                    setErrors(prev => ({ ...prev, birthday: "" }));
+                                }}
+                                calendar={persian}
+                                locale={persian_fa}
+                                format="YYYY/MM/DD"
+                                inputClass={`form-control ${errors.birthday ? 'is-invalid' : ''}`}
+                                containerStyle={{ width: "100%" }}
+                                portal
+                                zIndex={1200}
                             />
                             {errors.birthday && (
                                 <div className="text-danger small mt-1">{errors.birthday}</div>

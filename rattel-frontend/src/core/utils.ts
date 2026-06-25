@@ -96,6 +96,26 @@ export const getRoleLabel = (role: string) => {
     return role == 'student' ? 'قرآن آموز' : 'استاد'
 }
 
+/**
+ * Converts a Gregorian date string (YYYY-MM-DD) to a Jalali formatted string.
+ * Falls back to the original string if conversion fails.
+ */
+export function toJalali(gregorianDateStr: string): string {
+    if (!gregorianDateStr) return gregorianDateStr;
+    try {
+        // Dynamic import avoided — use inline require pattern compatible with Next.js client
+        const DateObject = require("react-date-object").default ?? require("react-date-object");
+        const persian = require("react-date-object/calendars/persian").default ?? require("react-date-object/calendars/persian");
+        const persian_fa = require("react-date-object/locales/persian_fa").default ?? require("react-date-object/locales/persian_fa");
+        const [y, m, d] = gregorianDateStr.split("-").map(Number);
+        const date = new DateObject({ year: y, month: m, day: d });
+        date.convert(persian, persian_fa);
+        return date.format("DD MMMM YYYY");
+    } catch {
+        return gregorianDateStr;
+    }
+}
+
 export function truncateText(text: string, desktop_characters: number, mobile_characters: number): string {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
     const limit = isMobile ? mobile_characters : desktop_characters;

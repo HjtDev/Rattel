@@ -1,6 +1,6 @@
 # Rattel
 
-A fullstack Persian-language e-learning platform with subscription-gated features, personalised memorisation plans, and OTP-based authentication.
+A fullstack Persian-language e-learning platform with subscription-gated features, personalised memorisation plans, in-person class registration, interactive quizzes, and OTP-based authentication.
 
 ## Stack
 
