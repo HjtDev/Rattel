@@ -6,3 +6,6 @@ class TicketsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     verbose_name = _('Tickets')
     name = 'tickets'
+
+    def ready(self):
+        import tickets.signals  # noqa: F401
