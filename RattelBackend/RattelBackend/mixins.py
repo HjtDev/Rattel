@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from typing import Any, AnyStr, List, Tuple, Dict, Iterable
 import re, os
+from PIL import Image
 
 
 class ResponseBuilderMixin:
@@ -761,13 +762,18 @@ class FieldValidator:
         if ext not in allowed_extensions:
             return False, {'file': f'Invalid file extension: .{ext}'}
         
-        # 5. MIME type validation
-        # Get the content type from the uploaded file
-        content_type = file.content_type
-        
-        # Verify MIME type is in the allowed list
-        if content_type not in allowed_mime_types:
-            return False, {'file': f'Invalid file type: {content_type}'}
+        # 5. MIME type validation via magic bytes (Pillow), not client-supplied Content-Type
+        try:
+            file.seek(0)
+            img = Image.open(file)
+            actual_mime = Image.MIME.get(img.format, '')
+        except Exception:
+            return False, {'file': 'Invalid image file.'}
+        finally:
+            file.seek(0)
+
+        if actual_mime not in allowed_mime_types:
+            return False, {'file': f'Invalid file type: {actual_mime}'}
         
         # All validations passed
         return True, {}

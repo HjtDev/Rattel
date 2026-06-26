@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RattelBackend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 12:03+0000\n"
+"POT-Creation-Date: 2026-06-25 17:15+0330\n"
 "PO-Revision-Date: 2026-05-17 14:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -21,81 +21,132 @@ msgstr ""
 msgid "Authentication"
 msgstr "احراز هویت"
 
-#: automatic_class/admin.py:45
+#: automatic_class/admin.py:60
 msgid "Request"
 msgstr "درخواست"
 
-#: automatic_class/admin.py:48
+#: automatic_class/admin.py:63
 msgid "Admin"
 msgstr "ادمین"
 
-#: automatic_class/admin.py:51 automatic_class/admin.py:114
-#: automatic_class/admin.py:177 blog/admin.py:83 courses/admin.py:110
-#: courses/admin.py:190 courses/progress_admin.py:46 gallery/admin.py:43
-#: gallery/admin.py:80 in_person_class/admin.py:76 in_person_class/admin.py:148
-#: payment/admin.py:97 quiz/admin.py:54 subscriptions/admin.py:54
-#: tickets/admin.py:79 tickets/admin.py:199
+#: automatic_class/admin.py:66 automatic_class/admin.py:138
+#: automatic_class/admin.py:214 blog/admin.py:106 courses/admin.py:121
+#: courses/admin.py:190 courses/progress_admin.py:58 gallery/admin.py:55
+#: gallery/admin.py:101 in_person_class/admin.py:191
+#: in_person_class/admin.py:290 payment/admin.py:109 quiz/admin.py:65
+#: subscriptions/admin.py:67 tickets/admin.py:92 tickets/admin.py:193
 msgid "Timestamps"
 msgstr "زمان/تاریخ ها"
 
-#: automatic_class/admin.py:56 automatic_class/admin.py:123
-#: automatic_class/admin.py:188 automatic_class/admin.py:227
+#: automatic_class/admin.py:71 automatic_class/admin.py:151
+#: automatic_class/models.py:64 automatic_class/models.py:206
+#: automatic_class/models.py:460 automatic_class/models.py:577 blog/admin.py:31
+#: blog/admin.py:50 blog/admin.py:115 blog/admin.py:154 blog/models.py:13
+#: blog/models.py:32 blog/models.py:64 blog/models.py:101 courses/admin.py:129
+#: courses/admin.py:197 courses/admin.py:212 courses/models.py:64
+#: courses/models.py:234 courses/models.py:258 courses/progress_models.py:74
+#: gallery/admin.py:63 gallery/admin.py:109 gallery/models.py:19
+#: gallery/models.py:59 in_person_class/admin.py:206
+#: in_person_class/admin.py:259 in_person_class/models.py:87
+#: in_person_class/models.py:149 payment/admin.py:120 quiz/admin.py:79
+#: quiz/models.py:92 quiz/models.py:156 quiz/models.py:294
+#: siteconfig/admin.py:495 siteconfig/models.py:494 subscriptions/admin.py:72
+#: subscriptions/models.py:60 tickets/admin.py:201 tickets/models.py:128
+msgid "Created At"
+msgstr "تاریخ ایجاد"
+
+#: automatic_class/admin.py:75 automatic_class/models.py:65
+#: automatic_class/models.py:207 blog/models.py:65 courses/models.py:65
+#: courses/models.py:235 gallery/admin.py:67 gallery/models.py:20
+#: gallery/models.py:60 in_person_class/models.py:88 quiz/models.py:93
+#: quiz/models.py:157 quiz/models.py:295 subscriptions/models.py:61
+#: tickets/admin.py:103 tickets/models.py:129
+msgid "Updated At"
+msgstr "تاریخ آپدیت"
+
+#: automatic_class/admin.py:79 automatic_class/admin.py:159
+#: automatic_class/admin.py:229 automatic_class/admin.py:278
 #: automatic_class/models.py:61 automatic_class/models.py:440
-#: automatic_class/models.py:557 courses/progress_admin.py:88
-#: payment/admin.py:112 quiz/models.py:292 tickets/admin.py:90
+#: automatic_class/models.py:557 courses/progress_admin.py:100
+#: payment/admin.py:128 quiz/models.py:292 tickets/admin.py:107
 #: tickets/models.py:111
 msgid "Status"
 msgstr "وضعیت"
 
-#: automatic_class/admin.py:89
+#: automatic_class/admin.py:113
 msgid "Participants"
 msgstr "شرکت کننده ها"
 
-#: automatic_class/admin.py:92
+#: automatic_class/admin.py:116
 msgid "Plan Parameters"
 msgstr "متغییر ها"
 
-#: automatic_class/admin.py:98
+#: automatic_class/admin.py:122
 msgid "Extra Review Range"
 msgstr "بازه مرور اضافه"
 
-#: automatic_class/admin.py:105
+#: automatic_class/admin.py:129
 msgid "User Availability"
 msgstr "دسترسی کاربر"
 
-#: automatic_class/admin.py:108
+#: automatic_class/admin.py:132
 msgid "Status & Notes"
 msgstr "وضعیت و نوت ها"
 
-#: automatic_class/admin.py:111 automatic_class/admin.py:138
-#: courses/progress_admin.py:43
+#: automatic_class/admin.py:135 automatic_class/admin.py:174
+#: courses/progress_admin.py:55
 msgid "Progress"
 msgstr "پیشرفت"
 
-#: automatic_class/admin.py:119 automatic_class/admin.py:182
+#: automatic_class/admin.py:143 automatic_class/models.py:143
+#: in_person_class/admin.py:198 in_person_class/admin.py:251
+#: in_person_class/models.py:80 in_person_class/models.py:137 quiz/admin.py:71
+#: quiz/models.py:90
+msgid "Start Date"
+msgstr "تاریخ شروع"
+
+#: automatic_class/admin.py:147
+#| msgid "Target Finish Date"
+msgid "Finish Date"
+msgstr "تاریخ پایان"
+
+#: automatic_class/admin.py:155 automatic_class/admin.py:223
 msgid "Pages"
 msgstr "صفحات"
 
-#: automatic_class/admin.py:147
+#: automatic_class/admin.py:183
 msgid "Total Steps"
 msgstr "کل مراحل"
 
-#: automatic_class/admin.py:165
+#: automatic_class/admin.py:202
 msgid "Step"
 msgstr "مرحله"
 
-#: automatic_class/admin.py:168 blog/models.py:102 tickets/models.py:86
+#: automatic_class/admin.py:205 blog/models.py:102 tickets/models.py:86
 msgid "Content"
 msgstr "محتوا"
 
-#: automatic_class/admin.py:171
+#: automatic_class/admin.py:208
 msgid "Schedule & Status"
 msgstr "برنامه و وضعیت"
 
-#: automatic_class/admin.py:174 automatic_class/admin.py:213
+#: automatic_class/admin.py:211 automatic_class/admin.py:259
 #: automatic_class/models.py:566
 msgid "Notes"
 msgstr "یادداشت/نوت"
+
+#: automatic_class/admin.py:219 automatic_class/models.py:417
+msgid "Scheduled Date"
+msgstr "تاریخ برنامه ریزی شده"
+
+#: automatic_class/admin.py:255 automatic_class/models.py:518
+msgid "Call Date"
+msgstr "تاریخ تماس"
+
+#: automatic_class/admin.py:274 automatic_class/models.py:456
+#: automatic_class/models.py:563
+msgid "Completed At"
+msgstr "تاریخ تکمیل"
 
 #: automatic_class/apps.py:8
 msgid "Automatic Class System"
@@ -126,7 +177,7 @@ msgid "Rejected"
 msgstr "رد شده"
 
 #: automatic_class/models.py:51 blog/models.py:100 cart/models.py:22
-#: courses/progress_admin.py:58 courses/progress_models.py:31
+#: courses/progress_admin.py:73 courses/progress_models.py:31
 #: payment/models.py:43 quiz/models.py:280 subscriptions/models.py:131
 #: tickets/models.py:102 users/models.py:68 users/models.py:151
 #: users/models.py:179
@@ -140,25 +191,6 @@ msgstr "یادداشت های کاربر"
 #: automatic_class/models.py:55 automatic_class/models.py:204
 msgid "Admin Notes"
 msgstr "یادداشت های ادمین"
-
-#: automatic_class/models.py:64 automatic_class/models.py:206
-#: automatic_class/models.py:460 automatic_class/models.py:577
-#: blog/models.py:13 blog/models.py:32 blog/models.py:64 blog/models.py:101
-#: courses/models.py:64 courses/models.py:234 courses/models.py:258
-#: courses/progress_models.py:74 gallery/models.py:19 gallery/models.py:59
-#: in_person_class/models.py:76 in_person_class/models.py:138 quiz/models.py:92
-#: quiz/models.py:156 quiz/models.py:294 siteconfig/models.py:494
-#: subscriptions/models.py:60 tickets/models.py:128
-msgid "Created At"
-msgstr "تاریخ ایجاد"
-
-#: automatic_class/models.py:65 automatic_class/models.py:207 blog/models.py:65
-#: courses/models.py:65 courses/models.py:235 gallery/models.py:20
-#: gallery/models.py:60 in_person_class/models.py:77 quiz/models.py:93
-#: quiz/models.py:157 quiz/models.py:295 subscriptions/models.py:61
-#: tickets/models.py:129
-msgid "Updated At"
-msgstr "تاریخ آپدیت"
 
 #: automatic_class/models.py:78
 msgid "Automatic Plan"
@@ -213,7 +245,7 @@ msgid "Active Plan"
 msgstr "دسترسی به برنامه"
 
 #: automatic_class/models.py:105 automatic_class/models.py:400
-#: automatic_class/models.py:539 courses/progress_admin.py:82
+#: automatic_class/models.py:539 courses/progress_admin.py:94
 #: courses/progress_models.py:51 quiz/models.py:257
 msgid "Completed"
 msgstr "کامل شده"
@@ -237,11 +269,6 @@ msgstr "صفحه شروع"
 #: automatic_class/models.py:140
 msgid "End Page"
 msgstr "صفحه پایان"
-
-#: automatic_class/models.py:143 in_person_class/models.py:71
-#: in_person_class/models.py:126 quiz/models.py:90
-msgid "Start Date"
-msgstr "تاریخ شروع"
 
 #: automatic_class/models.py:144
 msgid "Target Finish Date"
@@ -357,10 +384,6 @@ msgstr "برنامه خودکار"
 msgid "Step Number"
 msgstr "شماره مرحله"
 
-#: automatic_class/models.py:417
-msgid "Scheduled Date"
-msgstr "تاریخ برنامه ریزی شده"
-
 #: automatic_class/models.py:423
 msgid "Step Type"
 msgstr "نوع مرحله"
@@ -394,10 +417,6 @@ msgstr "تاریخ برنامه ریزی شده اصلی"
 msgid "Set when a pending step is pushed past its scheduled date."
 msgstr "وقتی یک مرحله از زمان برنامه ریزی شده بدون کامل شدن گذشت تنظیم کنید."
 
-#: automatic_class/models.py:456 automatic_class/models.py:563
-msgid "Completed At"
-msgstr "تاریخ تکمیل"
-
 #: automatic_class/models.py:457
 msgid "Delay Reason"
 msgstr "علت تاخیر"
@@ -422,10 +441,6 @@ msgstr "تماس گیرنده"
 msgid "Call Notes"
 msgstr "یادداشت های تماس"
 
-#: automatic_class/models.py:518
-msgid "Call Date"
-msgstr "تاریخ تماس"
-
 #: automatic_class/models.py:532
 msgid "Online Call Session"
 msgstr "جلسه(تماس)"
@@ -446,64 +461,68 @@ msgstr "شماره جلسه"
 msgid "Marked By"
 msgstr "علامت خورده توسط"
 
-#: blog/admin.py:15 blog/admin.py:29
+#: blog/admin.py:27 blog/admin.py:46
 msgid "Basic Info"
 msgstr "اطلاعات پایه"
 
-#: blog/admin.py:16 blog/admin.py:30 blog/admin.py:119
+#: blog/admin.py:28 blog/admin.py:47 blog/admin.py:151
 msgid "System Info"
 msgstr "اطلاعات سیستمی"
 
-#: blog/admin.py:68
+#: blog/admin.py:91
 msgid "Primary Content"
 msgstr "اطلاعات اصلی"
 
-#: blog/admin.py:71
+#: blog/admin.py:94
 msgid "Body"
 msgstr "محتوا"
 
-#: blog/admin.py:74
+#: blog/admin.py:97
 msgid "Classification"
 msgstr "دسته بندی ها"
 
-#: blog/admin.py:77
+#: blog/admin.py:100
 msgid "Publishing & Visibility"
 msgstr "وضعیت و انتشار"
 
-#: blog/admin.py:80
+#: blog/admin.py:103
 msgid "Engagement"
 msgstr "فعالیت های کاربران"
 
-#: blog/admin.py:88 blog/models.py:61 courses/models.py:41
+#: blog/admin.py:111 blog/models.py:63
+msgid "Published At"
+msgstr "منتشر شده در"
+
+#: blog/admin.py:119 blog/models.py:61 courses/models.py:41
 msgid "Saved By"
 msgstr "ذخیره شده توسط"
 
-#: blog/admin.py:92
+#: blog/admin.py:123
 msgid "Comments"
 msgstr "نظرات"
 
-#: blog/admin.py:96
+#: blog/admin.py:127
 msgid "Mark selected posts as visible"
 msgstr "پست های انتخاب شده را در وضعیت نمایش در سایت قرار دهید"
 
-#: blog/admin.py:99 blog/admin.py:104
+#: blog/admin.py:130 blog/admin.py:135
 #, python-format
 msgid "Updated %(count)d post(s)."
 msgstr "%(count)d پست(ها) آپدیت شد"
 
-#: blog/admin.py:101
+#: blog/admin.py:132
 msgid "Mark selected posts as hidden"
 msgstr "پست های انتخاب شده را در وضعیت عدم نمایش در سایت قرار دهید"
 
-#: blog/admin.py:118
+#: blog/admin.py:150
 msgid "Comment"
 msgstr "نظر"
 
-#: blog/admin.py:122 blog/models.py:99
+#: blog/admin.py:158 blog/models.py:99
 msgid "Post"
 msgstr "پست"
 
-#: blog/admin.py:126
+#: blog/admin.py:162
 msgid "Reply"
 msgstr "پیام ادمین"
 
@@ -511,13 +530,13 @@ msgstr "پیام ادمین"
 msgid "Blog"
 msgstr "بلاگ"
 
-#: blog/models.py:11 blog/models.py:30 in_person_class/models.py:32
+#: blog/models.py:11 blog/models.py:30 in_person_class/models.py:41
 #: quiz/models.py:18 subscriptions/models.py:27 users/models.py:78
 msgid "Name"
 msgstr "نام"
 
 #: blog/models.py:12 blog/models.py:31 blog/models.py:51
-#: in_person_class/models.py:33 quiz/models.py:19
+#: in_person_class/models.py:42 quiz/models.py:19
 msgid "Slug"
 msgstr "اسلاگ"
 
@@ -542,18 +561,18 @@ msgid "Blog ID"
 msgstr "آیدی"
 
 #: blog/models.py:50 courses/models.py:38 courses/models.py:224
-#: courses/models.py:254 gallery/models.py:17 in_person_class/models.py:62
+#: courses/models.py:254 gallery/models.py:17 in_person_class/models.py:71
 #: quiz/models.py:51 siteconfig/models.py:507
 msgid "Title"
 msgstr "تیتر"
 
-#: blog/models.py:52 courses/models.py:43 in_person_class/models.py:63
+#: blog/models.py:52 courses/models.py:43 in_person_class/models.py:72
 #: siteconfig/models.py:129
 msgid "Short Description"
 msgstr "توضیحات کوتاه"
 
-#: blog/models.py:53 courses/admin.py:82 courses/models.py:225
-#: in_person_class/admin.py:52 payment/models.py:58 quiz/admin.py:43
+#: blog/models.py:53 courses/admin.py:93 courses/models.py:225
+#: in_person_class/admin.py:160 payment/models.py:58 quiz/admin.py:54
 #: quiz/models.py:52 siteconfig/models.py:199 siteconfig/models.py:212
 #: siteconfig/models.py:508 siteconfig/models.py:548 subscriptions/models.py:28
 msgid "Description"
@@ -563,7 +582,7 @@ msgstr "توضیحات"
 msgid "Conclusion"
 msgstr "نتیجه گیری"
 
-#: blog/models.py:55 gallery/models.py:18 in_person_class/models.py:61
+#: blog/models.py:55 gallery/models.py:18 in_person_class/models.py:70
 #: quiz/models.py:57
 msgid "Thumbnail"
 msgstr "عکس بنر"
@@ -580,7 +599,7 @@ msgstr "نویسنده"
 msgid "Time To Read (Minutes)"
 msgstr "زمان مورد نیاز برای مطالعه(دقیقه)"
 
-#: blog/models.py:59 courses/models.py:56 in_person_class/models.py:28
+#: blog/models.py:59 courses/models.py:56 in_person_class/models.py:37
 #: tickets/models.py:125
 msgid "Category"
 msgstr "دسته بندی"
@@ -590,14 +609,10 @@ msgid "Tags"
 msgstr "تگ ها"
 
 #: blog/models.py:62 courses/models.py:62 courses/models.py:232
-#: in_person_class/models.py:74 siteconfig/models.py:838
+#: in_person_class/models.py:85 siteconfig/models.py:838
 #: subscriptions/models.py:58
 msgid "Visible"
 msgstr "نمایش در سایت"
-
-#: blog/models.py:63
-msgid "Published At"
-msgstr "منتشر شده در"
 
 #: blog/models.py:68
 msgid "Blog Post"
@@ -639,24 +654,24 @@ msgstr "تعداد"
 msgid "Added At"
 msgstr "تاریخ"
 
-#: courses/admin.py:64 in_person_class/admin.py:46 payment/admin.py:60
-#: quiz/admin.py:40 subscriptions/admin.py:42
+#: courses/admin.py:75 in_person_class/admin.py:154 payment/admin.py:72
+#: quiz/admin.py:51 subscriptions/admin.py:55
 msgid "Core Information"
 msgstr "اطلاعات اصلی"
 
-#: courses/admin.py:92 in_person_class/admin.py:58 subscriptions/admin.py:45
+#: courses/admin.py:103 in_person_class/admin.py:166 subscriptions/admin.py:58
 msgid "Pricing"
 msgstr "قیمت گذاری"
 
-#: courses/admin.py:103 in_person_class/admin.py:142
+#: courses/admin.py:114 in_person_class/admin.py:284
 msgid "Students"
 msgstr "قرآن آموزان"
 
-#: courses/admin.py:118 in_person_class/admin.py:83 subscriptions/admin.py:59
+#: courses/admin.py:133 in_person_class/admin.py:210 subscriptions/admin.py:76
 msgid "Price"
 msgstr "قیمت گذاری"
 
-#: courses/admin.py:131 in_person_class/admin.py:88 subscriptions/admin.py:64
+#: courses/admin.py:138 in_person_class/admin.py:215 subscriptions/admin.py:81
 msgid "Discount"
 msgstr "تخفیف"
 
@@ -672,7 +687,7 @@ msgstr "تعداد محتوا"
 msgid "Courses"
 msgstr "دوره ها"
 
-#: courses/models.py:12 courses/models.py:222 courses/progress_admin.py:68
+#: courses/models.py:12 courses/models.py:222 courses/progress_admin.py:82
 #: courses/progress_models.py:45
 msgid "Course"
 msgstr "دوره"
@@ -721,7 +736,7 @@ msgstr "تدبر"
 msgid "Course ID"
 msgstr "آیدی دوره"
 
-#: courses/models.py:40 in_person_class/models.py:135
+#: courses/models.py:40 in_person_class/models.py:146
 #: subscriptions/models.py:55
 msgid "Bought By"
 msgstr "لیسا خریداران"
@@ -738,12 +753,12 @@ msgstr "ویدیو معرفی دوره"
 msgid "Course Image/Banner"
 msgstr "بنر دوره"
 
-#: courses/models.py:49 in_person_class/models.py:65
-#: in_person_class/models.py:128 subscriptions/models.py:31
+#: courses/models.py:49 in_person_class/models.py:74
+#: in_person_class/models.py:139 subscriptions/models.py:31
 msgid "Price (Toman)"
 msgstr "قیمت (تومان)"
 
-#: courses/models.py:50 in_person_class/models.py:66 subscriptions/models.py:32
+#: courses/models.py:50 in_person_class/models.py:75 subscriptions/models.py:32
 msgid "Discounted Price (0 = no discount)"
 msgstr "قیمت با تخفیف (۰ برای حذف استفاده از قیمت بدون تخفیف)"
 
@@ -802,7 +817,7 @@ msgstr "تعداد ویدیو ها"
 msgid "Free Preview"
 msgstr "پیش نمایش رایگان"
 
-#: courses/models.py:243 courses/progress_admin.py:74
+#: courses/models.py:243 courses/progress_admin.py:87
 #: courses/progress_models.py:38
 msgid "Episode"
 msgstr "جلسه"
@@ -819,7 +834,7 @@ msgstr "ویدیو"
 msgid "Note"
 msgstr "یادداشت/نوت"
 
-#: courses/models.py:250 tickets/admin.py:207 tickets/models.py:208
+#: courses/models.py:250 tickets/admin.py:205 tickets/models.py:208
 msgid "Attachment"
 msgstr "فایل"
 
@@ -835,11 +850,16 @@ msgstr "فایل"
 msgid "Counted"
 msgstr "شمارش شده"
 
-#: courses/progress_admin.py:40
+#: courses/progress_admin.py:52
 msgid "User & Content"
 msgstr "متن نظر برگزیده اول"
 
-#: courses/progress_admin.py:86 quiz/models.py:256 tickets/models.py:73
+#: courses/progress_admin.py:63
+#| msgid "Last Watched At"
+msgid "Last Watched"
+msgstr "آخرین بازدید"
+
+#: courses/progress_admin.py:98 quiz/models.py:256 tickets/models.py:73
 msgid "In Progress"
 msgstr "در حال مشاهده"
 
@@ -875,23 +895,23 @@ msgstr "مدت زمانی که کاربر در حال مشاهده این جلس
 msgid "Last Watched At"
 msgstr "آخرین بازدید"
 
-#: gallery/admin.py:36 users/admin.py:53 users/admin.py:60
+#: gallery/admin.py:48 users/admin.py:64 users/admin.py:71
 msgid "General"
 msgstr "اطلاعات عمومی"
 
-#: gallery/admin.py:51
+#: gallery/admin.py:71
 msgid "Content Count"
 msgstr "تعداد محتوا"
 
-#: gallery/admin.py:66
+#: gallery/admin.py:87
 msgid "Relations"
 msgstr "ثبت نام"
 
-#: gallery/admin.py:73
+#: gallery/admin.py:94
 msgid "Media"
 msgstr "متوسط"
 
-#: gallery/admin.py:88
+#: gallery/admin.py:113
 msgid "Has File"
 msgstr "فایل"
 
@@ -963,24 +983,41 @@ msgstr "شما نباید صوت آپلود کنید مگر اینکه نوع م
 msgid "Embed code must be empty unless content type is embed."
 msgstr "شما نباید کد امبد تنظیم کنید مگر اینکه نوع محتوا امبد باشد"
 
-#: in_person_class/admin.py:64 quiz/admin.py:51
+#: in_person_class/admin.py:172 quiz/admin.py:62
 msgid "Schedule"
 msgstr "برنامه ریزی"
 
-#: in_person_class/admin.py:70 in_person_class/models.py:29
-#: in_person_class/models.py:69 quiz/models.py:63
+#: in_person_class/admin.py:178
+#| msgid "Online Call Session"
+msgid "Online Session"
+msgstr "کلاس آنلاین"
+
+#: in_person_class/admin.py:181
+msgid ""
+"Set this link if the class will be held online (e.g. due to weather or other "
+"issues)."
+msgstr "اگر کلاس به صورت مجازی برگزار می شود لینک کلاس را در اینجا قرار دهید."
+
+#: in_person_class/admin.py:185 in_person_class/models.py:38
+#: in_person_class/models.py:78 quiz/models.py:63
 msgid "Categories"
 msgstr "دسته بندی ها"
 
-#: in_person_class/admin.py:121
+#: in_person_class/admin.py:202 in_person_class/admin.py:255
+#: in_person_class/models.py:81 in_person_class/models.py:138 quiz/admin.py:75
+#: quiz/models.py:91
+msgid "End Date"
+msgstr "تاریخ پایان"
+
+#: in_person_class/admin.py:263
 msgid "Registered"
 msgstr "ثبت نام شده"
 
-#: in_person_class/admin.py:130 siteconfig/models.py:461
+#: in_person_class/admin.py:272 siteconfig/models.py:461
 msgid "Registration"
 msgstr "ثبت نام"
 
-#: in_person_class/admin.py:136
+#: in_person_class/admin.py:278
 msgid "Snapshot at Registration"
 msgstr "اطلاعات ذخیره شده از کلاس"
 
@@ -988,7 +1025,7 @@ msgstr "اطلاعات ذخیره شده از کلاس"
 msgid "In-Person Class System"
 msgstr "سیستم کلاس حضوری"
 
-#: in_person_class/models.py:16 in_person_class/models.py:122
+#: in_person_class/models.py:16 in_person_class/models.py:133
 msgid "Time Range"
 msgstr "بازه زمانی"
 
@@ -1000,35 +1037,36 @@ msgstr "بازه های زمانی"
 msgid "Label"
 msgstr "بازه"
 
-#: in_person_class/models.py:52 in_person_class/models.py:116
+#: in_person_class/models.py:61 in_person_class/models.py:127
 msgid "In-Person Class"
 msgstr "کلاس حضوری"
 
-#: in_person_class/models.py:53
+#: in_person_class/models.py:62
 msgid "In-Person Classes"
 msgstr "کلاس های حضوری"
 
-#: in_person_class/models.py:59 in_person_class/models.py:110
+#: in_person_class/models.py:68 in_person_class/models.py:121
 msgid "ID"
 msgstr "آیدی"
 
-#: in_person_class/models.py:68
+#: in_person_class/models.py:77
 msgid "Available Times"
 msgstr "بازه های موجود"
 
-#: in_person_class/models.py:72 in_person_class/models.py:127 quiz/models.py:91
-msgid "End Date"
-msgstr "تاریخ پایان"
+#: in_person_class/models.py:83
+#| msgid "Online Class Meetings/Month"
+msgid "Online Meeting URL"
+msgstr "لینک کلاس"
 
-#: in_person_class/models.py:106
+#: in_person_class/models.py:117
 msgid "In-Person Class Registration"
 msgstr "ثبت نام"
 
-#: in_person_class/models.py:107
+#: in_person_class/models.py:118
 msgid "In-Person Class Registrations"
 msgstr "ثبت نام ها"
 
-#: in_person_class/models.py:129
+#: in_person_class/models.py:140
 msgid "Discounted Price"
 msgstr "قیمت با تخفیف"
 
@@ -1036,15 +1074,15 @@ msgstr "قیمت با تخفیف"
 msgid "Notifications"
 msgstr "نوتیفیکیشن"
 
-#: payment/admin.py:76
+#: payment/admin.py:88
 msgid "Provider & Tracking"
 msgstr "درگاه پرداخت و رهگیری"
 
-#: payment/admin.py:87
+#: payment/admin.py:99
 msgid "Metadata & Description"
 msgstr "توضیحات آمار اول"
 
-#: payment/admin.py:108
+#: payment/admin.py:124
 msgid "Amount"
 msgstr "هزینه پرداخت شده"
 
@@ -1172,28 +1210,33 @@ msgstr "تاریخ ایجاد"
 msgid "Updated at"
 msgstr "تاریخ آپدیت"
 
-#: quiz/admin.py:46
-#| msgid "User Settings"
+#: quiz/admin.py:57
 msgid "Settings"
 msgstr "تنظیمات"
 
-#: quiz/admin.py:77 quiz/models.py:118 quiz/models.py:179 quiz/models.py:201
+#: quiz/admin.py:101 quiz/models.py:118 quiz/models.py:179 quiz/models.py:201
 #: quiz/models.py:317 siteconfig/models.py:833
 msgid "Question"
 msgstr "سوال"
 
+#: quiz/admin.py:119 quiz/models.py:282 subscriptions/admin.py:110
+#: subscriptions/models.py:139
+msgid "Started At"
+msgstr "تاریخ شروع"
+
+#: quiz/admin.py:123 quiz/models.py:283
+msgid "Finished At"
+msgstr "تمام شده در"
+
 #: quiz/apps.py:8
-#| msgid "Users System"
 msgid "Quiz System"
 msgstr "سیستم کوییز"
 
 #: quiz/models.py:14
-#| msgid "Category"
 msgid "Quiz Category"
 msgstr "دسته بندی"
 
 #: quiz/models.py:15
-#| msgid "Categories"
 msgid "Quiz Categories"
 msgstr "دسته بندی ها"
 
@@ -1214,12 +1257,10 @@ msgid "Quiz"
 msgstr "کوییز"
 
 #: quiz/models.py:44
-#| msgid "Quiz Access"
 msgid "Quizzes"
 msgstr "کوییز ها"
 
 #: quiz/models.py:71
-#| msgid "Active"
 msgid "Is Active"
 msgstr "فعال سازی"
 
@@ -1247,10 +1288,11 @@ msgstr "تلاش مجدد درصورت به پایان رسیدن امتحان"
 msgid ""
 "If enabled, expired (timed-out) attempts do not count against the attempt "
 "limit."
-msgstr "اگر روشن شود در صورتی که کاربر نتواند در زمان تعیین شده کوییز را به پایان برساند می تواند مجددا شروع کند."
+msgstr ""
+"اگر روشن شود در صورتی که کاربر نتواند در زمان تعیین شده کوییز را به پایان "
+"برساند می تواند مجددا شروع کند."
 
 #: quiz/models.py:112
-#| msgid "Dual Choice"
 msgid "Multiple Choice"
 msgstr "چند گزینه ای"
 
@@ -1267,22 +1309,18 @@ msgid "Matching"
 msgstr "وصل کردنی"
 
 #: quiz/models.py:119
-#| msgid "Question"
 msgid "Questions"
 msgstr "سوال ها"
 
 #: quiz/models.py:136
-#| msgid "Question"
 msgid "Question Type"
 msgstr "نوع سوال"
 
 #: quiz/models.py:138
-#| msgid "Question"
 msgid "Question Text"
 msgstr "متن سوال"
 
 #: quiz/models.py:143
-#| msgid "Question"
 msgid "Question Image"
 msgstr "تصویر سوال"
 
@@ -1299,12 +1337,10 @@ msgid "Contributes to the quiz global timer; not enforced per-question."
 msgstr "به زمان کل کوییز اضافه می شود."
 
 #: quiz/models.py:170
-#| msgid "Question"
 msgid "Question Option"
 msgstr "گزینه"
 
 #: quiz/models.py:171
-#| msgid "Question"
 msgid "Question Options"
 msgstr "کزینه ها"
 
@@ -1329,7 +1365,6 @@ msgid "Left Text"
 msgstr "متن ستون چپ"
 
 #: quiz/models.py:204
-#| msgid "Copyright Text"
 msgid "Right Text"
 msgstr "متن ستون راست"
 
@@ -1338,7 +1373,6 @@ msgid "Free"
 msgstr "بدون محدودیت"
 
 #: quiz/models.py:216
-#| msgid "Completed"
 msgid "Completed Quiz"
 msgstr "کامل شده"
 
@@ -1347,17 +1381,14 @@ msgid "Minimum Score"
 msgstr "حداقل امتیاز"
 
 #: quiz/models.py:218
-#| msgid "Subscriptions"
 msgid "Subscription Required"
 msgstr "نیاز به اشتراک"
 
 #: quiz/models.py:221
-#| msgid "Quiz Access"
 msgid "Quiz Access Requirement"
 msgstr "پیش نیاز دسترسی به کوییز"
 
 #: quiz/models.py:222
-#| msgid "Quiz Access"
 msgid "Quiz Access Requirements"
 msgstr "پیش نیاز های دسترسی به کوییز"
 
@@ -1378,31 +1409,18 @@ msgid "Expired"
 msgstr "منقضی شده"
 
 #: quiz/models.py:261
-#| msgid "Quiz Access"
 msgid "Quiz Attempt"
 msgstr "تلاش"
 
 #: quiz/models.py:262
-#| msgid "Quiz Access"
 msgid "Quiz Attempts"
 msgstr "تلاش ها"
 
-#: quiz/models.py:282 subscriptions/models.py:139
-msgid "Started At"
-msgstr "تاریخ شروع"
-
-#: quiz/models.py:283
-#| msgid "Published At"
-msgid "Finished At"
-msgstr "تمام شده در"
-
 #: quiz/models.py:285
-#| msgid "Content Count"
 msgid "Correct Count"
 msgstr "تعداد جواب های صحیح"
 
 #: quiz/models.py:286
-#| msgid "Content Count"
 msgid "Incorrect Count"
 msgstr "تعداد جواب های غلط"
 
@@ -1411,7 +1429,6 @@ msgid "Time Spent (seconds)"
 msgstr "زمان مورد استفاده(ثانیه)"
 
 #: quiz/models.py:303
-#| msgid "No Answer"
 msgid "Attempt Answer"
 msgstr "جواب تلاش"
 
@@ -1435,257 +1452,257 @@ msgstr "زمان استفاده شده(ثانیه)"
 msgid "Matching Answer"
 msgstr "جواب وصل کردنی"
 
-#: siteconfig/admin.py:27 siteconfig/models.py:18 siteconfig/models.py:63
+#: siteconfig/admin.py:37 siteconfig/models.py:18 siteconfig/models.py:63
 #: siteconfig/models.py:174
 msgid "Link"
 msgstr "لینک"
 
-#: siteconfig/admin.py:28
+#: siteconfig/admin.py:38
 msgid "Links in this Column"
 msgstr "لینک داخل ستون"
 
-#: siteconfig/admin.py:38
+#: siteconfig/admin.py:48
 msgid "Link Column"
 msgstr "ستون فوتر"
 
-#: siteconfig/admin.py:39 siteconfig/models.py:40
+#: siteconfig/admin.py:49 siteconfig/models.py:40
 msgid "Footer Link Columns"
 msgstr "ستون های فوتر"
 
-#: siteconfig/admin.py:49 siteconfig/models.py:76 siteconfig/models.py:113
+#: siteconfig/admin.py:59 siteconfig/models.py:76 siteconfig/models.py:113
 msgid "Social Media Link"
 msgstr "آدرس های فضای مجازی"
 
-#: siteconfig/admin.py:50 siteconfig/models.py:77
+#: siteconfig/admin.py:60 siteconfig/models.py:77
 msgid "Social Media Links"
 msgstr "آدرس های فضای مجازی"
 
-#: siteconfig/admin.py:60
+#: siteconfig/admin.py:70
 msgid "Link Information"
 msgstr "اطلاعات لینک"
 
-#: siteconfig/admin.py:62
+#: siteconfig/admin.py:72
 msgid "Create reusable links that can be used throughout the site"
 msgstr "لینک با قابلیت استفاده در چندین جای سایت"
 
-#: siteconfig/admin.py:75
+#: siteconfig/admin.py:85
 msgid "Social Media Information"
 msgstr "آدرس های فضای مجازی"
 
-#: siteconfig/admin.py:77
+#: siteconfig/admin.py:87
 msgid "Create reusable social media links for your footer"
 msgstr "لینک های فضای مجازی قابل استفاده در بخش های مختلف"
 
-#: siteconfig/admin.py:83
+#: siteconfig/admin.py:93
 msgid "Used in Footer"
 msgstr "فوتر"
 
-#: siteconfig/admin.py:97
+#: siteconfig/admin.py:107
 msgid "Column Configuration"
 msgstr "تنظیمات سایت"
 
-#: siteconfig/admin.py:99
+#: siteconfig/admin.py:109
 msgid "Configure this link column. Add links using the tabular inline below."
 msgstr "تنظیم ستون لینک فوتر. لینک های هر ستون رو جداگانه اضافه کنید."
 
-#: siteconfig/admin.py:105
+#: siteconfig/admin.py:115
 msgid "Number of Links"
 msgstr "تعداد فایل ها"
 
-#: siteconfig/admin.py:118
+#: siteconfig/admin.py:128
 msgid "Branding & Identity"
 msgstr "برندینگ و هویت"
 
-#: siteconfig/admin.py:120
+#: siteconfig/admin.py:130
 msgid "Configure your footer branding and main description"
 msgstr "تنظیمات برند و توضیحات فوتر"
 
-#: siteconfig/admin.py:123
+#: siteconfig/admin.py:133
 msgid "Legal & Copyright"
 msgstr "حقوق سایت"
 
-#: siteconfig/admin.py:125
+#: siteconfig/admin.py:135
 msgid "Footer copyright and rights information"
 msgstr "اطلاعات و حقوق سایت"
 
-#: siteconfig/admin.py:128
+#: siteconfig/admin.py:138
 msgid "Contact Us"
 msgstr "ارتباط با ما"
 
-#: siteconfig/admin.py:130
+#: siteconfig/admin.py:140
 msgid "Footer Contact Us column information"
 msgstr "اطلاعات بخش ارتباط با ما در فوتر"
 
-#: siteconfig/admin.py:165
+#: siteconfig/admin.py:175
 msgid "Title Only Item"
 msgstr "آیتم های متنی"
 
-#: siteconfig/admin.py:166
+#: siteconfig/admin.py:176
 msgid "Title Only Items"
 msgstr "آیتم های متنی مگامنو"
 
-#: siteconfig/admin.py:175
+#: siteconfig/admin.py:185
 msgid "Described Item"
 msgstr "آیتم توضیح دار"
 
-#: siteconfig/admin.py:176
+#: siteconfig/admin.py:186
 msgid "Described Items"
 msgstr "آیتم های توضیح دار"
 
-#: siteconfig/admin.py:185
+#: siteconfig/admin.py:195
 msgid "Image Item"
 msgstr "تصویر"
 
-#: siteconfig/admin.py:186
+#: siteconfig/admin.py:196
 msgid "Image Items"
 msgstr "آیتم های عکس دار مگامنو"
 
-#: siteconfig/admin.py:195
+#: siteconfig/admin.py:205
 msgid "Information Box"
 msgstr "باکس اطلاعات"
 
-#: siteconfig/admin.py:196
+#: siteconfig/admin.py:206
 msgid "Information Boxes"
 msgstr "باکس های اطلاعات"
 
-#: siteconfig/admin.py:209 siteconfig/models.py:172
+#: siteconfig/admin.py:219 siteconfig/models.py:172
 msgid "Navbar"
 msgstr "منو"
 
-#: siteconfig/admin.py:211
+#: siteconfig/admin.py:221
 msgid "Navbar Items + Logo"
 msgstr "لوگو منو"
 
-#: siteconfig/admin.py:214
+#: siteconfig/admin.py:224
 msgid "Mega-Menu Titles"
 msgstr "تیتر اصلی"
 
-#: siteconfig/admin.py:216
+#: siteconfig/admin.py:226
 msgid "Title of each column in mega-menu"
 msgstr "تیتر ستون های مگامنو"
 
-#: siteconfig/admin.py:219
+#: siteconfig/admin.py:229
 msgid "Mega-Menu Banner"
 msgstr "بنر مگامنو"
 
-#: siteconfig/admin.py:221
+#: siteconfig/admin.py:231
 msgid "Banner info/image in mega-menu"
 msgstr "اطلاعات بخش بنر مگامنو"
 
-#: siteconfig/admin.py:224
+#: siteconfig/admin.py:234
 msgid "Mega-Menu Notification"
 msgstr "نوتیفیکیشن"
 
-#: siteconfig/admin.py:226
+#: siteconfig/admin.py:236
 msgid "Notification message in mega-menu"
 msgstr "متن پیام مگامنو"
 
-#: siteconfig/admin.py:281
+#: siteconfig/admin.py:291
 msgid "Landing Section"
 msgstr "لندینگ"
 
-#: siteconfig/admin.py:282
+#: siteconfig/admin.py:292
 msgid "Hero area at the top of the page."
 msgstr "اطلاعات بخش لندینگ سایت"
 
-#: siteconfig/admin.py:294
+#: siteconfig/admin.py:304
 msgid "Statistics"
 msgstr "وضعیت"
 
-#: siteconfig/admin.py:295
+#: siteconfig/admin.py:305
 msgid "Four stat blocks shown on the homepage."
 msgstr "بخش آمار و اطلاعات لینک دار"
 
-#: siteconfig/admin.py:311
+#: siteconfig/admin.py:321
 msgid "Advertisement Banner"
 msgstr "لینک تبلیغات"
 
-#: siteconfig/admin.py:319
+#: siteconfig/admin.py:329
 msgid "Dual Choice"
 msgstr "انتخاب دوگانه"
 
-#: siteconfig/admin.py:330
+#: siteconfig/admin.py:340
 msgid "User Experience Section"
 msgstr "توضیحات"
 
-#: siteconfig/admin.py:331
+#: siteconfig/admin.py:341
 msgid "Testimonials and top-user showcase."
 msgstr "اطلاعات مربوط به بخش کاربران برتر و نظرات"
 
-#: siteconfig/admin.py:350
+#: siteconfig/admin.py:360
 msgid "Logo Links"
 msgstr "لوگولینک ها"
 
-#: siteconfig/admin.py:358
+#: siteconfig/admin.py:368
 msgid "Imaged Links"
 msgstr "لیست عکس های لینک دار"
 
-#: siteconfig/admin.py:362
+#: siteconfig/admin.py:372
 msgid "Course Demo"
 msgstr "آیدی دوره"
 
-#: siteconfig/admin.py:376 siteconfig/admin.py:401
+#: siteconfig/admin.py:386 siteconfig/admin.py:411
 msgid "Image Section"
 msgstr "بخش عکس ها"
 
-#: siteconfig/admin.py:413
+#: siteconfig/admin.py:423
 msgid "Info Section"
 msgstr "بخش اطلاعات"
 
-#: siteconfig/admin.py:419
+#: siteconfig/admin.py:429
 msgid "Select info boxes from inline table below."
 msgstr "باکس های اطلاعاتی را از منو زیر انتخاب کنید."
 
-#: siteconfig/admin.py:422
+#: siteconfig/admin.py:432
 msgid "Trust Logo Section"
 msgstr "بخش اعتماد"
 
-#: siteconfig/admin.py:424
+#: siteconfig/admin.py:434
 msgid "Select trust logo links from inline table below."
 msgstr "لوگو لینک های اعتماد را از منوی زیر انتخاب کنید."
 
-#: siteconfig/admin.py:435
+#: siteconfig/admin.py:445
 msgid "Info Boxes"
 msgstr "باکس های اطلاعات"
 
-#: siteconfig/admin.py:436
+#: siteconfig/admin.py:446
 msgid "Trust Links"
 msgstr "لینک"
 
-#: siteconfig/admin.py:459
+#: siteconfig/admin.py:469
 msgid "Resume Submission"
 msgstr "ارسال رزومه"
 
-#: siteconfig/admin.py:460 siteconfig/admin.py:547
+#: siteconfig/admin.py:470 siteconfig/admin.py:563
 msgid "Resume Submissions"
 msgstr "ارسال رزومه"
 
-#: siteconfig/admin.py:473
+#: siteconfig/admin.py:485
 msgid "Submission Information"
 msgstr "اطلاعات رزومه"
 
-#: siteconfig/admin.py:477 siteconfig/models.py:493 tickets/admin.py:186
+#: siteconfig/admin.py:489 siteconfig/models.py:493 tickets/admin.py:180
 #: tickets/models.py:177
 msgid "Message"
 msgstr "پیام"
 
-#: siteconfig/admin.py:495
+#: siteconfig/admin.py:511
 msgid "Hero Section"
 msgstr "لندینگ"
 
-#: siteconfig/admin.py:504
+#: siteconfig/admin.py:520
 msgid "Collaboration Section"
 msgstr "مراحل همکاری"
 
-#: siteconfig/admin.py:514
+#: siteconfig/admin.py:530
 msgid "Counter Section"
 msgstr "شمارنده ها"
 
-#: siteconfig/admin.py:523
+#: siteconfig/admin.py:539
 msgid "Main Content Section"
 msgstr "بخش توضیحات"
 
-#: siteconfig/admin.py:535
+#: siteconfig/admin.py:551
 msgid "Advertisement Section"
 msgstr "تبلیغ"
 
@@ -2503,17 +2520,21 @@ msgstr "جواب"
 msgid "Order of the FAQ. Lower number appears first."
 msgstr "ترتیب نمایش سوالات"
 
-#: subscriptions/admin.py:13 subscriptions/admin.py:92
+#: subscriptions/admin.py:25 subscriptions/admin.py:118
 msgid "Active Subscription"
 msgstr "اشتراک فعال"
 
-#: subscriptions/admin.py:48
+#: subscriptions/admin.py:61
 msgid "Features"
 msgstr "ویژگی ها"
 
-#: subscriptions/admin.py:51 subscriptions/admin.py:75
+#: subscriptions/admin.py:64 subscriptions/admin.py:92
 msgid "Subscribers"
 msgstr "خریداران"
+
+#: subscriptions/admin.py:114 subscriptions/models.py:140
+msgid "Ends In"
+msgstr "تاریخ پایان"
 
 #: subscriptions/apps.py:8
 msgid "Subscriptions"
@@ -2579,35 +2600,31 @@ msgstr "اشتراک کاربر"
 msgid "User Subscriptions"
 msgstr "اشتراک کاربران"
 
-#: subscriptions/models.py:140
-msgid "Ends In"
-msgstr "تاریخ پایان"
-
 #: subscriptions/models.py:145
 msgid "Plan not started."
 msgstr "شروع نشده است"
 
-#: tickets/admin.py:14
+#: tickets/admin.py:25
 msgid "پیام"
 msgstr "پیام"
 
-#: tickets/admin.py:15
+#: tickets/admin.py:26
 msgid "پیام ها"
 msgstr "پیام ها"
 
-#: tickets/admin.py:57
+#: tickets/admin.py:70
 msgid "Ticket Information"
 msgstr "تنظیمات سایت"
 
-#: tickets/admin.py:69
+#: tickets/admin.py:82
 msgid "Status & Priority"
 msgstr "اولویت"
 
-#: tickets/admin.py:114 tickets/models.py:118
+#: tickets/admin.py:123 tickets/models.py:118
 msgid "Priority"
 msgstr "اولویت"
 
-#: tickets/admin.py:138 tickets/models.py:178
+#: tickets/admin.py:139 tickets/models.py:178
 msgid "Messages"
 msgstr "متن پیام"
 
@@ -2687,27 +2704,27 @@ msgstr "اگر این پیام یک پاسخ از ادمین است تیک ای�
 msgid "Sent At"
 msgstr "تاریخ پیام"
 
-#: users/admin.py:15
+#: users/admin.py:24
 msgid "User Profile"
 msgstr "پروفایل کاربر"
 
-#: users/admin.py:16
+#: users/admin.py:25
 msgid "User Profiles"
 msgstr "پروفایل"
 
-#: users/admin.py:23 users/admin.py:24
+#: users/admin.py:33 users/admin.py:34
 msgid "User Settings"
 msgstr "تنظیمات کاربر"
 
-#: users/admin.py:54 users/admin.py:61
+#: users/admin.py:65 users/admin.py:72
 msgid "Personal Info"
 msgstr "اطلاعات شخصی"
 
-#: users/admin.py:55 users/admin.py:62
+#: users/admin.py:66 users/admin.py:73
 msgid "Permissions"
 msgstr "دسترسی ها"
 
-#: users/admin.py:56 users/admin.py:63
+#: users/admin.py:67 users/admin.py:74
 msgid "Dates"
 msgstr "تاریخ ها"
 

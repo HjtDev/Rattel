@@ -10,6 +10,16 @@ from django.urls import reverse
 from django.shortcuts import redirect
 from django.conf import settings
 from rest_framework import status
+from urllib.parse import urlparse
+
+
+def _is_allowed_redirect_url(url: str) -> bool:
+    """Accepts only URLs whose scheme+hostname matches a CSRF_TRUSTED_ORIGINS entry."""
+    parsed = urlparse(url)
+    if not all([parsed.scheme, parsed.netloc]):
+        return False
+    origin = f"{parsed.scheme}://{parsed.hostname}"
+    return any(origin == trusted.rstrip('/') for trusted in settings.CSRF_TRUSTED_ORIGINS)
 
 
 _gateway_provider = None
@@ -46,8 +56,8 @@ class PaymentStartView(APIView, ResponseBuilderMixin, GetDataMixin):
         success, result = self.get_data(
             request,
             ('amount', lambda a: isinstance(a, int) or (isinstance(a, str) and a.isdigit())),  # in IRR
-            ('success_url', self.is_url),  # Full URL to where transaction_id and identifier would be sent on success
-            ('fail_url', self.is_url),  # Full URL to where transaction_id and identifier would be sent on fail
+            ('success_url', _is_allowed_redirect_url),  # Must be same origin as the frontend
+            ('fail_url', _is_allowed_redirect_url),    # Must be same origin as the frontend
             'description',
             'identifier',
         )
