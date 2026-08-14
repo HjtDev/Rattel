@@ -76,6 +76,7 @@ rsync "${RSYNC_FLAGS[@]}" \
   --exclude='RattelBackend/media' \
   --exclude='.env' \
   --exclude='*.log' \
+  --exclude='deploy/backups' \
   -e "${RSYNC_SSH}" \
   ./ "${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}/"
 

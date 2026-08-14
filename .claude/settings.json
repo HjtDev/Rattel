@@ -1,4 +1,16 @@
 {
+  "permissions": {
+    "ask": [
+      "Bash(docker compose down*)",
+      "Bash(docker-compose down*)"
+    ]
+  },
+  "autoMode": {
+    "hard_deny": [
+      "$defaults",
+      "docker compose down / docker-compose down (any flags) — this project's docker-compose.yml has a Postgres PGDATA/volume-mount mismatch (see docker-compose.yml comment) that makes `down` destroy the database even without -v. Always ask, never auto-approve, regardless of stated user intent."
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
