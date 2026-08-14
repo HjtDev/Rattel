@@ -109,11 +109,6 @@ class Plan(models.Model):
         super().save(*args, **kwargs)
         invalidate_cache('subscription_plans')
 
-    def delete(self, *args, **kwargs):
-        if self.picture and self.picture.name:
-            self.picture.delete(save=False)
-        return super().delete(*args, **kwargs)
-
     def __str__(self):
         return self.name
 
