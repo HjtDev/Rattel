@@ -80,6 +80,12 @@ class InPersonClass(models.Model):
     start_date = models.DateField(verbose_name=_('Start Date'))
     end_date = models.DateField(verbose_name=_('End Date'))
 
+    capacity = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_('Capacity per Time Slot (empty = unlimited)'),
+    )
+
     meeting_url = models.URLField(blank=True, null=True, verbose_name=_('Online Meeting URL'))
 
     is_visible = models.BooleanField(default=True, verbose_name=_('Visible'))
@@ -155,9 +161,35 @@ class InPersonClassRegistration(models.Model):
     def add_user(self, user):
         self.bought_by.add(user)
         invalidate_cache('my_in_person_class_registrations')
+        invalidate_cache('in_person_class_list')
 
     def is_owned_by(self, user) -> bool:
         return self.bought_by.filter(pk=user.pk).exists()
+
+    @property
+    def capacity(self):
+        """Effective capacity, read live from the parent class (None = unlimited)."""
+        return self.in_person_class.capacity
+
+    @property
+    def registered_count(self) -> int:
+        return self.bought_by.count()
+
+    @property
+    def seats_remaining(self):
+        cap = self.capacity
+        return None if cap is None else max(cap - self.registered_count, 0)
+
+    @property
+    def is_full(self) -> bool:
+        cap = self.capacity
+        return False if cap is None else self.registered_count >= cap
+
+    def can_be_added_to_cart(self, user) -> tuple[bool, str]:
+        """Cart-system hook (see CartManager.add) — blocks adding a full slot."""
+        if self.is_full and not self.is_owned_by(user):
+            return False, 'ظرفیت این کلاس تکمیل شده است.'
+        return True, ''
 
     def __str__(self):
         return f'{self.in_person_class.title} — {self.time_range.label}'

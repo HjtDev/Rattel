@@ -2,6 +2,7 @@ import logging
 from datetime import date
 
 from django.core.paginator import EmptyPage, Paginator
+from django.db.models import Count
 from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -97,10 +98,20 @@ class InPersonClassListView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message='Something went wrong while fetching classes.',
             )
 
+        page_classes = list(page_obj.object_list)
+
+        counts = (
+            InPersonClassRegistration.objects
+            .filter(in_person_class__in=[c.pk for c in page_classes])
+            .annotate(taken=Count('bought_by'))
+            .values_list('in_person_class_id', 'time_range_id', 'taken')
+        )
+        registration_counts = {(cid, trid): taken for cid, trid, taken in counts}
+
         serializer = InPersonClassListSerializer(
-            list(page_obj.object_list),
+            page_classes,
             many=True,
-            context={'request': request},
+            context={'request': request, 'registration_counts': registration_counts},
         )
 
         return self.build_response(
@@ -206,6 +217,14 @@ class RegisterView(APIView, GetDataMixin, ResponseBuilderMixin):
                 'new_price': ipc.new_price,
             },
         )
+
+        if registration.is_full and not registration.is_owned_by(request.user):
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-1,
+                message='ظرفیت این زمان تکمیل شده است. لطفاً زمان دیگری انتخاب کنید.',
+            )
 
         return self.build_response(
             status.HTTP_200_OK,

@@ -136,6 +136,7 @@ class InPersonClassAdmin(admin.ModelAdmin):
         'end_date_jalali',
         'price_display',
         'discount_display',
+        'capacity',
         'is_visible',
         'created_at_jalali',
     )
@@ -171,7 +172,7 @@ class InPersonClassAdmin(admin.ModelAdmin):
         (
             _('Schedule'),
             {
-                'fields': ('start_date', 'end_date', 'available_times'),
+                'fields': ('start_date', 'end_date', 'available_times', 'capacity'),
             },
         ),
         (
@@ -234,6 +235,7 @@ class InPersonClassRegistrationAdmin(admin.ModelAdmin):
         'end_date_jalali',
         'price',
         'registered_count',
+        'seats_remaining_display',
         'created_at_jalali',
     )
 
@@ -263,6 +265,11 @@ class InPersonClassRegistrationAdmin(admin.ModelAdmin):
     @admin.display(description=_('Registered'))
     def registered_count(self, obj):
         return obj.bought_by.count()
+
+    @admin.display(description=_('Seats Remaining'))
+    def seats_remaining_display(self, obj):
+        remaining = obj.seats_remaining
+        return '∞' if remaining is None else remaining
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('bought_by')
