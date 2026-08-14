@@ -191,6 +191,14 @@ class RegisterView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message='کلاس مورد نظر یافت نشد.',
             )
 
+        if ipc.has_started:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-1,
+                message='این کلاس قبلاً شروع شده و امکان ثبت‌نام برای آن وجود ندارد.',
+            )
+
         if not ipc.available_times.filter(pk=time_range_id).exists():
             return self.build_response(
                 status.HTTP_400_BAD_REQUEST,

@@ -103,6 +103,14 @@ class InPersonClass(models.Model):
     def is_active(self):
         return self.end_date >= date.today()
 
+    @property
+    def has_started(self) -> bool:
+        """start_date is a date (no time-of-day), so a class starting today is
+        not yet considered started — it may still be scheduled later today.
+        Only once the calendar date has passed is it definitively started.
+        """
+        return self.start_date < date.today()
+
     def __str__(self):
         return self.title
 
@@ -185,11 +193,32 @@ class InPersonClassRegistration(models.Model):
         cap = self.capacity
         return False if cap is None else self.registered_count >= cap
 
+    def _purchase_blocked_reason(self, user) -> str | None:
+        """Shared validity check for both add-to-cart and finalize/payout time.
+
+        Returns None if the user already owns this registration — an existing
+        owner must never be blocked from a re-check they didn't ask for.
+        """
+        if self.is_owned_by(user):
+            return None
+        if self.in_person_class.has_started:
+            return 'این کلاس قبلاً شروع شده است.'
+        if self.is_full:
+            return 'ظرفیت این کلاس تکمیل شده است.'
+        return None
+
     def can_be_added_to_cart(self, user) -> tuple[bool, str]:
-        """Cart-system hook (see CartManager.add) — blocks adding a full slot."""
-        if self.is_full and not self.is_owned_by(user):
-            return False, 'ظرفیت این کلاس تکمیل شده است.'
-        return True, ''
+        """Cart-system hook (see CartManager.add) — blocks adding a full or already-started slot."""
+        reason = self._purchase_blocked_reason(user)
+        return (False, reason) if reason else (True, '')
+
+    def can_be_finalized(self, user) -> tuple[bool, str]:
+        """Payout-time hook (see PaymentStartView / CartFinalizerView) — re-checks
+        the same conditions as can_be_added_to_cart, since a cart item can sit
+        for an arbitrary amount of time before the user actually pays.
+        """
+        reason = self._purchase_blocked_reason(user)
+        return (False, reason) if reason else (True, '')
 
     def __str__(self):
         return f'{self.in_person_class.title} — {self.time_range.label}'
