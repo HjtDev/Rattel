@@ -271,8 +271,6 @@ class AdminQuizDetailView(APIView, GetDataMixin, ResponseBuilderMixin):
                     status.HTTP_400_BAD_REQUEST, success=False, error=-1,
                     message={'thumbnail': 'فرمت تصویر معتبر نیست.'},
                 )
-            if quiz.thumbnail:
-                quiz.thumbnail.delete(save=False)
             quiz.thumbnail = thumbnail
 
         quiz.save()
@@ -589,8 +587,6 @@ class AdminQuestionDetailView(APIView, GetDataMixin, ResponseBuilderMixin):
                 question.save()
 
         if image:
-            if question.image:
-                question.image.delete(save=False)
             question.image = image
             question.save(update_fields=['image'])
 

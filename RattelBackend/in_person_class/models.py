@@ -105,8 +105,6 @@ class InPersonClass(models.Model):
         invalidate_cache('in_person_class_list')
 
     def delete(self, *args, **kwargs):
-        if self.thumbnail and self.thumbnail.name:
-            self.thumbnail.delete(save=False)
         result = super().delete(*args, **kwargs)
         invalidate_cache('in_person_class_list')
         return result

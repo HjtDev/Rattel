@@ -100,8 +100,6 @@ class Quiz(models.Model):
         invalidate_cache('quiz_list')
 
     def delete(self, *args, **kwargs):
-        if self.thumbnail:
-            self.thumbnail.delete(save=False)
         result = super().delete(*args, **kwargs)
         invalidate_cache('quiz_list')
         return result
@@ -158,11 +156,6 @@ class Question(models.Model):
 
     def __str__(self):
         return f'{self.quiz.title} — Q{self.order}: {self.text[:60]}'
-
-    def delete(self, *args, **kwargs):
-        if self.image:
-            self.image.delete(save=False)
-        return super().delete(*args, **kwargs)
 
 
 class QuestionOption(models.Model):

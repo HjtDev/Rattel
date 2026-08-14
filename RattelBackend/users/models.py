@@ -125,11 +125,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         invalidate_cache('UserInfo')
         return super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        if self.profile_picture and self.profile_picture.name:
-            self.profile_picture.delete(save=False)
-        return super().delete(*args, **kwargs)
-    
+
 def validate_national_code(national_code: str):
     if national_code and GetDataMixin.NATIONAL_CODE_REGEX.fullmatch(national_code) is None:
         raise ValidationError('National code must be 10 digit string.')

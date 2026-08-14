@@ -28,10 +28,7 @@ class Gallery(models.Model):
         invalidate_cache('gallery_detail')
 
     def delete(self, *args, **kwargs):
-        thumbnail = self.thumbnail
         result = super().delete(*args, **kwargs)
-        if thumbnail and thumbnail.name:
-            thumbnail.delete(save=False)
         invalidate_cache('gallery_list')
         invalidate_cache('gallery_detail')
         return result
@@ -96,13 +93,7 @@ class GalleryContent(models.Model):
         invalidate_cache('gallery_detail')
 
     def delete(self, *args, **kwargs):
-        image = self.image
-        video = self.video
-        audio = self.audio
         result = super().delete(*args, **kwargs)
-        for file_obj in (image, video, audio):
-            if file_obj and file_obj.name:
-                file_obj.delete(save=False)
         invalidate_cache('gallery_list')
         invalidate_cache('gallery_detail')
         return result
