@@ -27,11 +27,6 @@ class Link(models.Model):
     def __str__(self):
         return self.name
 
-    def delete(self, *args, **kwargs):
-        if self.logo and self.logo.name:
-            self.logo.delete(save=False)
-        return super().delete(*args, **kwargs)
-
 
 class FooterLinkColumn(models.Model):
     """A column of links in the footer"""
@@ -215,12 +210,7 @@ class SiteNavbarImageItems(BaseNavbarItem):
     def __str__(self):
         return f"Image Items: {self.label or self.link.name} - {self.icon.name or 'no-icon'}"
 
-    def delete(self, *args, **kwargs):
-        if self.icon and self.icon.name:
-            self.icon.delete(save=False)
-        return super().delete(*args, **kwargs)
-    
-    
+
 class SiteNavbar(models.Model):
     """Singleton site navbar configuration"""
     class Meta:
@@ -514,11 +504,6 @@ class Information(models.Model):
 
     def __str__(self):
         return f'Information Section: {self.title}'
-
-    def delete(self, *args, **kwargs):
-        if self.image and self.image.name:
-            self.image.delete(save=False)
-        return super().delete(*args, **kwargs)
 
 
 def video_validator(file):

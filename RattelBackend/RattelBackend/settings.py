@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'automatic_class.apps.AutomaticClassConfig',
     'in_person_class.apps.InPersonClassConfig',
     'quiz.apps.QuizConfig',
+    'media_cleanup.apps.MediaCleanupConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -83,6 +84,9 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'tinymce',
     'sortedm2m',
+    # Must stay last: patches post_init/post_save/post_delete on every FileField
+    # in every already-loaded model's app.
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 JALALI_DATE_DEFAULTS = {
@@ -209,6 +213,14 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Media cleanup admin sweep (media_cleanup app). Paths under these prefixes are
+# never treated as orphans, e.g. TinyMCE editor uploads which are referenced only
+# from HTMLField content and can't be seen by a FileField-based scan.
+MEDIA_CLEANUP_EXCLUDE_PREFIXES = ('editor/',)
+# Skip files newer than this many hours, so a file written mid-request/mid-transaction
+# is never swept before its owning row has had a chance to commit.
+MEDIA_CLEANUP_MIN_AGE_HOURS = 24
 
 # Celery
 

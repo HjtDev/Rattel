@@ -129,7 +129,8 @@ Admins create `InPersonClass` offerings (with `TimeRange` M2M and `Category` M2M
 **Snapshot fields:** `price`, `new_price`, `start_date`, `end_date` are copied from `InPersonClass` at registration creation time and never updated, so the cart total remains stable even if the class price changes later.
 
 **Frontend pages:**
-- `app/in-person-classes/page.tsx` — public class listing with category filter sidebar, Framer Motion cards, Bootstrap modal for time-range selection, and `next`-URL-aware redirect to login for unauthenticated users.
+- `app/in-person-classes/page.tsx` — public class listing with category filter sidebar, Framer Motion cards, Bootstrap modal for time-range selection, and `next`-URL-aware redirect to 
+login for unauthenticated users.
 - `app/dashboard/registered-classes/page.tsx` — authenticated dashboard tab listing the user's purchased classes with Jalali dates and registered-count badge.
 
 ### Quiz App
@@ -145,7 +146,7 @@ Admins create `InPersonClass` offerings (with `TimeRange` M2M and `Category` M2M
 **Attempt flow:**
 1. POST `…/start/` → creates `QuizAttempt` (status `in_progress`), returns questions (right_items shuffled for matching)
 2. POST `…/submit/<attempt_id>/` per question → records `AttemptAnswer`; optionally reveals answer when `reveal_answers_during_quiz=True`
-3. POST `…/finish/<attempt_id>/` → finalises score, marks attempt `completed` (or `expired` if timer elapsed)
+3. POST `…/finish/<attempt_id>/` → finalizes score, marks attempt `completed` (or `expired` if timer elapsed)
 
 **Frontend pages:**
 - `app/quiz/page.tsx` — public quiz listing with category filter
