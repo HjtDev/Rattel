@@ -123,3 +123,23 @@ export function truncateText(text: string, desktop_characters: number, mobile_ch
     if (text.length <= limit) return text;
     return text.slice(0, limit) + "...";
 }
+
+/**
+ * Normalizes a backend `message` field into a displayable string.
+ * Handles the three shapes the API sends: a plain string, an array of
+ * strings (e.g. multiple cart-validation errors), or a {field: string[]}
+ * validation-error dict. Falls back to `fallback` when message is empty/absent.
+ */
+export function formatApiMessage(message: unknown, fallback: string): string {
+    if (typeof message === "string" && message.trim()) return message;
+    if (Array.isArray(message) && message.length) {
+        return message.join("، ");
+    }
+    if (message && typeof message === "object") {
+        const joined = Object.values(message as Record<string, unknown>)
+            .map((v) => (Array.isArray(v) ? v.join(" ") : String(v)))
+            .join("، ");
+        if (joined) return joined;
+    }
+    return fallback;
+}

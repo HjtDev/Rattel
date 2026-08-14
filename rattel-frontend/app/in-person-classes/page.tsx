@@ -102,7 +102,7 @@ function InPersonClassesContent() {
                 const cartMsg = cartResult.message?.toLowerCase() ?? "";
                 const farsiMessage = cartMsg.includes("already own")
                     ? "شما قبلاً این کلاس را خریداری کرده‌اید."
-                    : "خطا در افزودن به سبد خرید";
+                    : cartResult.message || "خطا در افزودن به سبد خرید";
                 toast.error(farsiMessage);
             }
         } else {
@@ -380,27 +380,37 @@ function InPersonClassesContent() {
                                             {selectedClass.available_times.map((tr) => (
                                                 <div
                                                     key={tr.id}
-                                                    className={`p-3 rounded border cursor-pointer ${
-                                                        selectedTimeRangeId === tr.id
-                                                            ? "border-primary bg-primary bg-opacity-10"
-                                                            : "border-secondary"
+                                                    className={`p-3 rounded border ${
+                                                        tr.is_full
+                                                            ? "border-secondary opacity-50"
+                                                            : selectedTimeRangeId === tr.id
+                                                            ? "border-primary bg-primary bg-opacity-10 cursor-pointer"
+                                                            : "border-secondary cursor-pointer"
                                                     }`}
-                                                    style={{ cursor: "pointer" }}
-                                                    onClick={() => setSelectedTimeRangeId(tr.id)}
+                                                    style={{ cursor: tr.is_full ? "not-allowed" : "pointer" }}
+                                                    onClick={() => !tr.is_full && setSelectedTimeRangeId(tr.id)}
                                                 >
-                                                    <div className="form-check mb-0">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="radio"
-                                                            name="time_range"
-                                                            id={`tr-${tr.id}`}
-                                                            checked={selectedTimeRangeId === tr.id}
-                                                            onChange={() => setSelectedTimeRangeId(tr.id)}
-                                                        />
-                                                        <label className="form-check-label w-100" htmlFor={`tr-${tr.id}`} style={{ cursor: "pointer" }}>
-                                                            <i className="bi bi-clock me-2 text-primary"></i>
-                                                            {tr.label}
-                                                        </label>
+                                                    <div className="form-check mb-0 d-flex align-items-center justify-content-between">
+                                                        <div>
+                                                            <input
+                                                                className="form-check-input"
+                                                                type="radio"
+                                                                name="time_range"
+                                                                id={`tr-${tr.id}`}
+                                                                checked={selectedTimeRangeId === tr.id}
+                                                                disabled={tr.is_full}
+                                                                onChange={() => setSelectedTimeRangeId(tr.id)}
+                                                            />
+                                                            <label className="form-check-label w-100" htmlFor={`tr-${tr.id}`} style={{ cursor: tr.is_full ? "not-allowed" : "pointer" }}>
+                                                                <i className="bi bi-clock me-2 text-primary"></i>
+                                                                {tr.label}
+                                                            </label>
+                                                        </div>
+                                                        {tr.is_full ? (
+                                                            <span className="badge text-bg-secondary">تکمیل ظرفیت</span>
+                                                        ) : tr.seats_remaining != null ? (
+                                                            <span className="badge text-bg-light text-muted">{tr.seats_remaining} جای باقی‌مانده</span>
+                                                        ) : null}
                                                     </div>
                                                 </div>
                                             ))}

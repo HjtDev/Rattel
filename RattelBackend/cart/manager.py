@@ -130,6 +130,14 @@ class CartManager:
                     f'Blocked cart add.'
                 )
                 return False, 'You already own this item.'
+            if hasattr(item_obj, 'can_be_added_to_cart'):
+                allowed, reason = item_obj.can_be_added_to_cart(self.user)
+                if not allowed:
+                    logger.info(
+                        f'Blocked cart add for user {self.user.pk} on '
+                        f'"{app_label}.{model}" id={object_id}: {reason}'
+                    )
+                    return False, reason
 
         object_id = str(object_id)
 

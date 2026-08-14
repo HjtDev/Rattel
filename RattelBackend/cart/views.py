@@ -436,8 +436,40 @@ class CartFinalizerView(APIView, GetDataMixin, ResponseBuilderMixin):
                 message='Transaction amount does not cover the cart total.',
             )
 
+        # Re-check validity at payout time — a cart item can sit for an
+        # arbitrary amount of time between being added and the user actually
+        # paying (payment can also take a few minutes on the gateway side),
+        # during which a class can fill up or its start date can pass. This
+        # is a last-resort safety net: PaymentStartView already rejects
+        # starting a payment for a stale cart, so this should rarely trigger.
+        # There is no automated refund flow in this codebase, so items that
+        # fail here are skipped (not granted) rather than blocking the whole
+        # checkout — the payment has already been captured by this point.
+        granted_items = []
+        skipped_items = []
         for cart_item in cart:
+            item = cart_item.item
+            if hasattr(item, 'can_be_finalized'):
+                allowed, reason = item.can_be_finalized(request.user)
+                if not allowed:
+                    skipped_items.append((cart_item, reason))
+                    continue
+            granted_items.append(cart_item)
+
+        for cart_item in granted_items:
             cart_item.item.add_user(request.user)
+
+        if skipped_items:
+            logger.error(
+                f'CartFinalizerView: {len(skipped_items)} item(s) became unavailable '
+                f'between cart-add and payout for user {request.user.pk}, transaction '
+                f'{transaction_id} (already paid, amount={transaction.amount}). '
+                f'Needs manual follow-up/refund: '
+                + '; '.join(
+                    f'{ci.content_type.model}#{ci.object_id} ({reason})'
+                    for ci, reason in skipped_items
+                )
+            )
 
         for cache_key in self.cache_invalidation:
             invalidate_cache(cache_key, request)
@@ -456,4 +488,5 @@ class CartFinalizerView(APIView, GetDataMixin, ResponseBuilderMixin):
             status.HTTP_200_OK,
             success=True,
             message='Purchase finalized.',
+            unavailable_items=[reason for _, reason in skipped_items],
         )

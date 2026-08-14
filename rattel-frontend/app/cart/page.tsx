@@ -5,7 +5,7 @@ import { useCart } from "@/src/core/hooks/useCart";
 import { useAuth } from "@/src/core/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { getMediaUrl } from "@/src/core/utils";
+import { getMediaUrl, formatApiMessage } from "@/src/core/utils";
 import { api } from "@/src/core/api";
 
 export default function Cart() {
@@ -44,11 +44,11 @@ export default function Cart() {
                 window.open(response.data.gateway, "_blank");
                 setIsCheckingOut(false);
             } else {
-                toast.error(response.data.message || "خطا در شروع پرداخت");
+                toast.error(formatApiMessage(response.data.message, "خطا در شروع پرداخت"));
                 setIsCheckingOut(false);
             }
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "خطا در اتصال به سرور");
+            toast.error(formatApiMessage(error.response?.data?.message, "خطا در اتصال به سرور"));
             setIsCheckingOut(false);
         }
     };
