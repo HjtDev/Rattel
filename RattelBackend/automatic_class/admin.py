@@ -106,17 +106,17 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
         'id', '_steps_generated', 'progress_display',
         'total_steps_display', 'created_at', 'updated_at',
     )
-    list_select_related = ('user', 'teacher')
+    list_select_related = ('user', 'teacher', 'parent_plan')
     inlines = [PlanStepInline, AdminCallLogInline, OnlineCallSessionInline]
 
     fieldsets = (
         (_('Participants'), {
-            'fields': ('id', 'request', 'user', 'teacher'),
+            'fields': ('id', 'request', 'user', 'teacher', 'parent_plan'),
         }),
         (_('Plan Parameters'), {
             'fields': (
                 'start_page', 'end_page', 'start_date', 'time_to_finish',
-                'time_freq', 'reading_freq', 'review_freq',
+                'time_freq', 'reading_freq', 'review_freq', 'advance_completion_days',
             ),
         }),
         (_('Extra Review Range'), {
@@ -130,7 +130,7 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
             'fields': ('user_day_availability', 'user_time_availability'),
         }),
         (_('Status & Notes'), {
-            'fields': ('status', 'admin_notes'),
+            'fields': ('status', 'generate_call_sessions', 'admin_notes'),
         }),
         (_('Progress'), {
             'fields': ('_steps_generated', 'total_steps_display', 'progress_display'),
@@ -146,6 +146,8 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
 
     @admin.display(description=_('Finish Date'))
     def time_to_finish_jalali(self, obj):
+        if not obj.time_to_finish:
+            return '-'
         return date2jalali(obj.time_to_finish).strftime('%Y/%m/%d')
 
     @admin.display(description=_('Created At'))
@@ -160,6 +162,7 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
     def status_badge(self, obj):
         colors = {
             AutomaticPlan.Status.DRAFT: '#aaa',
+            AutomaticPlan.Status.QUEUED: '#f0ad4e',
             AutomaticPlan.Status.ACTIVE: '#5cb85c',
             AutomaticPlan.Status.COMPLETED: '#337ab7',
             AutomaticPlan.Status.CANCELLED: '#d9534f',

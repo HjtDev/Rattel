@@ -78,7 +78,15 @@ class ClassRequestView(APIView, ResponseBuilderMixin):
                 AutomaticPlan.Status.COMPLETED,
             ]).exists()
 
-            if pending or plan_created_blocking:
+            # Block while the user has an active plan or a chained plan queued behind it
+            # (chained plans have no linked ClassRequest, so plan_created_blocking above
+            # would miss them).
+            has_live_plan = AutomaticPlan.objects.filter(
+                user=request.user,
+                status__in=[AutomaticPlan.Status.ACTIVE, AutomaticPlan.Status.QUEUED],
+            ).exists()
+
+            if pending or plan_created_blocking or has_live_plan:
                 return self.build_response(
                     status.HTTP_400_BAD_REQUEST,
                     success=False, error=-1,
@@ -545,9 +553,10 @@ class AdminPlanListView(APIView, ResponseBuilderMixin):
 
 class AdminPlanDetailView(APIView, ResponseBuilderMixin):
     """
-    GET   — Full plan detail with all steps and call logs.
-    PATCH — Update plan fields. Changing schedule fields does NOT regenerate steps automatically
-            (delete the plan and recreate it if a full regeneration is needed).
+    GET    — Full plan detail with all steps and call logs.
+    PATCH  — Update plan fields. Changing schedule fields does NOT regenerate steps automatically
+             (delete the plan and recreate it if a full regeneration is needed).
+    DELETE — Remove a queued (not yet activated) plan. Any other status is refused.
 
     Permissions: IsAdminUser
     """
@@ -600,6 +609,25 @@ class AdminPlanDetailView(APIView, ResponseBuilderMixin):
             status.HTTP_200_OK,
             success=True, message='Plan updated.',
             plan=AdminPlanDetailSerializer(updated).data,
+        )
+
+    def delete(self, request, plan_id):
+        plan = self._get_plan(plan_id)
+        if not plan:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False, error=-1, message='Plan not found.',
+            )
+        if plan.status != AutomaticPlan.Status.QUEUED:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False, error=-3,
+                message='Only a queued plan that has not yet activated can be deleted.',
+            )
+        plan.delete()
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True, message='Plan deleted.',
         )
 
 
