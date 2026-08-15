@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import DashboardBase from "@/src/components/dashboard/DashboardBase";
 import { useAutomaticClass } from "@/src/core/hooks/useAutomaticClass";
@@ -49,6 +49,65 @@ function stepTypeLabel(type: string): string {
     if (type === "review") return "۱۰ درس";
     if (type === "extra_review") return "مرور";
     return "مرور نهایی";
+}
+
+// ─── Empty states ─────────────────────────────────────────────────────────────
+
+function NoPlan({ shouldReduceMotion }: { shouldReduceMotion: boolean | null }) {
+    return (
+        <motion.div
+            className="text-center py-5"
+            variants={staggerContainer}
+            initial={shouldReduceMotion ? false : "hidden"}
+            animate="show"
+        >
+            <motion.div variants={scaleIn}>
+                <i className="bi bi-book display-1" />
+            </motion.div>
+            <motion.h4 className="mt-3 fw-bold" variants={fadeInUp}>هنوز برنامه‌ای ندارید</motion.h4>
+            <motion.p className="mb-4" variants={fadeInUp}>
+                برای دریافت برنامه حفظ شخصی، درخواست کلاس ثبت کنید.
+            </motion.p>
+            <motion.a
+                href="/class-request/"
+                className="btn btn-primary rounded-pill px-5"
+                variants={fadeInUp}
+            >
+                <i className="bi bi-send me-2" />
+                ثبت درخواست کلاس
+            </motion.a>
+        </motion.div>
+    );
+}
+
+function NoSubscription({ shouldReduceMotion }: { shouldReduceMotion: boolean | null }) {
+    return (
+        <motion.div
+            className="text-center py-5"
+            variants={staggerContainer}
+            initial={shouldReduceMotion ? false : "hidden"}
+            animate="show"
+        >
+            <motion.div variants={scaleIn}>
+                <i className="bi bi-lock-fill display-1 text-warning" />
+            </motion.div>
+            <motion.h4 className="mt-3 fw-bold" variants={fadeInUp}>اشتراک فعال ندارید</motion.h4>
+            <motion.p className="mb-2" variants={fadeInUp}>
+                برای دسترسی به پنل کلاس خودکار، باید یک اشتراک با امکان کلاس آنلاین داشته باشید.
+            </motion.p>
+            <motion.p className="small mb-4" variants={fadeInUp}>
+                بعد از خرید اشتراک، می‌توانید درخواست کلاس ثبت کنید و برنامه شخصی خود را دریافت کنید.
+            </motion.p>
+            <motion.a
+                href="/subscriptions/"
+                className="btn btn-warning rounded-pill px-5 fw-semibold"
+                variants={fadeInUp}
+            >
+                <i className="bi bi-star me-2" />
+                مشاهده پلن‌های اشتراک
+            </motion.a>
+        </motion.div>
+    );
 }
 
 // ─── Step Card ────────────────────────────────────────────────────────────────
@@ -259,20 +318,21 @@ function AutomaticClassContent() {
     const { plan, todayData, progressData, isLoading, noSubscription, fetchMyPlan, fetchTodaySteps, fetchProgress, completeStep, reportDelay } = useAutomaticClass();
     const shouldReduceMotion = useReducedMotion();
     const [activeTab, setActiveTab] = useState<Tab>("today");
-    const [hasFetched, setHasFetched] = useState(false);
+    const hasFetched = useRef(false);
 
     useEffect(() => {
-        if (!hasFetched) {
-            setHasFetched(true);
-            fetchMyPlan();
-            fetchTodaySteps();
-        }
-    }, [hasFetched]);
+        if (hasFetched.current) return;
+        hasFetched.current = true;
+        fetchMyPlan();
+        fetchTodaySteps();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (activeTab === "progress" && !progressData) {
             fetchProgress();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, progressData]);
 
     const handleComplete = async (id: string, reason?: string) => {
@@ -283,6 +343,7 @@ function AutomaticClassContent() {
             if (progressData) fetchProgress();
         } else {
             toast.error("خطا در تکمیل مرحله");
+            fetchTodaySteps();
         }
     };
 
@@ -294,59 +355,6 @@ function AutomaticClassContent() {
             toast.error("خطا در ثبت تأخیر");
         }
     };
-
-    const NoPlan = () => (
-        <motion.div
-            className="text-center py-5"
-            variants={staggerContainer}
-            initial={shouldReduceMotion ? false : "hidden"}
-            animate="show"
-        >
-            <motion.div variants={scaleIn}>
-                <i className="bi bi-book display-1" />
-            </motion.div>
-            <motion.h4 className="mt-3 fw-bold" variants={fadeInUp}>هنوز برنامه‌ای ندارید</motion.h4>
-            <motion.p className="mb-4" variants={fadeInUp}>
-                برای دریافت برنامه حفظ شخصی، درخواست کلاس ثبت کنید.
-            </motion.p>
-            <motion.a
-                href="/class-request/"
-                className="btn btn-primary rounded-pill px-5"
-                variants={fadeInUp}
-            >
-                <i className="bi bi-send me-2" />
-                ثبت درخواست کلاس
-            </motion.a>
-        </motion.div>
-    );
-
-    const NoSubscription = () => (
-        <motion.div
-            className="text-center py-5"
-            variants={staggerContainer}
-            initial={shouldReduceMotion ? false : "hidden"}
-            animate="show"
-        >
-            <motion.div variants={scaleIn}>
-                <i className="bi bi-lock-fill display-1 text-warning" />
-            </motion.div>
-            <motion.h4 className="mt-3 fw-bold" variants={fadeInUp}>اشتراک فعال ندارید</motion.h4>
-            <motion.p className="mb-2" variants={fadeInUp}>
-                برای دسترسی به پنل کلاس خودکار، باید یک اشتراک با امکان کلاس آنلاین داشته باشید.
-            </motion.p>
-            <motion.p className="small mb-4" variants={fadeInUp}>
-                بعد از خرید اشتراک، می‌توانید درخواست کلاس ثبت کنید و برنامه شخصی خود را دریافت کنید.
-            </motion.p>
-            <motion.a
-                href="/subscriptions/"
-                className="btn btn-warning rounded-pill px-5 fw-semibold"
-                variants={fadeInUp}
-            >
-                <i className="bi bi-star me-2" />
-                مشاهده پلن‌های اشتراک
-            </motion.a>
-        </motion.div>
-    );
 
     return (
         <div className="col-xl-9">
@@ -371,9 +379,9 @@ function AutomaticClassContent() {
                             <div className="spinner-border text-primary" role="status" />
                         </div>
                     ) : noSubscription ? (
-                        <NoSubscription />
+                        <NoSubscription shouldReduceMotion={shouldReduceMotion} />
                     ) : !plan ? (
-                        <NoPlan />
+                        <NoPlan shouldReduceMotion={shouldReduceMotion} />
                     ) : (
                         <>
                             <TabBar active={activeTab} onChange={setActiveTab} />
@@ -422,7 +430,11 @@ function AutomaticClassContent() {
                                                     {todayData.today_steps.length === 0 ? (
                                                         <div className="text-center py-4 bg-light rounded-3">
                                                             <i className="bi bi-check-circle-fill text-success fs-3 mb-2 d-block" />
-                                                            <p className="mb-0">همه وظایف امروز را تکمیل کردید!</p>
+                                                            <p className="mb-0">
+                                                                {todayData.ahead_steps.length > 0
+                                                                    ? "همه وظایف امروز را تکمیل کردید! می‌توانید وظایف روز آینده را هم انجام دهید."
+                                                                    : "همه وظایف امروز را تکمیل کردید!"}
+                                                            </p>
                                                         </div>
                                                     ) : (
                                                         <>
@@ -432,6 +444,24 @@ function AutomaticClassContent() {
                                                         </>
                                                     )}
                                                 </div>
+
+                                                {todayData.ahead_steps.length > 0 && (
+                                                    <div className="mb-4">
+                                                        <div className="d-flex align-items-center gap-2 mb-3">
+                                                            <i className="bi bi-fast-forward-fill text-info" />
+                                                            <h6 className="mb-0 fw-bold">
+                                                                وظایف روز آینده ({todayData.ahead_steps.length})
+                                                            </h6>
+                                                        </div>
+                                                        <div className="alert alert-info rounded-3 py-2 px-3 small mb-3">
+                                                            <i className="bi bi-info-circle me-1" />
+                                                            این وظایف مربوط به روزهای آینده است — می‌توانید زودتر آن‌ها را انجام دهید.
+                                                        </div>
+                                                        {todayData.ahead_steps.map((step, i) => (
+                                                            <StepCard key={step.id} step={step} onComplete={handleComplete} onReport={handleReport} animDelay={i * 0.08} />
+                                                        ))}
+                                                    </div>
+                                                )}
 
                                                 {todayData.upcoming_steps.length > 0 && (
                                                     <div>
@@ -512,7 +542,7 @@ function AutomaticClassContent() {
                                                 {/* Steps timeline */}
                                                 <h6 className="fw-bold mb-3">تمام مراحل</h6>
                                                 <div style={{ maxHeight: 420, overflowY: "auto" }} className="pe-1">
-                                                    {progressData.steps.map((step, i) => (
+                                                    {progressData.steps.map((step) => (
                                                         <div
                                                             key={step.id}
                                                             className={`d-flex align-items-center gap-3 p-3 rounded-3 mb-2 border-start border-3 border-${statusColor(step.status)} ${step.status === "completed" ? "bg-success bg-opacity-5" : step.status === "delayed" ? "bg-danger bg-opacity-5" : "bg-light"}`}
@@ -566,7 +596,6 @@ function AutomaticClassContent() {
                                             {[
                                                 { icon: "bi-book-half", color: "primary", label: "محدوده حفظ", value: `صفحات ${plan.start_page} تا ${plan.end_page}` },
                                                 { icon: "bi-calendar-check", color: "info", label: "تاریخ شروع", value: formatDate(plan.start_date) },
-                                                { icon: "bi-flag-fill", color: "success", label: "هدف پایان", value: formatDate(plan.time_to_finish) },
                                                 { icon: "bi-clock-history", color: "warning", label: "تناوب مطالعه", value: plan.time_freq_display },
                                                 { icon: "bi-file-earmark-text", color: "secondary", label: "حجم هر جلسه", value: plan.reading_freq_display },
                                                 { icon: "bi-arrow-clockwise", color: "primary", label: "مرور هر چند صفحه", value: `هر ${plan.review_freq} صفحه` },
@@ -583,6 +612,20 @@ function AutomaticClassContent() {
                                                     </div>
                                                 </motion.div>
                                             ))}
+
+                                            {/* Chained plan notice — no parameters shown to the user */}
+                                            {plan.has_chained_plan && (
+                                                <motion.div className="col-12" variants={fadeInUp}>
+                                                    <div className="card border-0 bg-info bg-opacity-10 rounded-3 p-3">
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            <i className="bi bi-hourglass-split text-info" />
+                                                            <span className="fw-semibold small">
+                                                                یک برنامه بعدی برای شما در نظر گرفته شده و پس از پایان برنامه فعلی به‌طور خودکار شروع می‌شود.
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
 
                                             {/* Extra review range — only shown when configured */}
                                             {plan.extra_review_pages_per_session > 0 && plan.extra_review_start_page != null && plan.extra_review_end_page != null && (

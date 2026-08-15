@@ -101,6 +101,7 @@ class AutomaticPlan(models.Model):
 
     class Status(models.TextChoices):
         DRAFT = 'draft', _('Draft')
+        QUEUED = 'queued', _('Queued')
         ACTIVE = 'active', _('Active Plan')
         COMPLETED = 'completed', _('Completed')
         CANCELLED = 'cancelled', _('Cancelled')
@@ -131,6 +132,16 @@ class AutomaticPlan(models.Model):
         verbose_name=_('Teacher'),
     )
 
+    parent_plan = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='chained_plans',
+        verbose_name=_('Chained From Plan'),
+        help_text=_('When set, this plan activates automatically once the parent plan completes.'),
+    )
+
     start_page = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
         verbose_name=_('Start Page'),
@@ -141,7 +152,9 @@ class AutomaticPlan(models.Model):
     )
 
     start_date = models.DateField(verbose_name=_('Start Date'))
-    time_to_finish = models.DateField(verbose_name=_('Target Finish Date'))
+    time_to_finish = models.DateField(
+        null=True, blank=True, verbose_name=_('Target Finish Date'),
+    )
 
     time_freq = models.CharField(
         max_length=20,
@@ -182,6 +195,17 @@ class AutomaticPlan(models.Model):
         verbose_name=_('Extra Review Pages per Session'),
     )
 
+    advance_completion_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name=_('Advance Completion Days'),
+        help_text=_(
+            'How many days ahead the user may complete steps. '
+            'Empty disables pre-completion; 0 means unlimited.'
+        ),
+    )
+
     user_day_availability = models.CharField(
         max_length=20,
         choices=DayAvailability.choices,
@@ -201,6 +225,11 @@ class AutomaticPlan(models.Model):
         verbose_name=_('Plan Status'),
     )
 
+    generate_call_sessions = models.BooleanField(
+        default=True,
+        verbose_name=_('Generate Call Sessions on Activation'),
+    )
+
     admin_notes = models.TextField(blank=True, verbose_name=_('Admin Notes'))
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
@@ -217,14 +246,28 @@ class AutomaticPlan(models.Model):
         from django.core.exceptions import ValidationError
         if self.start_page and self.end_page and self.start_page >= self.end_page:
             raise ValidationError({'end_page': _('End page must be greater than start page.')})
-        if self.start_date and self.time_to_finish and self.start_date >= self.time_to_finish:
-            raise ValidationError({'time_to_finish': _('Finish date must be after start date.')})
         has_start = self.extra_review_start_page is not None
         has_end = self.extra_review_end_page is not None
         if has_start != has_end:
             raise ValidationError(_('Both extra review start and end pages must be set together.'))
         if has_start and has_end and self.extra_review_start_page >= self.extra_review_end_page:
             raise ValidationError({'extra_review_end_page': _('Extra review end page must be greater than start page.')})
+
+        if self.parent_plan_id:
+            if self.parent_plan_id == self.pk:
+                raise ValidationError({'parent_plan': _('A plan cannot be chained to itself.')})
+            if self.parent_plan.user_id != self.user_id:
+                raise ValidationError({'parent_plan': _('The chained plan must belong to the same user as the parent plan.')})
+            if self.parent_plan.status != self.Status.ACTIVE:
+                raise ValidationError({'parent_plan': _('You can only chain a plan onto an active plan.')})
+            existing = self.parent_plan.chained_plans.filter(status=self.Status.QUEUED)
+            if self.pk:
+                existing = existing.exclude(pk=self.pk)
+            if existing.exists():
+                raise ValidationError({'parent_plan': _('This plan already has a queued chained plan.')})
+            last_step_date = self.parent_plan.last_step_date
+            if last_step_date and self.start_date and self.start_date <= last_step_date:
+                raise ValidationError({'start_date': _('The chained plan must start after the parent plan\'s last step.')})
 
     def save(self, *args, **kwargs):
         is_new = self._state.adding
@@ -247,6 +290,22 @@ class AutomaticPlan(models.Model):
             self._generate_steps()
             AutomaticPlan.objects.filter(pk=self.pk).update(_steps_generated=True)
             self._create_call_sessions()
+
+        completing = (
+            self.status == self.Status.COMPLETED
+            and not is_new
+            and old_status != self.Status.COMPLETED
+        )
+        if completing:
+            self._activate_chained_plan()
+
+        cancelling = (
+            self.status == self.Status.CANCELLED
+            and not is_new
+            and old_status != self.Status.CANCELLED
+        )
+        if cancelling:
+            self.chained_plans.filter(status=self.Status.QUEUED).update(status=self.Status.CANCELLED)
 
     def _generate_steps(self):
         has_extra = (
@@ -324,7 +383,19 @@ class AutomaticPlan(models.Model):
 
         PlanStep.objects.bulk_create(plan_steps)
 
+    def _activate_chained_plan(self):
+        """Promote the queued follow-up plan when this plan completes."""
+        nxt = self.chained_plans.filter(status=self.Status.QUEUED).order_by('created_at').first()
+        if not nxt:
+            return
+        today = timezone.now().date()
+        nxt.start_date = max(nxt.start_date, today)
+        nxt.status = self.Status.ACTIVE
+        nxt.save()
+
     def _create_call_sessions(self):
+        if not self.generate_call_sessions:
+            return
         from subscriptions.models import UserSubscription
         from django.utils import timezone
         try:
@@ -362,6 +433,41 @@ class AutomaticPlan(models.Model):
         if total == 0:
             return 0
         return round(self.completed_steps / total * 100)
+
+    @property
+    def last_step_date(self):
+        return self.steps.aggregate(models.Max('scheduled_date'))['scheduled_date__max']
+
+    def get_unlocked_ahead_steps(self):
+        """Future-dated steps this user is currently allowed to complete early."""
+        limit = self.advance_completion_days
+        if limit is None:
+            return PlanStep.objects.none()
+
+        today = timezone.now().date()
+        closed = [PlanStep.Status.COMPLETED, PlanStep.Status.SKIPPED]
+
+        # Nothing unlocks while anything due today or earlier is still open.
+        if self.steps.filter(
+            scheduled_date__isnull=False, scheduled_date__lte=today,
+        ).exclude(status__in=closed).exists():
+            return PlanStep.objects.none()
+
+        future = self.steps.filter(
+            scheduled_date__gt=today,
+        ).exclude(status__in=closed)
+        if limit > 0:
+            future = future.filter(scheduled_date__lte=today + timedelta(days=limit))
+
+        # `future` holds only OPEN steps, so its earliest date IS the next
+        # unlocked day — a fully completed day drops out and the next one
+        # takes its place.
+        next_date = future.order_by('scheduled_date').values_list(
+            'scheduled_date', flat=True
+        ).first()
+        if next_date is None:
+            return PlanStep.objects.none()
+        return future.filter(scheduled_date=next_date).order_by('step_number')
 
     def __str__(self):
         return f'Plan for {self.user} [{self.get_status_display()}] pages {self.start_page}–{self.end_page}'

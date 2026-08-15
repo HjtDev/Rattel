@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import DashboardBase from "@/src/components/dashboard/DashboardBase";
 import { useAdminClassPanel } from "@/src/core/hooks/useAdminClassPanel";
-import { useAuth } from "@/src/core/hooks/useAuth";
 import { toast } from "react-toastify";
-import { fadeInUp, staggerContainer, scaleIn } from "@/src/core/motionVariants";
-import type { AdminClassRequest, AdminPlan, CallSessionStatus, CreatePlanPayload, OnlineCallSession } from "@/src/core/automatic-class/automaticClassManager";
+import { fadeInUp, staggerContainer } from "@/src/core/motionVariants";
+import type { ACResult, AdminCallLog, AdminClassRequest, AdminPlan, CallSessionStatus, ChainedPlanSummary, CreatePlanPayload } from "@/src/core/automatic-class/automaticClassManager";
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import type DateObject from "react-date-object";
+
+type StepUpdateData = { status?: string; admin_note?: string; scheduled_date?: string };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -32,10 +34,17 @@ const REQUEST_STATUS_MAP: Record<string, { color: string; label: string }> = {
 
 const PLAN_STATUS_MAP: Record<string, { color: string; label: string }> = {
     draft: { color: "secondary", label: "پیش‌نویس" },
+    queued: { color: "warning", label: "در صف" },
     active: { color: "success", label: "فعال" },
     completed: { color: "primary", label: "تمام شده" },
     cancelled: { color: "danger", label: "لغو شده" },
 };
+
+function addDaysToGregorian(s: string, days: number): string {
+    const [y, m, d] = s.split("-").map(Number);
+    const date = new Date(y, m - 1, d + days);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
 function stepTypeColor(type: string): string {
     if (type === "memorize") return "primary";
@@ -64,7 +73,7 @@ function parseGregorianToDate(s: string): Date | null {
     return new Date(y, m - 1, d);
 }
 
-function dateObjToGregorian(dateObj: any): string {
+function dateObjToGregorian(dateObj: DateObject): string {
     const d: Date = dateObj.toDate();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -75,13 +84,15 @@ const EMPTY_PLAN: CreatePlanPayload = {
     request: null,
     user: "",
     teacher: null,
+    parent_plan: null,
+    generate_call_sessions: true,
     start_page: 1,
     end_page: 10,
     start_date: "",
-    time_to_finish: "",
     time_freq: "per_day",
     reading_freq: "full_page",
     review_freq: 3,
+    advance_completion_days: null,
     user_day_availability: "odd_days",
     user_time_availability: "morning",
     status: "draft",
@@ -95,27 +106,39 @@ function CreatePlanModal({
     onClose,
     onCreate,
     prefillRequest,
+    chainParent,
 }: {
     onClose: () => void;
     onCreate: (p: CreatePlanPayload) => Promise<void>;
     prefillRequest?: AdminClassRequest | null;
+    chainParent?: AdminPlan | null;
 }) {
     const shouldReduceMotion = useReducedMotion();
+    const minStartDate = chainParent?.last_step_date
+        ? addDaysToGregorian(chainParent.last_step_date, 1)
+        : null;
     const [form, setForm] = useState<CreatePlanPayload>({
         ...EMPTY_PLAN,
-        user: prefillRequest?.user ?? "",
+        user: chainParent ? chainParent.user_display.id : prefillRequest?.user ?? "",
         request: prefillRequest?.id ?? null,
+        parent_plan: chainParent?.id ?? null,
+        status: chainParent ? "queued" : "draft",
+        start_date: minStartDate ?? "",
     });
     const [saving, setSaving] = useState(false);
 
-    const set = (key: keyof CreatePlanPayload, value: any) =>
+    const set = <K extends keyof CreatePlanPayload>(key: K, value: CreatePlanPayload[K]) =>
         setForm((prev) => ({ ...prev, [key]: value }));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (saving) return;
-        if (!form.user || !form.start_date || !form.time_to_finish) {
+        if (!form.user || !form.start_date) {
             toast.warning("لطفاً تمام فیلدهای اجباری را پر کنید");
+            return;
+        }
+        if (minStartDate && form.start_date < minStartDate) {
+            toast.warning("تاریخ شروع باید بعد از آخرین مرحله برنامه اصلی باشد");
             return;
         }
         setSaving(true);
@@ -127,7 +150,7 @@ function CreatePlanModal({
         <motion.div
             className="modal show d-block"
             tabIndex={-1}
-            style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+            style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: chainParent ? 1070 : undefined }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -143,12 +166,18 @@ function CreatePlanModal({
                     <div className="modal-header border-0 pb-0 px-4 pt-4">
                         <h5 className="modal-title fw-bold">
                             <i className="bi bi-plus-circle-fill text-primary me-2" />
-                            ایجاد برنامه جدید
+                            {chainParent ? "اضافه کردن فاز بعدی" : "ایجاد برنامه جدید"}
                         </h5>
                         <button type="button" className="btn-close" onClick={onClose} />
                     </div>
                     <div className="modal-body px-4">
-                        {prefillRequest && (
+                        {chainParent && (
+                            <div className="alert alert-info rounded-3 small mb-4">
+                                <i className="bi bi-link-45deg me-2" />
+                                این برنامه پس از تکمیل برنامه فعلی کاربر <strong>{chainParent.user_display.username}</strong> به‌طور خودکار فعال می‌شود.
+                            </div>
+                        )}
+                        {!chainParent && prefillRequest && (
                             <div className="alert alert-info rounded-3 small mb-4">
                                 <i className="bi bi-person-fill me-2" />
                                 کاربر: <strong>{prefillRequest.user_display.username}</strong>
@@ -159,7 +188,7 @@ function CreatePlanModal({
                         )}
                         <form onSubmit={handleSubmit}>
                             <div className="row g-3">
-                                {!prefillRequest && (
+                                {!prefillRequest && !chainParent && (
                                     <div className="col-12">
                                         <label className="form-label fw-semibold">شناسه کاربر *</label>
                                         <input
@@ -198,29 +227,21 @@ function CreatePlanModal({
                                     <label className="form-label fw-semibold">تاریخ شروع *</label>
                                     <DatePicker
                                         value={parseGregorianToDate(form.start_date)}
-                                        onChange={(dateObj: any) => set("start_date", dateObj ? dateObjToGregorian(dateObj) : "")}
+                                        onChange={(dateObj: DateObject | null) => set("start_date", dateObj ? dateObjToGregorian(dateObj) : "")}
                                         calendar={persian}
                                         locale={persian_fa}
                                         format="YYYY/MM/DD"
                                         inputClass="form-control rounded-3"
                                         containerStyle={{ width: "100%" }}
+                                        minDate={minStartDate ? parseGregorianToDate(minStartDate) ?? undefined : undefined}
                                         portal
                                         zIndex={1200}
                                     />
-                                </div>
-                                <div className="col-sm-6">
-                                    <label className="form-label fw-semibold">هدف پایان *</label>
-                                    <DatePicker
-                                        value={parseGregorianToDate(form.time_to_finish)}
-                                        onChange={(dateObj: any) => set("time_to_finish", dateObj ? dateObjToGregorian(dateObj) : "")}
-                                        calendar={persian}
-                                        locale={persian_fa}
-                                        format="YYYY/MM/DD"
-                                        inputClass="form-control rounded-3"
-                                        containerStyle={{ width: "100%" }}
-                                        portal
-                                        zIndex={1200}
-                                    />
+                                    {minStartDate && (
+                                        <div className="mt-1" style={{ fontSize: "0.72rem" }}>
+                                            نمی‌تواند قبل یا برابر با آخرین مرحله برنامه اصلی ({formatDate(chainParent?.last_step_date)}) باشد.
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="col-sm-6">
                                     <label className="form-label fw-semibold">تناوب مطالعه</label>
@@ -247,6 +268,20 @@ function CreatePlanModal({
                                     />
                                 </div>
                                 <div className="col-sm-6">
+                                    <label className="form-label fw-semibold">تکمیل زودهنگام (روز)</label>
+                                    <input
+                                        type="number"
+                                        className="form-control rounded-3"
+                                        min={0}
+                                        value={form.advance_completion_days ?? ""}
+                                        onChange={(e) => set("advance_completion_days", e.target.value ? +e.target.value : null)}
+                                        placeholder="غیرفعال"
+                                    />
+                                    <div className="mt-1" style={{ fontSize: "0.72rem" }}>
+                                        خالی = غیرفعال، ۰ = بدون محدودیت
+                                    </div>
+                                </div>
+                                <div className="col-sm-6">
                                     <label className="form-label fw-semibold">روزهای فعال</label>
                                     <select className="form-select rounded-3" value={form.user_day_availability} onChange={(e) => set("user_day_availability", e.target.value)}>
                                         <option value="odd_days">روزهای فرد (شنبه، سه‌شنبه، پنجشنبه)</option>
@@ -261,13 +296,31 @@ function CreatePlanModal({
                                         <option value="evening">۷ شب تا ۹ شب</option>
                                     </select>
                                 </div>
-                                <div className="col-sm-6">
-                                    <label className="form-label fw-semibold">وضعیت اولیه</label>
-                                    <select className="form-select rounded-3" value={form.status} onChange={(e) => set("status", e.target.value)}>
-                                        <option value="draft">پیش‌نویس</option>
-                                        <option value="active">فعال (مراحل تولید می‌شوند)</option>
-                                    </select>
-                                </div>
+                                {!chainParent && (
+                                    <div className="col-sm-6">
+                                        <label className="form-label fw-semibold">وضعیت اولیه</label>
+                                        <select className="form-select rounded-3" value={form.status} onChange={(e) => set("status", e.target.value)}>
+                                            <option value="draft">پیش‌نویس</option>
+                                            <option value="active">فعال (مراحل تولید می‌شوند)</option>
+                                        </select>
+                                    </div>
+                                )}
+                                {chainParent && (
+                                    <div className="col-sm-6 d-flex align-items-end">
+                                        <div className="form-check">
+                                            <input
+                                                type="checkbox"
+                                                className="form-check-input"
+                                                id="generate_call_sessions"
+                                                checked={!!form.generate_call_sessions}
+                                                onChange={(e) => set("generate_call_sessions", e.target.checked)}
+                                            />
+                                            <label className="form-check-label" htmlFor="generate_call_sessions">
+                                                ایجاد جلسات تماس
+                                            </label>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="col-12">
                                     <label className="form-label fw-semibold">یادداشت مدیر</label>
                                     <textarea
@@ -332,7 +385,7 @@ function CreatePlanModal({
                                     لغو
                                 </button>
                                 <button type="submit" className="btn btn-primary rounded-pill px-4" disabled={saving}>
-                                    {saving ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-check-lg me-1" />ایجاد برنامه</>}
+                                    {saving ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-check-lg me-1" />{chainParent ? "زنجیره کردن" : "ایجاد برنامه"}</>}
                                 </button>
                             </div>
                         </form>
@@ -521,14 +574,18 @@ function PlanDetailDrawer({
     onStepUpdate,
     onLogCall,
     onUpdateCallSession,
+    onChain,
+    onDeleteChainedPlan,
 }: {
     plan: AdminPlan;
-    callLogs: any[];
+    callLogs: AdminCallLog[];
     onClose: () => void;
     onStatusChange: (status: string) => void;
-    onStepUpdate: (stepId: string, data: any) => void;
+    onStepUpdate: (stepId: string, data: StepUpdateData) => void;
     onLogCall: (notes: string) => void;
     onUpdateCallSession: (sessionId: string, status: CallSessionStatus) => void;
+    onChain: (plan: AdminPlan) => void;
+    onDeleteChainedPlan: (chained: ChainedPlanSummary) => void;
 }) {
     const shouldReduceMotion = useReducedMotion();
     const [callNotes, setCallNotes] = useState("");
@@ -536,6 +593,7 @@ function PlanDetailDrawer({
     const [editingStep, setEditingStep] = useState<string | null>(null);
     const [stepNote, setStepNote] = useState("");
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [showDeleteChainedConfirm, setShowDeleteChainedConfirm] = useState(false);
 
     const handleLogCall = async () => {
         if (!callNotes.trim()) { toast.warning("یادداشت تماس را وارد کنید"); return; }
@@ -601,6 +659,11 @@ function PlanDetailDrawer({
                                         {plan.status === "draft" && (
                                             <button className="btn btn-success btn-sm rounded-pill" onClick={() => onStatusChange("active")}>
                                                 <i className="bi bi-play-fill me-1" />فعال‌سازی
+                                            </button>
+                                        )}
+                                        {plan.status === "active" && !plan.chained_plan && (
+                                            <button className="btn btn-outline-primary btn-sm rounded-pill" onClick={() => onChain(plan)}>
+                                                <i className="bi bi-link-45deg me-1" />اضافه کردن فاز بعدی
                                             </button>
                                         )}
                                         {plan.status === "active" && (
@@ -691,7 +754,6 @@ function PlanDetailDrawer({
                                     <div className="row g-2 text-center">
                                         {[
                                             { l: "شروع", v: formatDate(plan.start_date) },
-                                            { l: "پایان هدف", v: formatDate(plan.time_to_finish) },
                                             { l: "تناوب مطالعه", v: plan.time_freq_display },
                                             { l: "حجم هر جلسه", v: plan.reading_freq_display },
                                             { l: "مرور هر چند صفحه", v: `هر ${plan.review_freq} صفحه` },
@@ -735,6 +797,32 @@ function PlanDetailDrawer({
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Chained plan */}
+                                {plan.chained_plan && (
+                                    <div className="card border-0 bg-warning bg-opacity-10 rounded-4 p-3 mb-4">
+                                        <div className="d-flex align-items-center justify-content-between mb-2">
+                                            <h6 className="fw-bold mb-0">
+                                                <i className="bi bi-link-45deg me-2 text-warning" />
+                                                برنامه زنجیره‌شده
+                                            </h6>
+                                            <span className="badge bg-warning bg-opacity-15 text-warning rounded-pill">در صف</span>
+                                        </div>
+                                        <div className="small">
+                                            ص {plan.chained_plan.start_page}–{plan.chained_plan.end_page}
+                                            {" · "}
+                                            شروع از {formatDate(plan.chained_plan.start_date)}
+                                        </div>
+                                        <div className="mt-1" style={{ fontSize: "0.72rem" }}>
+                                            برای ویرایش پارامترها از پنل ادمین جنگو استفاده کنید.
+                                        </div>
+                                        <div className="d-flex gap-2 mt-2">
+                                            <button className="btn btn-sm btn-outline-danger rounded-pill" onClick={() => setShowDeleteChainedConfirm(true)}>
+                                                <i className="bi bi-trash me-1" />حذف
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Online call sessions */}
                                 <div className="mb-4">
@@ -858,6 +946,15 @@ function PlanDetailDrawer({
                         onCancel={() => setShowCancelConfirm(false)}
                     />
                 )}
+                {showDeleteChainedConfirm && plan.chained_plan && (
+                    <ConfirmDialog
+                        title="حذف برنامه زنجیره‌شده"
+                        message="آیا مطمئن هستید که می‌خواهید برنامه زنجیره‌شده را حذف کنید؟ این عمل قابل بازگشت نیست."
+                        confirmLabel="بله، حذف شود"
+                        onConfirm={() => { setShowDeleteChainedConfirm(false); onDeleteChainedPlan(plan.chained_plan!); }}
+                        onCancel={() => setShowDeleteChainedConfirm(false)}
+                    />
+                )}
             </AnimatePresence>
         </motion.div>
     );
@@ -888,11 +985,10 @@ function FilterChips({ options, active, onChange }: { options: { value: string; 
 type AdminTab = "requests" | "plans" | "calls";
 
 function AdminClassContent() {
-    const { user } = useAuth();
     const {
         adminRequests, adminPlans, activePlan, callLogs, isLoading,
         fetchAdminRequests, updateAdminRequest, fetchAdminPlans,
-        fetchAdminPlanDetail, createPlan, updatePlan, updateAdminStep,
+        fetchAdminPlanDetail, createPlan, updatePlan, deletePlan, updateAdminStep,
         logCall, updateCallSession, clearActivePlan,
     } = useAdminClassPanel();
     const shouldReduceMotion = useReducedMotion();
@@ -902,36 +998,59 @@ function AdminClassContent() {
     const [planStatusFilter, setPlanStatusFilter] = useState("all");
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createFromRequest, setCreateFromRequest] = useState<AdminClassRequest | null>(null);
-    const [hasFetched, setHasFetched] = useState(false);
+    const [chainParent, setChainParent] = useState<AdminPlan | null>(null);
+    const hasFetched = useRef(false);
 
     useEffect(() => {
-        if (!hasFetched) {
-            setHasFetched(true);
-            fetchAdminRequests();
-            fetchAdminPlans();
-        }
-    }, [hasFetched]);
+        if (hasFetched.current) return;
+        hasFetched.current = true;
+        fetchAdminRequests();
+        fetchAdminPlans();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         const filter = reqStatusFilter === "all" ? undefined : reqStatusFilter;
         fetchAdminRequests(filter);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reqStatusFilter]);
 
     useEffect(() => {
         const filter = planStatusFilter === "all" ? undefined : planStatusFilter;
         fetchAdminPlans(filter);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [planStatusFilter]);
 
     const handleCreatePlan = async (payload: CreatePlanPayload) => {
         const result = await createPlan(payload);
         if (result.success) {
-            toast.success("برنامه با موفقیت ایجاد شد");
+            toast.success(chainParent ? "برنامه با موفقیت زنجیره شد" : "برنامه با موفقیت ایجاد شد");
             setShowCreateModal(false);
             setCreateFromRequest(null);
-            // Refresh requests so the linked request card reflects plan_created status
-            fetchAdminRequests(reqStatusFilter === "all" ? undefined : reqStatusFilter);
+            if (chainParent) {
+                fetchAdminPlanDetail(chainParent.id);
+                setChainParent(null);
+            } else {
+                // Refresh requests so the linked request card reflects plan_created status
+                fetchAdminRequests(reqStatusFilter === "all" ? undefined : reqStatusFilter);
+            }
         } else {
-            toast.error("خطا در ایجاد برنامه");
+            toast.error(chainParent ? "خطا در زنجیره کردن برنامه" : "خطا در ایجاد برنامه");
+        }
+    };
+
+    const handleOpenChain = (plan: AdminPlan) => {
+        setChainParent(plan);
+        setShowCreateModal(true);
+    };
+
+    const handleDeleteChainedPlan = async (chained: ChainedPlanSummary) => {
+        const result = await deletePlan(chained.id);
+        if (result.success) {
+            toast.success("برنامه زنجیره‌شده حذف شد");
+            if (activePlan) fetchAdminPlanDetail(activePlan.id);
+        } else {
+            toast.error("خطا در حذف برنامه زنجیره‌شده");
         }
     };
 
@@ -951,7 +1070,7 @@ function AdminClassContent() {
 
     const handlePlanStatusChange = async (status: string) => {
         if (!activePlan) return;
-        const result = await updatePlan(activePlan.id, { status } as any);
+        const result = await updatePlan(activePlan.id, { status });
         if (result.success) {
             toast.success("وضعیت برنامه به‌روز شد");
             fetchAdminPlanDetail(activePlan.id);
@@ -960,7 +1079,7 @@ function AdminClassContent() {
         }
     };
 
-    const handleStepUpdate = async (stepId: string, data: any) => {
+    const handleStepUpdate = async (stepId: string, data: StepUpdateData) => {
         const result = await updateAdminStep(stepId, data);
         if (result.success) {
             toast.success("مرحله به‌روز شد");
@@ -1200,9 +1319,10 @@ function AdminClassContent() {
             <AnimatePresence>
                 {showCreateModal && (
                     <CreatePlanModal
-                        onClose={() => { setShowCreateModal(false); setCreateFromRequest(null); }}
+                        onClose={() => { setShowCreateModal(false); setCreateFromRequest(null); setChainParent(null); }}
                         onCreate={handleCreatePlan}
                         prefillRequest={createFromRequest}
+                        chainParent={chainParent}
                     />
                 )}
                 {activePlan && (
@@ -1214,6 +1334,8 @@ function AdminClassContent() {
                         onStepUpdate={handleStepUpdate}
                         onLogCall={handleLogCall}
                         onUpdateCallSession={handleUpdateCallSession}
+                        onChain={handleOpenChain}
+                        onDeleteChainedPlan={handleDeleteChainedPlan}
                     />
                 )}
             </AnimatePresence>
@@ -1223,7 +1345,7 @@ function AdminClassContent() {
 
 // ─── Quick Call Form (standalone in calls tab) ────────────────────────────────
 
-function QuickCallForm({ plans, onLog }: { plans: AdminPlan[]; onLog: (planId: string, notes: string) => Promise<any> }) {
+function QuickCallForm({ plans, onLog }: { plans: AdminPlan[]; onLog: (planId: string, notes: string) => Promise<ACResult> }) {
     const [planId, setPlanId] = useState("");
     const [notes, setNotes] = useState("");
     const [saving, setSaving] = useState(false);

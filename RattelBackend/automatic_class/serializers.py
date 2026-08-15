@@ -96,6 +96,7 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
     completed_steps = serializers.IntegerField(read_only=True)
     progress_percent = serializers.IntegerField(read_only=True)
     call_sessions = serializers.SerializerMethodField()
+    has_chained_plan = serializers.SerializerMethodField()
 
     class Meta:
         model = AutomaticPlan
@@ -105,15 +106,19 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
             'reading_freq', 'reading_freq_display',
             'review_freq',
             'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'advance_completion_days',
             'user_day_availability', 'user_day_availability_display',
             'user_time_availability', 'user_time_availability_display',
             'status', 'status_display',
             'teacher_display',
             'total_steps', 'completed_steps', 'progress_percent',
-            'call_sessions',
+            'call_sessions', 'has_chained_plan',
             'created_at',
         )
         read_only_fields = fields
+
+    def get_has_chained_plan(self, obj):
+        return obj.chained_plans.filter(status=AutomaticPlan.Status.QUEUED).exists()
 
     def get_call_sessions(self, obj):
         sessions = obj.call_sessions.all()
@@ -145,10 +150,11 @@ class AdminPlanCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AutomaticPlan
         fields = (
-            'id', 'request', 'user', 'teacher',
+            'id', 'request', 'user', 'teacher', 'parent_plan', 'generate_call_sessions',
             'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
             'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'advance_completion_days',
             'user_day_availability', 'user_time_availability',
             'status', 'admin_notes',
         )
@@ -157,13 +163,23 @@ class AdminPlanCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         start_page = attrs.get('start_page')
         end_page = attrs.get('end_page')
-        start_date = attrs.get('start_date')
-        time_to_finish = attrs.get('time_to_finish')
 
         if start_page and end_page and start_page >= end_page:
             raise serializers.ValidationError({'end_page': 'End page must be greater than start page.'})
-        if start_date and time_to_finish and start_date >= time_to_finish:
-            raise serializers.ValidationError({'time_to_finish': 'Finish date must be after start date.'})
+
+        parent_plan = attrs.get('parent_plan')
+        if parent_plan:
+            user = attrs.get('user')
+            start_date = attrs.get('start_date')
+            if user and parent_plan.user_id != user.pk:
+                raise serializers.ValidationError({'parent_plan': 'The chained plan must belong to the same user as the parent plan.'})
+            if parent_plan.status != AutomaticPlan.Status.ACTIVE:
+                raise serializers.ValidationError({'parent_plan': 'You can only chain a plan onto an active plan.'})
+            if parent_plan.chained_plans.filter(status=AutomaticPlan.Status.QUEUED).exists():
+                raise serializers.ValidationError({'parent_plan': 'This plan already has a queued chained plan.'})
+            last_step_date = parent_plan.last_step_date
+            if last_step_date and start_date and start_date <= last_step_date:
+                raise serializers.ValidationError({'start_date': "The chained plan must start after the parent plan's last step."})
         return attrs
 
 
@@ -173,9 +189,11 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AutomaticPlan
         fields = (
-            'teacher', 'start_page', 'end_page', 'start_date', 'time_to_finish',
+            'teacher', 'parent_plan', 'generate_call_sessions',
+            'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
             'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'advance_completion_days',
             'user_day_availability', 'user_time_availability',
             'status', 'admin_notes',
         )
@@ -185,12 +203,19 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
         start_page = attrs.get('start_page', instance.start_page if instance else None)
         end_page = attrs.get('end_page', instance.end_page if instance else None)
         start_date = attrs.get('start_date', instance.start_date if instance else None)
-        time_to_finish = attrs.get('time_to_finish', instance.time_to_finish if instance else None)
 
         if start_page and end_page and start_page >= end_page:
             raise serializers.ValidationError({'end_page': 'End page must be greater than start page.'})
-        if start_date and time_to_finish and start_date >= time_to_finish:
-            raise serializers.ValidationError({'time_to_finish': 'Finish date must be after start date.'})
+
+        if instance and instance.status == AutomaticPlan.Status.QUEUED:
+            new_status = attrs.get('status', instance.status)
+            if new_status != instance.status and new_status != AutomaticPlan.Status.CANCELLED:
+                raise serializers.ValidationError({'status': 'A queued plan can only be cancelled directly; it activates automatically when its parent plan completes.'})
+
+        if instance and instance.parent_plan_id and 'start_date' in attrs:
+            last_step_date = instance.parent_plan.last_step_date
+            if last_step_date and start_date and start_date <= last_step_date:
+                raise serializers.ValidationError({'start_date': "The chained plan must start after the parent plan's last step."})
         return attrs
 
 
@@ -245,11 +270,14 @@ class AdminPlanDetailSerializer(AutomaticPlanSerializer):
     steps = PlanStepSerializer(many=True, read_only=True)
     call_sessions = OnlineCallSessionSerializer(many=True, read_only=True)
     subscription_info = serializers.SerializerMethodField()
+    last_step_date = serializers.ReadOnlyField()
+    chained_plan = serializers.SerializerMethodField()
 
     class Meta(AutomaticPlanSerializer.Meta):
         fields = AutomaticPlanSerializer.Meta.fields + (
             'user_display', 'admin_notes', '_steps_generated', 'steps',
-            'call_sessions', 'subscription_info',
+            'call_sessions', 'subscription_info', 'parent_plan',
+            'generate_call_sessions', 'last_step_date', 'chained_plan',
         )
         read_only_fields = fields
 
@@ -259,6 +287,18 @@ class AdminPlanDetailSerializer(AutomaticPlanSerializer):
             'id': u.pk,
             'username': getattr(u, 'username', str(u)),
             'phone': getattr(u, 'phone', None),
+        }
+
+    def get_chained_plan(self, obj):
+        child = obj.chained_plans.filter(status=AutomaticPlan.Status.QUEUED).order_by('created_at').first()
+        if not child:
+            return None
+        return {
+            'id': str(child.id),
+            'start_page': child.start_page,
+            'end_page': child.end_page,
+            'start_date': child.start_date,
+            'status': child.status,
         }
 
     def get_subscription_info(self, obj):
