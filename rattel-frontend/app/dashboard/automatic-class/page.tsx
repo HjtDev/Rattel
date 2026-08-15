@@ -46,7 +46,7 @@ function statusLabel(status: string): string | null {
 
 function stepTypeLabel(type: string): string {
     if (type === "memorize") return "حفظ";
-    if (type === "review") return "۱۰ درس";
+    if (type === "review") return "ده درس";
     if (type === "extra_review") return "مرور";
     return "مرور نهایی";
 }
@@ -456,7 +456,7 @@ function AutomaticClassContent() {
                     <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div className="d-flex align-items-center gap-2">
                             <i className="bi bi-journal-bookmark-fill text-primary fs-5" />
-                            <h3 className="mb-0 fs-5 fw-bold">کلاس خودکار حفظ</h3>
+                            <h3 className="mb-0 fs-5 fw-bold">سامانه حفظ مجازی</h3>
                         </div>
                         {plan && (
                             <span className="small">
@@ -613,7 +613,7 @@ function AutomaticClassContent() {
                                                     initial={shouldReduceMotion ? false : "hidden"}
                                                     animate="show"
                                                 >
-                                                    <motion.div className="col-auto mx-auto" variants={scaleIn}>
+                                                    <motion.div className="col-12 col-sm-auto mx-auto" variants={scaleIn}>
                                                         <div className="position-relative d-inline-flex align-items-center justify-content-center">
                                                             <ProgressRing percent={progressData.stats.progress_percent} size={140} />
                                                             <div className="position-absolute text-center">
@@ -622,7 +622,7 @@ function AutomaticClassContent() {
                                                             </div>
                                                         </div>
                                                     </motion.div>
-                                                    <div className="col">
+                                                    <div className="col-12 col-sm">
                                                         <div className="row g-3">
                                                             {[
                                                                 { label: "تکمیل شده", value: progressData.stats.completed, color: "success", icon: "bi-check-circle-fill" },

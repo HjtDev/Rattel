@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "کلاس خودکار حفظ",
+    title: "سامانه حفظ مجازی",
     robots: { index: false, follow: false },
 };
 
