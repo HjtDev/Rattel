@@ -110,7 +110,7 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
             'user_day_availability', 'user_day_availability_display',
             'user_time_availability', 'user_time_availability_display',
             'status', 'status_display',
-            'teacher_display',
+            'teacher_display', 'parent_plan',
             'total_steps', 'completed_steps', 'progress_percent',
             'call_sessions', 'has_chained_plan',
             'created_at',
@@ -150,7 +150,7 @@ class AdminPlanCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AutomaticPlan
         fields = (
-            'id', 'request', 'user', 'teacher', 'parent_plan', 'generate_call_sessions',
+            'id', 'request', 'user', 'parent_plan', 'generate_call_sessions',
             'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
             'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
@@ -189,7 +189,7 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AutomaticPlan
         fields = (
-            'teacher', 'parent_plan', 'generate_call_sessions',
+            'parent_plan', 'generate_call_sessions',
             'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
             'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',

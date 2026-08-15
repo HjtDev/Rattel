@@ -31,6 +31,8 @@ export interface User {
     phone: string;
     profile_picture: string | null;
     score: number;
+    is_staff: boolean;
+    is_superuser: boolean;
     profile?: UserProfile;
     settings?: UserSettings;
 }

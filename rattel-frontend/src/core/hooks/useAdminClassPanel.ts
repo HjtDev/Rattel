@@ -18,6 +18,8 @@ export function useAdminClassPanel() {
     const [adminPlansTotal, setAdminPlansTotal] = useState(automaticClassManager.getAdminPlansTotal());
     const [activePlan, setActivePlan] = useState<AdminPlan | null>(automaticClassManager.getActivePlan());
     const [callLogs, setCallLogs] = useState<AdminCallLog[]>(automaticClassManager.getCallLogs());
+    const [adminPlanHistory, setAdminPlanHistory] = useState<AdminPlan[]>(automaticClassManager.getAdminPlanHistory());
+    const [adminPlanHistoryUserId, setAdminPlanHistoryUserId] = useState<string | null>(automaticClassManager.getAdminPlanHistoryUserId());
     const [isLoading, setIsLoading] = useState(automaticClassManager.getIsLoading());
 
     useEffect(() => {
@@ -28,6 +30,8 @@ export function useAdminClassPanel() {
             setAdminPlansTotal(automaticClassManager.getAdminPlansTotal());
             setActivePlan(automaticClassManager.getActivePlan());
             setCallLogs(automaticClassManager.getCallLogs());
+            setAdminPlanHistory(automaticClassManager.getAdminPlanHistory());
+            setAdminPlanHistoryUserId(automaticClassManager.getAdminPlanHistoryUserId());
             setIsLoading(automaticClassManager.getIsLoading());
         });
         return unsub;
@@ -40,10 +44,13 @@ export function useAdminClassPanel() {
         adminPlansTotal,
         activePlan,
         callLogs,
+        adminPlanHistory,
+        adminPlanHistoryUserId,
         isLoading,
         fetchAdminRequests: automaticClassManager.fetchAdminRequests.bind(automaticClassManager),
         updateAdminRequest: automaticClassManager.updateAdminRequest.bind(automaticClassManager),
         fetchAdminPlans: automaticClassManager.fetchAdminPlans.bind(automaticClassManager),
+        fetchAdminPlanHistory: automaticClassManager.fetchAdminPlanHistory.bind(automaticClassManager),
         fetchAdminPlanDetail: automaticClassManager.fetchAdminPlanDetail.bind(automaticClassManager),
         createPlan: automaticClassManager.createPlan.bind(automaticClassManager),
         updatePlan: automaticClassManager.updatePlan.bind(automaticClassManager),

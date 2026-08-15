@@ -6,7 +6,7 @@ import DashboardBase from "@/src/components/dashboard/DashboardBase";
 import { useAutomaticClass } from "@/src/core/hooks/useAutomaticClass";
 import { toast } from "react-toastify";
 import { fadeInUp, staggerContainer, scaleIn } from "@/src/core/motionVariants";
-import type { PlanStep, UserCallSession } from "@/src/core/automatic-class/automaticClassManager";
+import type { AutomaticPlan, PlanStep, UserCallSession } from "@/src/core/automatic-class/automaticClassManager";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -106,6 +106,89 @@ function NoSubscription({ shouldReduceMotion }: { shouldReduceMotion: boolean | 
                 <i className="bi bi-star me-2" />
                 مشاهده پلن‌های اشتراک
             </motion.a>
+        </motion.div>
+    );
+}
+
+// ─── History Panel ────────────────────────────────────────────────────────────
+
+const PLAN_STATUS_MAP: Record<string, { color: string; label: string }> = {
+    draft: { color: "secondary", label: "پیش‌نویس" },
+    queued: { color: "warning", label: "در صف" },
+    active: { color: "success", label: "فعال" },
+    completed: { color: "primary", label: "تمام شده" },
+    cancelled: { color: "danger", label: "لغو شده" },
+};
+
+function HistoryPanel({
+    history,
+    isLoading,
+    shouldReduceMotion,
+}: {
+    history: AutomaticPlan[];
+    isLoading: boolean;
+    shouldReduceMotion: boolean | null;
+}) {
+    const sorted = [...history].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+
+    return (
+        <motion.div
+            key="history"
+            initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.25 }}
+        >
+            {isLoading && sorted.length === 0 ? (
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status" />
+                </div>
+            ) : sorted.length === 0 ? (
+                <div className="text-center py-4 bg-light rounded-3">
+                    <i className="bi bi-clock-history fs-3 mb-2 d-block" />
+                    <p className="mb-0">هنوز تاریخچه‌ای برای شما ثبت نشده است.</p>
+                </div>
+            ) : (
+                <motion.div variants={staggerContainer} initial={shouldReduceMotion ? false : "hidden"} animate="show">
+                    {sorted.map((plan, i) => {
+                        const cfg = PLAN_STATUS_MAP[plan.status] || PLAN_STATUS_MAP.draft;
+                        const parent = plan.parent_plan ? sorted.find((p) => p.id === plan.parent_plan) : null;
+                        return (
+                            <motion.div key={plan.id} variants={fadeInUp} transition={{ delay: i * 0.05 }}>
+                                {parent && (
+                                    <div className="d-flex align-items-center gap-1 small mb-1 ps-2">
+                                        <i className="bi bi-arrow-return-left" />
+                                        ادامه‌ی برنامه ص {parent.start_page}–{parent.end_page}
+                                    </div>
+                                )}
+                                <div className={`card border-0 rounded-3 mb-3 border-start border-3 border-${cfg.color}`}>
+                                    <div className="card-body py-3 px-3">
+                                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                            <div className="d-flex align-items-center gap-2">
+                                                <span className={`badge bg-${cfg.color} bg-opacity-10 text-${cfg.color} rounded-pill`}>
+                                                    {cfg.label}
+                                                </span>
+                                                <span className="fw-semibold small">صفحات {plan.start_page}–{plan.end_page}</span>
+                                            </div>
+                                            <div className="small">شروع: {formatDate(plan.start_date)}</div>
+                                        </div>
+                                        <div className="mt-2">
+                                            <div className="progress rounded-pill" style={{ height: 6 }}>
+                                                <div className="progress-bar bg-primary rounded-pill" style={{ width: `${plan.progress_percent}%` }} />
+                                            </div>
+                                            <div className="small mt-1">
+                                                {plan.completed_steps} از {plan.total_steps} مرحله ({plan.progress_percent}%)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </motion.div>
+            )}
         </motion.div>
     );
 }
@@ -286,7 +369,7 @@ function ProgressRing({ percent, size = 120 }: { percent: number; size?: number 
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
-type Tab = "today" | "progress" | "plan";
+type Tab = "today" | "progress" | "plan" | "history";
 
 function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
     const shouldReduceMotion = useReducedMotion();
@@ -294,6 +377,7 @@ function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void 
         { id: "today", icon: "bi-sun", label: "امروز" },
         { id: "progress", icon: "bi-bar-chart-line", label: "پیشرفت" },
         { id: "plan", icon: "bi-calendar3", label: "برنامه" },
+        { id: "history", icon: "bi-clock-history", label: "تاریخچه" },
     ];
     return (
         <div className="d-flex gap-2 mb-4 flex-wrap">
@@ -315,10 +399,11 @@ function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void 
 // ─── Main content ─────────────────────────────────────────────────────────────
 
 function AutomaticClassContent() {
-    const { plan, todayData, progressData, isLoading, noSubscription, fetchMyPlan, fetchTodaySteps, fetchProgress, completeStep, reportDelay } = useAutomaticClass();
+    const { plan, todayData, progressData, planHistory, isLoading, noSubscription, fetchMyPlan, fetchTodaySteps, fetchProgress, fetchPlanHistory, completeStep, reportDelay } = useAutomaticClass();
     const shouldReduceMotion = useReducedMotion();
     const [activeTab, setActiveTab] = useState<Tab>("today");
     const hasFetched = useRef(false);
+    const historyFetched = useRef(false);
 
     useEffect(() => {
         if (hasFetched.current) return;
@@ -334,6 +419,14 @@ function AutomaticClassContent() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, progressData]);
+
+    useEffect(() => {
+        if (activeTab === "history" && !historyFetched.current) {
+            historyFetched.current = true;
+            fetchPlanHistory();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab]);
 
     const handleComplete = async (id: string, reason?: string) => {
         const r = await completeStep(id, reason);
@@ -380,8 +473,18 @@ function AutomaticClassContent() {
                         </div>
                     ) : noSubscription ? (
                         <NoSubscription shouldReduceMotion={shouldReduceMotion} />
+                    ) : activeTab === "history" ? (
+                        <>
+                            <TabBar active={activeTab} onChange={setActiveTab} />
+                            <AnimatePresence mode="wait">
+                                <HistoryPanel history={planHistory} isLoading={isLoading} shouldReduceMotion={shouldReduceMotion} />
+                            </AnimatePresence>
+                        </>
                     ) : !plan ? (
-                        <NoPlan shouldReduceMotion={shouldReduceMotion} />
+                        <>
+                            <TabBar active={activeTab} onChange={setActiveTab} />
+                            <NoPlan shouldReduceMotion={shouldReduceMotion} />
+                        </>
                     ) : (
                         <>
                             <TabBar active={activeTab} onChange={setActiveTab} />
