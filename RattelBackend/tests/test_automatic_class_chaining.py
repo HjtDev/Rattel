@@ -32,12 +32,14 @@ def other_user(db):
 
 @pytest.fixture
 def admin_user(db):
+    # Superuser: bypasses per-teacher scoping, matching "admin can do everything".
     return User.objects.create_user(
         username='chainadmin',
         name='Chain Admin',
         phone='09100000032',
         password='testpass123',
         is_staff=True,
+        is_superuser=True,
     )
 
 

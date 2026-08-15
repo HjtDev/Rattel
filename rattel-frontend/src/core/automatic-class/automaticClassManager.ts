@@ -61,6 +61,7 @@ export interface AutomaticPlan {
     status: PlanStatus;
     status_display: string;
     teacher_display: { id: number; username: string } | null;
+    parent_plan: string | null;
     total_steps: number;
     completed_steps: number;
     progress_percent: number;
@@ -204,6 +205,7 @@ class AutomaticClassManager {
     private plan: AutomaticPlan | null = null;
     private todayData: TodayData | null = null;
     private progressData: ProgressData | null = null;
+    private planHistory: AutomaticPlan[] = [];
 
     // Admin state
     private adminRequests: AdminClassRequest[] = [];
@@ -212,6 +214,8 @@ class AutomaticClassManager {
     private adminPlansTotal = 0;
     private activePlan: AdminPlan | null = null;
     private callLogs: AdminCallLog[] = [];
+    private adminPlanHistory: AdminPlan[] = [];
+    private adminPlanHistoryUserId: string | null = null;
 
     // Loading
     private isLoading = false;
@@ -249,12 +253,15 @@ class AutomaticClassManager {
     public getPlan() { return this.plan; }
     public getTodayData() { return this.todayData; }
     public getProgressData() { return this.progressData; }
+    public getPlanHistory() { return this.planHistory; }
     public getAdminRequests() { return this.adminRequests; }
     public getAdminRequestsTotal() { return this.adminRequestsTotal; }
     public getAdminPlans() { return this.adminPlans; }
     public getAdminPlansTotal() { return this.adminPlansTotal; }
     public getActivePlan() { return this.activePlan; }
     public getCallLogs() { return this.callLogs; }
+    public getAdminPlanHistory() { return this.adminPlanHistory; }
+    public getAdminPlanHistoryUserId() { return this.adminPlanHistoryUserId; }
     public getIsLoading() { return this.isLoading; }
     public getError() { return this.error; }
     public getNoSubscription() { return this.noSubscription; }
@@ -401,6 +408,32 @@ class AutomaticClassManager {
         }
     }
 
+    public async fetchPlanHistory(): Promise<ACResult> {
+        this.setLoading(true);
+        try {
+            const res = await api.get("/class/automatic/plan-history/", {
+                cache: false,
+                validateStatus: (s: number) => s < 500,
+            } as any);
+            if (res.status === 403) {
+                this.noSubscription = true;
+                this.notify();
+                return { success: false, error: 403 };
+            }
+            if (res.data.success) {
+                this.noSubscription = false;
+                this.planHistory = res.data.plans;
+                this.notify();
+                return { success: true };
+            }
+            return { success: false, message: res.data.message };
+        } catch (e: any) {
+            return { success: false, message: "خطا در دریافت تاریخچه برنامه‌ها" };
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
     public async completeStep(stepId: string, delayReason?: string): Promise<ACResult & { step?: PlanStep }> {
         try {
             const res = await api.post(
@@ -504,6 +537,29 @@ class AutomaticClassManager {
             return { success: false, message: res.data.message };
         } catch (e: any) {
             return { success: false, message: "خطا در دریافت برنامه‌ها" };
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    /**
+     * Full plan history (any status) for one student — reuses the existing
+     * admin/plans/?user= endpoint but stores into a separate field so it
+     * never collides with the Plans tab's status-filtered adminPlans list.
+     */
+    public async fetchAdminPlanHistory(userId: string): Promise<ACResult> {
+        this.setLoading(true);
+        try {
+            const res = await api.get(`/class/automatic/admin/plans/?user=${userId}`, { cache: false });
+            if (res.data.success) {
+                this.adminPlanHistory = res.data.plans;
+                this.adminPlanHistoryUserId = userId;
+                this.notify();
+                return { success: true };
+            }
+            return { success: false, message: res.data.message };
+        } catch (e: any) {
+            return { success: false, message: "خطا در دریافت تاریخچه برنامه‌ها" };
         } finally {
             this.setLoading(false);
         }

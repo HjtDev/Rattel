@@ -982,12 +982,13 @@ function FilterChips({ options, active, onChange }: { options: { value: string; 
 
 // ─── Admin Panel Content ──────────────────────────────────────────────────────
 
-type AdminTab = "requests" | "plans" | "calls";
+type AdminTab = "requests" | "plans" | "history" | "calls";
 
 function AdminClassContent() {
     const {
         adminRequests, adminPlans, activePlan, callLogs, isLoading,
-        fetchAdminRequests, updateAdminRequest, fetchAdminPlans,
+        adminPlanHistory,
+        fetchAdminRequests, updateAdminRequest, fetchAdminPlans, fetchAdminPlanHistory,
         fetchAdminPlanDetail, createPlan, updatePlan, deletePlan, updateAdminStep,
         logCall, updateCallSession, clearActivePlan,
     } = useAdminClassPanel();
@@ -996,10 +997,26 @@ function AdminClassContent() {
     const [activeTab, setActiveTab] = useState<AdminTab>("requests");
     const [reqStatusFilter, setReqStatusFilter] = useState("all");
     const [planStatusFilter, setPlanStatusFilter] = useState("all");
+    const [planUserFilter, setPlanUserFilter] = useState("");
+    const [historyUserId, setHistoryUserId] = useState("");
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createFromRequest, setCreateFromRequest] = useState<AdminClassRequest | null>(null);
     const [chainParent, setChainParent] = useState<AdminPlan | null>(null);
     const hasFetched = useRef(false);
+
+    // Distinct students across every plan the teacher currently has loaded —
+    // backs both the Plans-tab filter and the History-tab picker, no extra fetch.
+    const students = Array.from(
+        new Map(adminPlans.map((p) => [p.user_display.id, p.user_display])).values()
+    ).sort((a, b) => a.username.localeCompare(b.username));
+
+    const visiblePlans = planUserFilter
+        ? adminPlans.filter((p) => String(p.user_display.id) === planUserFilter)
+        : adminPlans;
+
+    const sortedHistory = [...adminPlanHistory].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
 
     useEffect(() => {
         if (hasFetched.current) return;
@@ -1042,6 +1059,11 @@ function AdminClassContent() {
     const handleOpenChain = (plan: AdminPlan) => {
         setChainParent(plan);
         setShowCreateModal(true);
+    };
+
+    const handleSelectHistoryUser = (userId: string) => {
+        setHistoryUserId(userId);
+        if (userId) fetchAdminPlanHistory(userId);
     };
 
     const handleDeleteChainedPlan = async (chained: ChainedPlanSummary) => {
@@ -1110,6 +1132,7 @@ function AdminClassContent() {
     const TABS: { id: AdminTab; icon: string; label: string; count?: number }[] = [
         { id: "requests", icon: "bi-inbox", label: "درخواست‌ها", count: adminRequests.length },
         { id: "plans", icon: "bi-journal-bookmark", label: "برنامه‌ها", count: adminPlans.length },
+        { id: "history", icon: "bi-clock-history", label: "تاریخچه" },
         { id: "calls", icon: "bi-telephone-outbound", label: "ثبت تماس سریع" },
     ];
 
@@ -1206,23 +1229,41 @@ function AdminClassContent() {
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
                             >
-                                <FilterChips
-                                    active={planStatusFilter}
-                                    onChange={setPlanStatusFilter}
-                                    options={[
-                                        { value: "all", label: "همه" },
-                                        { value: "draft", label: "پیش‌نویس" },
-                                        { value: "active", label: "فعال" },
-                                        { value: "completed", label: "تمام شده" },
-                                        { value: "cancelled", label: "لغو شده" },
-                                    ]}
-                                />
+                                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                    <FilterChips
+                                        active={planStatusFilter}
+                                        onChange={setPlanStatusFilter}
+                                        options={[
+                                            { value: "all", label: "همه" },
+                                            { value: "draft", label: "پیش‌نویس" },
+                                            { value: "active", label: "فعال" },
+                                            { value: "completed", label: "تمام شده" },
+                                            { value: "cancelled", label: "لغو شده" },
+                                        ]}
+                                    />
+                                    <select
+                                        className="form-select form-select-sm rounded-3"
+                                        style={{ maxWidth: 220 }}
+                                        value={planUserFilter}
+                                        onChange={(e) => setPlanUserFilter(e.target.value)}
+                                    >
+                                        <option value="">همه دانش‌آموزان</option>
+                                        {students.map((s) => (
+                                            <option key={s.id} value={String(s.id)}>{s.username}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 {isLoading ? (
                                     <div className="text-center py-5"><div className="spinner-border text-primary" /></div>
                                 ) : adminPlans.length === 0 ? (
                                     <div className="text-center py-5">
                                         <i className="bi bi-journal-x display-4 d-block mb-3" />
                                         برنامه‌ای یافت نشد
+                                    </div>
+                                ) : visiblePlans.length === 0 ? (
+                                    <div className="text-center py-5">
+                                        <i className="bi bi-person-x display-4 d-block mb-3" />
+                                        برنامه‌ای برای این دانش‌آموز یافت نشد
                                     </div>
                                 ) : (
                                     <div className="table-responsive">
@@ -1238,7 +1279,7 @@ function AdminClassContent() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {adminPlans.map((plan) => {
+                                                {visiblePlans.map((plan) => {
                                                     const cfg = PLAN_STATUS_MAP[plan.status] || PLAN_STATUS_MAP.draft;
                                                     return (
                                                         <tr key={plan.id}>
@@ -1276,6 +1317,84 @@ function AdminClassContent() {
                                             </tbody>
                                         </table>
                                     </div>
+                                )}
+                            </motion.div>
+                        )}
+
+                        {/* ── History ── */}
+                        {activeTab === "history" && (
+                            <motion.div
+                                key="history"
+                                initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <div className="mb-3">
+                                    <select
+                                        className="form-select rounded-3"
+                                        style={{ maxWidth: 260 }}
+                                        value={historyUserId}
+                                        onChange={(e) => handleSelectHistoryUser(e.target.value)}
+                                    >
+                                        <option value="">انتخاب دانش‌آموز...</option>
+                                        {students.map((s) => (
+                                            <option key={s.id} value={String(s.id)}>{s.username}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {!historyUserId ? (
+                                    <div className="text-center py-5">
+                                        <i className="bi bi-person-lines-fill display-4 d-block mb-3" />
+                                        یک دانش‌آموز را برای مشاهده تاریخچه برنامه‌ها انتخاب کنید
+                                    </div>
+                                ) : isLoading ? (
+                                    <div className="text-center py-5"><div className="spinner-border text-primary" /></div>
+                                ) : sortedHistory.length === 0 ? (
+                                    <div className="text-center py-5">
+                                        <i className="bi bi-journal-x display-4 d-block mb-3" />
+                                        برنامه‌ای برای این دانش‌آموز یافت نشد
+                                    </div>
+                                ) : (
+                                    <motion.div variants={staggerContainer} initial={shouldReduceMotion ? false : "hidden"} animate="show">
+                                        {sortedHistory.map((plan, i) => {
+                                            const cfg = PLAN_STATUS_MAP[plan.status] || PLAN_STATUS_MAP.draft;
+                                            const parent = plan.parent_plan
+                                                ? sortedHistory.find((p) => p.id === plan.parent_plan)
+                                                : null;
+                                            return (
+                                                <motion.div key={plan.id} variants={fadeInUp} transition={{ delay: i * 0.05 }}>
+                                                    {parent && (
+                                                        <div className="d-flex align-items-center gap-1 text-muted small mb-1 ps-2">
+                                                            <i className="bi bi-arrow-return-left" />
+                                                            ادامه‌ی برنامه ص {parent.start_page}–{parent.end_page}
+                                                        </div>
+                                                    )}
+                                                    <div className={`card border-0 rounded-3 mb-3 border-start border-3 border-${cfg.color}`}>
+                                                        <div className="card-body py-3 px-3">
+                                                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                                <div className="d-flex align-items-center gap-2">
+                                                                    <span className={`badge bg-${cfg.color} bg-opacity-10 text-${cfg.color} rounded-pill`}>
+                                                                        {cfg.label}
+                                                                    </span>
+                                                                    <span className="fw-semibold small">ص {plan.start_page}–{plan.end_page}</span>
+                                                                </div>
+                                                                <div className="small">شروع: {formatDate(plan.start_date)}</div>
+                                                            </div>
+                                                            <div className="mt-2">
+                                                                <div className="progress rounded-pill" style={{ height: 6 }}>
+                                                                    <div className="progress-bar bg-primary rounded-pill" style={{ width: `${plan.progress_percent}%` }} />
+                                                                </div>
+                                                                <div className="small mt-1">
+                                                                    {plan.completed_steps} از {plan.total_steps} مرحله ({plan.progress_percent}%)
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </motion.div>
                                 )}
                             </motion.div>
                         )}

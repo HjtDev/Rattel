@@ -109,6 +109,18 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
     list_select_related = ('user', 'teacher', 'parent_plan')
     inlines = [PlanStepInline, AdminCallLogInline, OnlineCallSessionInline]
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(teacher=request.user)
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        if not request.user.is_superuser:
+            fields.append('teacher')
+        return fields
+
     fieldsets = (
         (_('Participants'), {
             'fields': ('id', 'request', 'user', 'teacher', 'parent_plan'),
@@ -201,6 +213,12 @@ class PlanStepAdmin(admin.ModelAdmin):
     readonly_fields = ('id', 'is_delayed', 'original_scheduled_date', 'completed_at', 'created_at')
     list_select_related = ('plan__user',)
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(plan__teacher=request.user)
+
     fieldsets = (
         (_('Step'), {
             'fields': ('id', 'plan', 'step_number', 'step_type', 'sub_part'),
@@ -255,6 +273,12 @@ class AdminCallLogAdmin(admin.ModelAdmin):
     readonly_fields = ('id', 'created_at')
     list_select_related = ('called_by', 'plan__user')
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(plan__teacher=request.user)
+
     @admin.display(description=_('Call Date'))
     def call_date_jalali(self, obj):
         return datetime2jalali(timezone.localtime(obj.call_date)).strftime('%Y/%m/%d %H:%M')
@@ -273,6 +297,12 @@ class OnlineCallSessionAdmin(admin.ModelAdmin):
     ordering = ('plan', 'session_number')
     readonly_fields = ('id', 'completed_at', 'marked_by', 'created_at')
     list_select_related = ('plan__user', 'marked_by')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(plan__teacher=request.user)
 
     @admin.display(description=_('Completed At'))
     def completed_at_jalali(self, obj):

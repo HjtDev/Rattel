@@ -8,6 +8,7 @@ from .views import (
     AdminPlanListView,
     AdminStepUpdateView,
     ClassRequestView,
+    MyPlanHistoryView,
     MyPlanView,
     MyProgressView,
     StepCompleteView,
@@ -25,6 +26,7 @@ urlpatterns = [
     path('my-plan/', MyPlanView.as_view(), name='my-plan'),
     path('today/', TodayStepsView.as_view(), name='today-steps'),
     path('progress/', MyProgressView.as_view(), name='my-progress'),
+    path('plan-history/', MyPlanHistoryView.as_view(), name='my-plan-history'),
     path('steps/<uuid:step_id>/complete/', StepCompleteView.as_view(), name='step-complete'),
     path('steps/<uuid:step_id>/report/', StepReportDelayView.as_view(), name='step-report'),
 
