@@ -47,6 +47,7 @@ export function useAdminClassPanel() {
         fetchAdminPlanDetail: automaticClassManager.fetchAdminPlanDetail.bind(automaticClassManager),
         createPlan: automaticClassManager.createPlan.bind(automaticClassManager),
         updatePlan: automaticClassManager.updatePlan.bind(automaticClassManager),
+        deletePlan: automaticClassManager.deletePlan.bind(automaticClassManager),
         updateAdminStep: automaticClassManager.updateAdminStep.bind(automaticClassManager),
         logCall: automaticClassManager.logCall.bind(automaticClassManager),
         updateCallSession: automaticClassManager.updateCallSession.bind(automaticClassManager),

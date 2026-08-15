@@ -7,7 +7,7 @@ import { api } from "../api";
 export type StepStatus = "pending" | "delayed" | "completed" | "skipped";
 export type StepType = "memorize" | "review" | "extra_review" | "final_review";
 export type CallSessionStatus = "pending" | "completed" | "no_answer";
-export type PlanStatus = "draft" | "active" | "completed" | "cancelled";
+export type PlanStatus = "draft" | "queued" | "active" | "completed" | "cancelled";
 export type RequestStatus = "pending" | "contacted" | "plan_created" | "rejected";
 
 export interface PlanStep {
@@ -44,7 +44,7 @@ export interface AutomaticPlan {
     start_page: number;
     end_page: number;
     start_date: string;
-    time_to_finish: string;
+    time_to_finish: string | null;
     time_freq: string;
     time_freq_display: string;
     reading_freq: string;
@@ -65,6 +65,7 @@ export interface AutomaticPlan {
     completed_steps: number;
     progress_percent: number;
     call_sessions: UserCallSession[];
+    has_chained_plan: boolean;
     created_at: string;
 }
 
@@ -111,6 +112,14 @@ export interface AdminClassRequest extends ClassRequest {
     admin_notes: string;
 }
 
+export interface ChainedPlanSummary {
+    id: string;
+    start_page: number;
+    end_page: number;
+    start_date: string;
+    status: PlanStatus;
+}
+
 export interface AdminPlan extends AutomaticPlan {
     user_display: { id: number; username: string; phone: string | null };
     admin_notes: string;
@@ -121,6 +130,10 @@ export interface AdminPlan extends AutomaticPlan {
     extra_review_start_page: number | null;
     extra_review_end_page: number | null;
     extra_review_pages_per_session: number;
+    parent_plan: string | null;
+    generate_call_sessions: boolean;
+    last_step_date: string | null;
+    chained_plan: ChainedPlanSummary | null;
 }
 
 export interface AdminCallLog {
@@ -154,10 +167,12 @@ export interface CreatePlanPayload {
     request?: string | null;
     user: number | string;
     teacher?: number | string | null;
+    parent_plan?: string | null;
+    generate_call_sessions?: boolean;
     start_page: number;
     end_page: number;
     start_date: string;
-    time_to_finish: string;
+    time_to_finish?: string | null;
     time_freq: string;
     reading_freq: string;
     review_freq: number;
@@ -543,6 +558,24 @@ class AutomaticClassManager {
             return { success: false, message: res.data.message };
         } catch (e: any) {
             return { success: false, message: "خطا در بروزرسانی برنامه" };
+        }
+    }
+
+    public async deletePlan(planId: string): Promise<ACResult> {
+        try {
+            const res = await api.delete(`/class/automatic/admin/plans/${planId}/`, { cache: false } as any);
+            if (res.data.success) {
+                this.adminPlans = this.adminPlans.filter((p) => p.id !== planId);
+                this.adminPlansTotal = Math.max(0, this.adminPlansTotal - 1);
+                if (this.activePlan?.id === planId) {
+                    this.activePlan = null;
+                }
+                this.notify();
+                return { success: true };
+            }
+            return { success: false, message: res.data.message };
+        } catch (e: any) {
+            return { success: false, message: e.response?.data?.message || "خطا در حذف برنامه" };
         }
     }
 
