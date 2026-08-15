@@ -147,10 +147,13 @@ class TodayStepsView(APIView, ResponseBuilderMixin):
     Returns the user's tasks for today along with any delayed tasks from previous days.
 
     Response:
-        delayed_steps   — past-due steps not yet completed
-        today_steps     — steps scheduled for today
-        upcoming_steps  — next 3 upcoming steps (preview)
-        has_delayed     — convenience boolean
+        delayed_steps             — past-due steps not yet completed
+        today_steps                — steps scheduled for today
+        ahead_steps                 — next unlocked day's steps, completable early
+                                       (see AutomaticPlan.get_unlocked_ahead_steps)
+        upcoming_steps              — next 3 upcoming steps not yet unlocked (preview)
+        has_delayed                 — convenience boolean
+        advance_completion_days     — the plan's pre-completion window, for UI copy
 
     Permissions: IsAuthenticated + HasAutomaticClassAccess
     """
@@ -184,11 +187,13 @@ class TodayStepsView(APIView, ResponseBuilderMixin):
                 status__in=[PlanStep.Status.COMPLETED, PlanStep.Status.SKIPPED]
             ).order_by('step_number')
 
+            ahead = plan.get_unlocked_ahead_steps()
+
             upcoming = PlanStep.objects.filter(
                 plan=plan,
                 status=PlanStep.Status.PENDING,
                 scheduled_date__gt=today,
-            ).order_by('scheduled_date', 'step_number')[:3]
+            ).exclude(pk__in=ahead.values('pk')).order_by('scheduled_date', 'step_number')[:3]
 
             return self.build_response(
                 status.HTTP_200_OK,
@@ -196,7 +201,9 @@ class TodayStepsView(APIView, ResponseBuilderMixin):
                 has_delayed=delayed.exists(),
                 delayed_steps=PlanStepSerializer(delayed, many=True).data,
                 today_steps=PlanStepSerializer(today_steps, many=True).data,
+                ahead_steps=PlanStepSerializer(ahead, many=True).data,
                 upcoming_steps=PlanStepSerializer(upcoming, many=True).data,
+                advance_completion_days=plan.advance_completion_days,
             )
         except Exception as e:
             logger.error(f'TodayStepsView.get failed: {e}')
@@ -242,6 +249,15 @@ class StepCompleteView(APIView, ResponseBuilderMixin):
                 status.HTTP_400_BAD_REQUEST,
                 success=False, error=-4, message='The associated plan is not active.',
             )
+
+        today = timezone.now().date()
+        if step.scheduled_date and step.scheduled_date > today:
+            if not step.plan.get_unlocked_ahead_steps().filter(pk=step.pk).exists():
+                return self.build_response(
+                    status.HTTP_400_BAD_REQUEST,
+                    success=False, error=-6,
+                    message='This step is not yet available for completion.',
+                )
 
         serializer = StepCompleteSerializer(data=request.data)
         if not serializer.is_valid():

@@ -182,6 +182,17 @@ class AutomaticPlan(models.Model):
         verbose_name=_('Extra Review Pages per Session'),
     )
 
+    advance_completion_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name=_('Advance Completion Days'),
+        help_text=_(
+            'How many days ahead the user may complete steps. '
+            'Empty disables pre-completion; 0 means unlimited.'
+        ),
+    )
+
     user_day_availability = models.CharField(
         max_length=20,
         choices=DayAvailability.choices,
@@ -362,6 +373,37 @@ class AutomaticPlan(models.Model):
         if total == 0:
             return 0
         return round(self.completed_steps / total * 100)
+
+    def get_unlocked_ahead_steps(self):
+        """Future-dated steps this user is currently allowed to complete early."""
+        limit = self.advance_completion_days
+        if limit is None:
+            return PlanStep.objects.none()
+
+        today = timezone.now().date()
+        closed = [PlanStep.Status.COMPLETED, PlanStep.Status.SKIPPED]
+
+        # Nothing unlocks while anything due today or earlier is still open.
+        if self.steps.filter(
+            scheduled_date__isnull=False, scheduled_date__lte=today,
+        ).exclude(status__in=closed).exists():
+            return PlanStep.objects.none()
+
+        future = self.steps.filter(
+            scheduled_date__gt=today,
+        ).exclude(status__in=closed)
+        if limit > 0:
+            future = future.filter(scheduled_date__lte=today + timedelta(days=limit))
+
+        # `future` holds only OPEN steps, so its earliest date IS the next
+        # unlocked day — a fully completed day drops out and the next one
+        # takes its place.
+        next_date = future.order_by('scheduled_date').values_list(
+            'scheduled_date', flat=True
+        ).first()
+        if next_date is None:
+            return PlanStep.objects.none()
+        return future.filter(scheduled_date=next_date).order_by('step_number')
 
     def __str__(self):
         return f'Plan for {self.user} [{self.get_status_display()}] pages {self.start_page}–{self.end_page}'

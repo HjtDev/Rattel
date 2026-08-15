@@ -82,6 +82,7 @@ const EMPTY_PLAN: CreatePlanPayload = {
     time_freq: "per_day",
     reading_freq: "full_page",
     review_freq: 3,
+    advance_completion_days: null,
     user_day_availability: "odd_days",
     user_time_availability: "morning",
     status: "draft",
@@ -245,6 +246,20 @@ function CreatePlanModal({
                                         value={form.review_freq}
                                         onChange={(e) => set("review_freq", +e.target.value)}
                                     />
+                                </div>
+                                <div className="col-sm-6">
+                                    <label className="form-label fw-semibold">تکمیل زودهنگام (روز)</label>
+                                    <input
+                                        type="number"
+                                        className="form-control rounded-3"
+                                        min={0}
+                                        value={form.advance_completion_days ?? ""}
+                                        onChange={(e) => set("advance_completion_days", e.target.value ? +e.target.value : null)}
+                                        placeholder="غیرفعال"
+                                    />
+                                    <div className="mt-1" style={{ fontSize: "0.72rem" }}>
+                                        خالی = غیرفعال، ۰ = بدون محدودیت
+                                    </div>
                                 </div>
                                 <div className="col-sm-6">
                                     <label className="form-label fw-semibold">روزهای فعال</label>

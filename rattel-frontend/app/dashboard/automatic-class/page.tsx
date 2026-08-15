@@ -283,6 +283,7 @@ function AutomaticClassContent() {
             if (progressData) fetchProgress();
         } else {
             toast.error("خطا در تکمیل مرحله");
+            fetchTodaySteps();
         }
     };
 
@@ -422,7 +423,11 @@ function AutomaticClassContent() {
                                                     {todayData.today_steps.length === 0 ? (
                                                         <div className="text-center py-4 bg-light rounded-3">
                                                             <i className="bi bi-check-circle-fill text-success fs-3 mb-2 d-block" />
-                                                            <p className="mb-0">همه وظایف امروز را تکمیل کردید!</p>
+                                                            <p className="mb-0">
+                                                                {todayData.ahead_steps.length > 0
+                                                                    ? "همه وظایف امروز را تکمیل کردید! می‌توانید وظایف روز آینده را هم انجام دهید."
+                                                                    : "همه وظایف امروز را تکمیل کردید!"}
+                                                            </p>
                                                         </div>
                                                     ) : (
                                                         <>
@@ -432,6 +437,24 @@ function AutomaticClassContent() {
                                                         </>
                                                     )}
                                                 </div>
+
+                                                {todayData.ahead_steps.length > 0 && (
+                                                    <div className="mb-4">
+                                                        <div className="d-flex align-items-center gap-2 mb-3">
+                                                            <i className="bi bi-fast-forward-fill text-info" />
+                                                            <h6 className="mb-0 fw-bold">
+                                                                وظایف روز آینده ({todayData.ahead_steps.length})
+                                                            </h6>
+                                                        </div>
+                                                        <div className="alert alert-info rounded-3 py-2 px-3 small mb-3">
+                                                            <i className="bi bi-info-circle me-1" />
+                                                            این وظایف مربوط به روزهای آینده است — می‌توانید زودتر آن‌ها را انجام دهید.
+                                                        </div>
+                                                        {todayData.ahead_steps.map((step, i) => (
+                                                            <StepCard key={step.id} step={step} onComplete={handleComplete} onReport={handleReport} animDelay={i * 0.08} />
+                                                        ))}
+                                                    </div>
+                                                )}
 
                                                 {todayData.upcoming_steps.length > 0 && (
                                                     <div>

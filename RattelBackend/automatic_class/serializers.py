@@ -105,6 +105,7 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
             'reading_freq', 'reading_freq_display',
             'review_freq',
             'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'advance_completion_days',
             'user_day_availability', 'user_day_availability_display',
             'user_time_availability', 'user_time_availability_display',
             'status', 'status_display',
@@ -149,6 +150,7 @@ class AdminPlanCreateSerializer(serializers.ModelSerializer):
             'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
             'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'advance_completion_days',
             'user_day_availability', 'user_time_availability',
             'status', 'admin_notes',
         )
@@ -176,6 +178,7 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
             'teacher', 'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
             'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'advance_completion_days',
             'user_day_availability', 'user_time_availability',
             'status', 'admin_notes',
         )

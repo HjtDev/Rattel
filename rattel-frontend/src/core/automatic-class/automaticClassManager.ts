@@ -53,6 +53,7 @@ export interface AutomaticPlan {
     extra_review_start_page: number | null;
     extra_review_end_page: number | null;
     extra_review_pages_per_session: number;
+    advance_completion_days: number | null;
     user_day_availability: string;
     user_day_availability_display: string;
     user_time_availability: string;
@@ -82,7 +83,9 @@ export interface TodayData {
     has_delayed: boolean;
     delayed_steps: PlanStep[];
     today_steps: PlanStep[];
+    ahead_steps: PlanStep[];
     upcoming_steps: PlanStep[];
+    advance_completion_days: number | null;
 }
 
 export interface ProgressData {
@@ -161,6 +164,7 @@ export interface CreatePlanPayload {
     extra_review_start_page?: number | null;
     extra_review_end_page?: number | null;
     extra_review_pages_per_session?: number;
+    advance_completion_days?: number | null;
     user_day_availability: string;
     user_time_availability: string;
     status: string;
@@ -336,7 +340,9 @@ class AutomaticClassManager {
                     has_delayed: res.data.has_delayed,
                     delayed_steps: res.data.delayed_steps,
                     today_steps: res.data.today_steps,
+                    ahead_steps: res.data.ahead_steps,
                     upcoming_steps: res.data.upcoming_steps,
+                    advance_completion_days: res.data.advance_completion_days,
                 };
                 this.notify();
                 return { success: true };
@@ -420,6 +426,7 @@ class AutomaticClassManager {
                 ...this.todayData,
                 delayed_steps: this.todayData.delayed_steps.map((s) => s.id === updated.id ? updated : s),
                 today_steps: this.todayData.today_steps.map((s) => s.id === updated.id ? updated : s),
+                ahead_steps: this.todayData.ahead_steps.map((s) => s.id === updated.id ? updated : s),
             };
         }
         if (this.progressData) {
