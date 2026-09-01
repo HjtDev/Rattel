@@ -2,12 +2,25 @@ from datetime import date, timedelta
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
 from django.urls import reverse
 from rest_framework.test import APIClient
 
 from automatic_class.models import AutomaticPlan, ClassRequest, OnlineCallSession, PlanStep
+from automatic_class.signals import sms_on_new_class_request
 
 User = get_user_model()
+
+
+@pytest.fixture(autouse=True)
+def disable_class_request_sms_alert():
+    """ClassRequest.save() fires a real SMS via the post_save signal (see
+    automatic_class/signals.py); settings.py always points at the live
+    Melipayamak provider with no test override, so leaving this connected
+    sends a real, billed SMS every time this file's tests run."""
+    post_save.disconnect(sms_on_new_class_request, sender=ClassRequest)
+    yield
+    post_save.connect(sms_on_new_class_request, sender=ClassRequest)
 
 
 @pytest.fixture

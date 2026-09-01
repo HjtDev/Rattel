@@ -245,16 +245,16 @@ function CreatePlanModal({
                                 </div>
                                 <div className="col-sm-6">
                                     <label className="form-label fw-semibold">تناوب مطالعه</label>
-                                    <select className="form-select rounded-3" value={form.time_freq} onChange={(e) => set("time_freq", e.target.value)}>
-                                        <option value="per_day">روزانه</option>
-                                        <option value="per_two_days">یک روز در میان</option>
+                                    <select className="form-select rounded-3 text-rtl" dir="rtl" value={form.time_freq} onChange={(e) => set("time_freq", e.target.value)}>
+                                        <option className="text-rtl" value="per_day">روزانه</option>
+                                        <option className="text-rtl" value="per_two_days">یک روز در میان</option>
                                     </select>
                                 </div>
                                 <div className="col-sm-6">
                                     <label className="form-label fw-semibold">حجم هر جلسه</label>
-                                    <select className="form-select rounded-3" value={form.reading_freq} onChange={(e) => set("reading_freq", e.target.value)}>
-                                        <option value="full_page">یک صفحه کامل</option>
-                                        <option value="half_page">نیم صفحه</option>
+                                    <select className="form-select rounded-3 text-rtl" dir="rtl" value={form.reading_freq} onChange={(e) => set("reading_freq", e.target.value)}>
+                                        <option className="text-rtl" value="full_page">یک صفحه کامل</option>
+                                        <option className="text-rtl" value="half_page">نیم صفحه</option>
                                     </select>
                                 </div>
                                 <div className="col-sm-6">
@@ -283,25 +283,25 @@ function CreatePlanModal({
                                 </div>
                                 <div className="col-sm-6">
                                     <label className="form-label fw-semibold">روزهای فعال</label>
-                                    <select className="form-select rounded-3" value={form.user_day_availability} onChange={(e) => set("user_day_availability", e.target.value)}>
-                                        <option value="odd_days">روزهای فرد (شنبه، سه‌شنبه، پنجشنبه)</option>
-                                        <option value="even_days">روزهای زوج (جمعه، دوشنبه، چهارشنبه)</option>
+                                    <select className="form-select rounded-3 text-rtl" dir="rtl" value={form.user_day_availability} onChange={(e) => set("user_day_availability", e.target.value)}>
+                                        <option className="text-rtl" value="odd_days">روزهای فرد (شنبه، سه‌شنبه، پنجشنبه)</option>
+                                        <option className="text-rtl" value="even_days">روزهای زوج (جمعه، دوشنبه، چهارشنبه)</option>
                                     </select>
                                 </div>
                                 <div className="col-sm-6">
                                     <label className="form-label fw-semibold">بازه زمانی مطالعه</label>
-                                    <select className="form-select rounded-3" value={form.user_time_availability} onChange={(e) => set("user_time_availability", e.target.value)}>
-                                        <option value="morning">۹ صبح تا ۱۱ صبح</option>
-                                        <option value="afternoon">۳ بعدازظهر تا ۵ بعدازظهر</option>
-                                        <option value="evening">۷ شب تا ۹ شب</option>
+                                    <select className="form-select rounded-3 text-rtl" dir="rtl" value={form.user_time_availability} onChange={(e) => set("user_time_availability", e.target.value)}>
+                                        <option className="text-rtl" value="morning">۹ صبح تا ۱۱ صبح</option>
+                                        <option className="text-rtl" value="afternoon">۳ بعدازظهر تا ۵ بعدازظهر</option>
+                                        <option className="text-rtl" value="evening">۷ شب تا ۹ شب</option>
                                     </select>
                                 </div>
                                 {!chainParent && (
                                     <div className="col-sm-6">
                                         <label className="form-label fw-semibold">وضعیت اولیه</label>
-                                        <select className="form-select rounded-3" value={form.status} onChange={(e) => set("status", e.target.value)}>
-                                            <option value="draft">پیش‌نویس</option>
-                                            <option value="active">فعال (مراحل تولید می‌شوند)</option>
+                                        <select className="form-select rounded-3 text-rtl" dir="rtl" value={form.status} onChange={(e) => set("status", e.target.value)}>
+                                            <option className="text-rtl" value="draft">پیش‌نویس</option>
+                                            <option className="text-rtl" value="active">فعال (مراحل تولید می‌شوند)</option>
                                         </select>
                                     </div>
                                 )}
@@ -1242,14 +1242,15 @@ function AdminClassContent() {
                                         ]}
                                     />
                                     <select
-                                        className="form-select form-select-sm rounded-3"
+                                        className="form-select form-select-sm rounded-3 text-rtl"
+                                        dir="rtl"
                                         style={{ maxWidth: 220 }}
                                         value={planUserFilter}
                                         onChange={(e) => setPlanUserFilter(e.target.value)}
                                     >
-                                        <option value="">همه دانش‌آموزان</option>
+                                        <option className="text-rtl" value="">همه دانش‌آموزان</option>
                                         {students.map((s) => (
-                                            <option key={s.id} value={String(s.id)}>{s.username}</option>
+                                            <option className="text-rtl" key={s.id} value={String(s.id)}>{s.username}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -1332,14 +1333,15 @@ function AdminClassContent() {
                             >
                                 <div className="mb-3">
                                     <select
-                                        className="form-select rounded-3"
+                                        className="form-select rounded-3 text-rtl"
+                                        dir="rtl"
                                         style={{ maxWidth: 260 }}
                                         value={historyUserId}
                                         onChange={(e) => handleSelectHistoryUser(e.target.value)}
                                     >
-                                        <option value="">انتخاب دانش‌آموز...</option>
+                                        <option className="text-rtl" value="">انتخاب دانش‌آموز...</option>
                                         {students.map((s) => (
-                                            <option key={s.id} value={String(s.id)}>{s.username}</option>
+                                            <option className="text-rtl" key={s.id} value={String(s.id)}>{s.username}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -1488,10 +1490,10 @@ function QuickCallForm({ plans, onLog }: { plans: AdminPlan[]; onLog: (planId: s
         <form onSubmit={handleSubmit}>
             <div className="mb-3">
                 <label className="form-label small fw-semibold">برنامه (کاربر)</label>
-                <select className="form-select rounded-3" value={planId} onChange={(e) => setPlanId(e.target.value)} required>
-                    <option value="">انتخاب کنید...</option>
+                <select className="form-select rounded-3 text-rtl" dir="rtl" value={planId} onChange={(e) => setPlanId(e.target.value)} required>
+                    <option className="text-rtl" value="">انتخاب کنید...</option>
                     {plans.filter(p => p.status === "active").map((p) => (
-                        <option key={p.id} value={p.id}>
+                        <option className="text-rtl" key={p.id} value={p.id}>
                             {p.user_display?.username} — ص {p.start_page}–{p.end_page}
                         </option>
                     ))}

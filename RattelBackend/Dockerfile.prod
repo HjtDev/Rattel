@@ -1,17 +1,16 @@
 FROM python:3.14.2-slim AS builder
 WORKDIR /app
 
-RUN pip config --user set global.index https://pypi.devneeds.ir/simple/ \
-    && pip config --user set global.index-url https://pypi.devneeds.ir/simple/ \
-    && pip config --user set global.trusted-host devneeds.ir
+RUN pip config --user set global.index https://pypi.org/simple/ \
+    && pip config --user set global.index-url https://pypi.org/simple/
 
-RUN echo "deb https://debian-main.devneeds.ir/ bookworm main" > /etc/apt/sources.list && \
-    echo "deb https://debian-security.devneeds.ir/ bookworm-security main" >> /etc/apt/sources.list && \
+RUN echo "deb https://deb.debian.org/debian bookworm main" > /etc/apt/sources.list && \
+    echo "deb https://deb.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y lsb-release && \
     DEBIAN_CODENAME=$(lsb_release -cs) && \
-    echo "deb https://debian-main.devneeds.ir $DEBIAN_CODENAME main" > /etc/apt/sources.list && \
-    echo "deb https://debian-security.devneeds.ir $DEBIAN_CODENAME-security main" >> /etc/apt/sources.list && \
+    echo "deb https://deb.debian.org/debian $DEBIAN_CODENAME main" > /etc/apt/sources.list && \
+    echo "deb https://deb.debian.org/debian-security $DEBIAN_CODENAME-security main" >> /etc/apt/sources.list && \
     # Update apt again to reflect the final sources.list with the dynamic codename \
     apt-get update && \
     apt-get install -y \
@@ -32,13 +31,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 WORKDIR /app
 
-RUN echo "deb https://debian-main.devneeds.ir/ bookworm main" > /etc/apt/sources.list && \
-    echo "deb https://debian-security.devneeds.ir/ bookworm-security main" >> /etc/apt/sources.list && \
+RUN echo "deb https://deb.debian.org/debian bookworm main" > /etc/apt/sources.list && \
+    echo "deb https://deb.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y lsb-release && \
     DEBIAN_CODENAME=$(lsb_release -cs) && \
-    echo "deb https://debian-main.devneeds.ir $DEBIAN_CODENAME main" > /etc/apt/sources.list && \
-    echo "deb https://debian-security.devneeds.ir $DEBIAN_CODENAME-security main" >> /etc/apt/sources.list && \
+    echo "deb https://deb.debian.org/debian $DEBIAN_CODENAME main" > /etc/apt/sources.list && \
+    echo "deb https://deb.debian.org/debian-security $DEBIAN_CODENAME-security main" >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y \
     postgresql-client \
