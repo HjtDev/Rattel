@@ -176,25 +176,6 @@ class AutomaticPlan(models.Model):
         verbose_name=_('Review Every N Pages'),
     )
 
-    extra_review_start_page = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(1)],
-        verbose_name=_('Extra Review Start Page'),
-    )
-
-    extra_review_end_page = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(1)],
-        verbose_name=_('Extra Review End Page'),
-    )
-
-    extra_review_pages_per_session = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_('Extra Review Pages per Session'),
-    )
-
     advance_completion_days = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -246,12 +227,6 @@ class AutomaticPlan(models.Model):
         from django.core.exceptions import ValidationError
         if self.start_page and self.end_page and self.start_page >= self.end_page:
             raise ValidationError({'end_page': _('End page must be greater than start page.')})
-        has_start = self.extra_review_start_page is not None
-        has_end = self.extra_review_end_page is not None
-        if has_start != has_end:
-            raise ValidationError(_('Both extra review start and end pages must be set together.'))
-        if has_start and has_end and self.extra_review_start_page >= self.extra_review_end_page:
-            raise ValidationError({'extra_review_end_page': _('Extra review end page must be greater than start page.')})
 
         if self.parent_plan_id:
             if self.parent_plan_id == self.pk:
@@ -308,12 +283,10 @@ class AutomaticPlan(models.Model):
             self.chained_plans.filter(status=self.Status.QUEUED).update(status=self.Status.CANCELLED)
 
     def _generate_steps(self):
-        has_extra = (
-            self.extra_review_start_page is not None
-            and self.extra_review_end_page is not None
-            and self.extra_review_pages_per_session > 0
-        )
-        extra_cursor = self.extra_review_start_page if has_extra else None
+        # Each extra-review range keeps its own independent cursor so all ranges
+        # advance in parallel on the same schedule, rather than one after another.
+        ranges = [r for r in self.extra_review_ranges.all() if r.pages_per_session > 0]
+        cursors = [r.start_page for r in ranges]
 
         # Build sessions: each session is a list of (step_type, page_start, page_end, sub_part)
         # Steps within a session share the same scheduled_date.
@@ -339,20 +312,18 @@ class AutomaticPlan(models.Model):
                         PlanStep.SubPart.FULL,
                     ))
 
-                # Cycling extra-review range
-                if has_extra:
-                    extra_end = min(
-                        extra_cursor + self.extra_review_pages_per_session - 1,
-                        self.extra_review_end_page,
-                    )
+                # Cycling extra-review ranges — one step per range, all sharing
+                # this session (and therefore this scheduled_date).
+                for idx, r in enumerate(ranges):
+                    cur = cursors[idx]
+                    end = min(cur + r.pages_per_session - 1, r.end_page)
                     session.append((
                         PlanStep.StepType.EXTRA_REVIEW,
-                        extra_cursor, extra_end,
+                        cur, end,
                         PlanStep.SubPart.FULL,
                     ))
-                    extra_cursor = extra_end + 1
-                    if extra_cursor > self.extra_review_end_page:
-                        extra_cursor = self.extra_review_start_page
+                    nxt = end + 1
+                    cursors[idx] = r.start_page if nxt > r.end_page else nxt
 
                 all_sessions.append(session)
 
@@ -471,6 +442,57 @@ class AutomaticPlan(models.Model):
 
     def __str__(self):
         return f'Plan for {self.user} [{self.get_status_display()}] pages {self.start_page}–{self.end_page}'
+
+
+class ExtraReviewRange(models.Model):
+    """
+    An additional page range an admin wants reviewed alongside the main plan.
+    A plan may have any number of these; each keeps its own cycling cursor in
+    `AutomaticPlan._generate_steps()` so all ranges advance in parallel on the
+    same schedule rather than one after another.
+    """
+
+    class Meta:
+        verbose_name = _('Extra Review Range')
+        verbose_name_plural = _('Extra Review Ranges')
+        ordering = ['order', 'created_at']
+        indexes = [
+            models.Index(fields=['plan', 'order']),
+        ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    plan = models.ForeignKey(
+        AutomaticPlan,
+        on_delete=models.CASCADE,
+        related_name='extra_review_ranges',
+        verbose_name=_('Plan'),
+    )
+
+    start_page = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name=_('Start Page'),
+    )
+    end_page = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name=_('End Page'),
+    )
+    pages_per_session = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+        verbose_name=_('Pages per Session'),
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name=_('Order'))
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.start_page and self.end_page and self.end_page < self.start_page:
+            raise ValidationError({'end_page': _('End page must be greater than or equal to start page.')})
+
+    def __str__(self):
+        return f'Extra review pp.{self.start_page}–{self.end_page} ({self.pages_per_session}/session) for plan {self.plan_id}'
 
 
 class PlanStep(models.Model):

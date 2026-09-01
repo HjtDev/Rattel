@@ -7,7 +7,7 @@ from jalali_date import date2jalali, datetime2jalali
 from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
 from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
 
-from .models import AdminCallLog, AutomaticPlan, ClassRequest, OnlineCallSession, PlanStep
+from .models import AdminCallLog, AutomaticPlan, ClassRequest, ExtraReviewRange, OnlineCallSession, PlanStep
 
 _JALALI_FORMFIELD_OVERRIDES = {
     models.DateField: {'form_class': JalaliDateField, 'widget': AdminJalaliDateWidget},
@@ -44,6 +44,13 @@ class OnlineCallSessionInline(admin.TabularInline):
     readonly_fields = ('session_number', 'completed_at', 'marked_by')
     ordering = ('session_number',)
     formfield_overrides = _JALALI_FORMFIELD_OVERRIDES
+
+
+class ExtraReviewRangeInline(admin.TabularInline):
+    model = ExtraReviewRange
+    extra = 0
+    fields = ('start_page', 'end_page', 'pages_per_session', 'order')
+    ordering = ('order', 'created_at')
 
 
 @admin.register(ClassRequest)
@@ -107,7 +114,7 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
         'total_steps_display', 'created_at', 'updated_at',
     )
     list_select_related = ('user', 'teacher', 'parent_plan')
-    inlines = [PlanStepInline, AdminCallLogInline, OnlineCallSessionInline]
+    inlines = [ExtraReviewRangeInline, PlanStepInline, AdminCallLogInline, OnlineCallSessionInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -129,13 +136,6 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
             'fields': (
                 'start_page', 'end_page', 'start_date', 'time_to_finish',
                 'time_freq', 'reading_freq', 'review_freq', 'advance_completion_days',
-            ),
-        }),
-        (_('Extra Review Range'), {
-            'classes': ('collapse',),
-            'fields': (
-                'extra_review_start_page', 'extra_review_end_page',
-                'extra_review_pages_per_session',
             ),
         }),
         (_('User Availability'), {

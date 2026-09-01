@@ -545,6 +545,7 @@ class AdminPlanListView(APIView, ResponseBuilderMixin):
             qs = (
                 AutomaticPlan.objects
                 .select_related('user', 'teacher')
+                .prefetch_related('extra_review_ranges')
                 .order_by('-created_at')
             )
             if request.query_params.get('status'):
@@ -607,8 +608,11 @@ class AdminPlanListView(APIView, ResponseBuilderMixin):
 class AdminPlanDetailView(APIView, ResponseBuilderMixin):
     """
     GET    — Full plan detail with all steps and call logs.
-    PATCH  — Update plan fields. Changing schedule fields does NOT regenerate steps automatically
-             (delete the plan and recreate it if a full regeneration is needed).
+    PATCH  — Update plan fields. Schedule-affecting fields (page range, dates,
+             frequency, extra review ranges) are only editable while the plan's
+             steps have not yet been generated (draft or queued); once generated,
+             editing them is refused with a 400 rather than silently desyncing
+             the plan from its already-generated PlanStep rows.
     DELETE — Remove a queued (not yet activated) plan. Any other status is refused.
 
     All three actions are scoped to the requesting teacher's own plans unless
@@ -625,7 +629,10 @@ class AdminPlanDetailView(APIView, ResponseBuilderMixin):
         try:
             qs = (
                 AutomaticPlan.objects
-                .prefetch_related('steps', 'call_logs__called_by', 'call_sessions__marked_by')
+                .prefetch_related(
+                    'steps', 'call_logs__called_by', 'call_sessions__marked_by',
+                    'extra_review_ranges', 'chained_plans__extra_review_ranges',
+                )
                 .select_related('user', 'teacher', 'request')
             )
             return scope_plans(qs, user).get(id=plan_id)
