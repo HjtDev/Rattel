@@ -22,7 +22,7 @@ import Footer from "@/src/components/layout/Footer";
 const siteName = "موسسه فرهنگی اکسیر قرآن";
 const siteUrl = "https://exirequran.ir";
 const siteDescription =
-  "اکسیر قرآن؛ مرجع تخصصی تولیدات رسانه‌ای و سامانه آموزش مجازی علوم قرآن، تدبر، تلاوت و حفظ، با بهره‌گیری از اساتید برجسته در مسیر تعلیم و ترویج فرهنگ اهل‌بیت ع";
+    "اکسیر قرآن؛ مرجع تخصصی تولیدات رسانه‌ای و سامانه آموزش مجازی علوم قرآن، تدبر، تلاوت و حفظ، با بهره‌گیری از اساتید برجسته در مسیر تعلیم و ترویج فرهنگ اهل‌بیت ع";
 const siteKeywords = [
   "اکسیر قرآن",
   "ExireQuran",
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
   referrer: "origin-when-cross-origin",
   keywords: siteKeywords,
   alternates: {
-    canonical: "/",
+    canonical: siteUrl,
     languages: {
       fa: "/",
       "en-US": "/en",
@@ -102,7 +102,7 @@ export const metadata: Metadata = {
     locale: "fa_IR",
     alternateLocale: "en_US",
     url: siteUrl,
-    siteName: "ExireQuran",
+    siteName: siteName,
     title: siteName,
     description: siteDescription,
     emails: ["info@exirequran.ir"],
@@ -131,61 +131,113 @@ export const metadata: Metadata = {
   },
 };
 
+// Rich Structured JSON-LD Data with Entity Graph for AI & Search Engines
+const jsonLdGraph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "EducationalOrganization",
+      "@id": `${siteUrl}/#organization`,
+      name: "ExireQuran",
+      alternateName: ["اکسیر قرآن", "موسسه فرهنگی اکسیر قرآن"],
+      url: siteUrl,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/favicon.ico`,
+      },
+      email: "info@exirequran.ir",
+      founder: {
+        "@type": "Person",
+        name: "Hossein Esfahanian",
+      },
+      sameAs: organizationProfiles,
+      description: siteDescription,
+      inLanguage: ["fa", "en"],
+      knowsAbout: [
+        "Quranic Education",
+        "Tajweed",
+        "Quran Memorization",
+        "Tafsir",
+        "Islamic Studies",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+      url: siteUrl,
+      name: siteName,
+      description: siteDescription,
+      publisher: {
+        "@id": `${siteUrl}/#organization`,
+      },
+      inLanguage: "fa-IR",
+    },
+  ],
+};
+
 export default function RootLayout({
-  children,
-}: Readonly<{
+                                     children,
+                                   }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl">
+      <html lang="fa" dir="rtl">
+      <head>
+        {/* Render JSON-LD graph statically in head for AI crawlers */}
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }}
+        />
+      </head>
       <body>
-        {<Navbar />}
+      <Navbar />
         {children}
-        {<Footer />}
-        <ToastContainer
+      <Footer />
+      <ToastContainer
           position="top-center"
           autoClose={4000}
           hideProgressBar={false}
           closeOnClick
           pauseOnHover
-        />
-        
-        {/* Vendor JS - load in order */}
-        <Script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js" strategy="beforeInteractive" />
-        <Script src="/assets/vendor/tiny-slider/tiny-slider-rtl.js" strategy="lazyOnload" />
-        <Script src="/assets/vendor/glightbox/js/glightbox.js" strategy="lazyOnload" />
-        <Script src="/assets/vendor/purecounterjs/dist/purecounter_vanilla.js" strategy="lazyOnload" />
-        <Script src="/assets/vendor/aos/aos.js" strategy="lazyOnload" />
-        <Script src="/assets/vendor/choices/js/choices.min.js" strategy="lazyOnload" />
-        <Script src="/assets/vendor/sticky-js/sticky.min.js" strategy="lazyOnload" />
-        <Script src="/assets/vendor/overlay-scrollbar/js/overlayscrollbars.min.js" strategy="lazyOnload" />
-        
-        {/* Template JS - must load after vendors */}
-        <Script src="/assets/js/functions.js" strategy="lazyOnload" />
-        <Script
-          id="organization-jsonld"
-          type="application/ld+json"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "EducationalOrganization",
-              name: "ExireQuran",
-              alternateName: "اکسیر قرآن",
-              url: siteUrl,
-              email: "info@exirequran.ir",
-              founder: {
-                "@type": "Person",
-                name: "Hossein Esfahanian",
-              },
-              sameAs: organizationProfiles,
-              description: siteDescription,
-              inLanguage: ["fa", "en"],
-              keywords: siteKeywords.join(", "),
-            }),
-          }}
-        />
+      />
+
+      {/* Vendor JS - load in order */}
+      <Script
+          src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"
+          strategy="beforeInteractive"
+      />
+      <Script
+          src="/assets/vendor/tiny-slider/tiny-slider-rtl.js"
+          strategy="lazyOnload"
+      />
+      <Script
+          src="/assets/vendor/glightbox/js/glightbox.js"
+          strategy="lazyOnload"
+      />
+      <Script
+          src="/assets/vendor/purecounterjs/dist/purecounter_vanilla.js"
+          strategy="lazyOnload"
+      />
+      <Script
+          src="/assets/vendor/aos/aos.js"
+          strategy="lazyOnload"
+      />
+      <Script
+          src="/assets/vendor/choices/js/choices.min.js"
+          strategy="lazyOnload"
+      />
+      <Script
+          src="/assets/vendor/sticky-js/sticky.min.js"
+          strategy="lazyOnload"
+      />
+      <Script
+          src="/assets/vendor/overlay-scrollbar/js/overlayscrollbars.min.js"
+          strategy="lazyOnload"
+      />
+
+      {/* Template JS - must load after vendors */}
+      <Script src="/assets/js/functions.js" strategy="lazyOnload" />
       </body>
-    </html>
+      </html>
   );
 }
