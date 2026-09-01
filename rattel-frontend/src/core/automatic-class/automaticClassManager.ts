@@ -30,6 +30,14 @@ export interface PlanStep {
     is_overdue: boolean;
 }
 
+export interface ExtraReviewRange {
+    id?: string;
+    start_page: number;
+    end_page: number;
+    pages_per_session: number;
+    order?: number;
+}
+
 export interface UserCallSession {
     id: string;
     session_number: number;
@@ -50,9 +58,7 @@ export interface AutomaticPlan {
     reading_freq: string;
     reading_freq_display: string;
     review_freq: number;
-    extra_review_start_page: number | null;
-    extra_review_end_page: number | null;
-    extra_review_pages_per_session: number;
+    extra_review_ranges: ExtraReviewRange[];
     advance_completion_days: number | null;
     user_day_availability: string;
     user_day_availability_display: string;
@@ -113,12 +119,26 @@ export interface AdminClassRequest extends ClassRequest {
     admin_notes: string;
 }
 
+// Everything the plan-edit form needs, so a chained plan can be edited
+// straight from its summary on the parent's detail drawer — no second fetch.
 export interface ChainedPlanSummary {
     id: string;
     start_page: number;
     end_page: number;
     start_date: string;
+    time_to_finish: string | null;
+    time_freq: string;
+    reading_freq: string;
+    review_freq: number;
+    extra_review_ranges: ExtraReviewRange[];
+    advance_completion_days: number | null;
+    user_day_availability: string;
+    user_time_availability: string;
     status: PlanStatus;
+    admin_notes: string;
+    generate_call_sessions: boolean;
+    parent_plan: string | null;
+    _steps_generated: boolean;
 }
 
 export interface AdminPlan extends AutomaticPlan {
@@ -128,9 +148,6 @@ export interface AdminPlan extends AutomaticPlan {
     steps: PlanStep[];
     call_sessions: OnlineCallSession[];
     subscription_info: SubscriptionInfo | null;
-    extra_review_start_page: number | null;
-    extra_review_end_page: number | null;
-    extra_review_pages_per_session: number;
     parent_plan: string | null;
     generate_call_sessions: boolean;
     last_step_date: string | null;
@@ -177,9 +194,7 @@ export interface CreatePlanPayload {
     time_freq: string;
     reading_freq: string;
     review_freq: number;
-    extra_review_start_page?: number | null;
-    extra_review_end_page?: number | null;
-    extra_review_pages_per_session?: number;
+    extra_review_ranges?: ExtraReviewRange[];
     advance_completion_days?: number | null;
     user_day_availability: string;
     user_time_availability: string;

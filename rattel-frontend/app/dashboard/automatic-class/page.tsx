@@ -730,20 +730,22 @@ function AutomaticClassContent() {
                                                 </motion.div>
                                             )}
 
-                                            {/* Extra review range — only shown when configured */}
-                                            {plan.extra_review_pages_per_session > 0 && plan.extra_review_start_page != null && plan.extra_review_end_page != null && (
+                                            {/* Extra review ranges — only shown when configured */}
+                                            {plan.extra_review_ranges && plan.extra_review_ranges.length > 0 && (
                                                 <motion.div className="col-12" variants={fadeInUp}>
                                                     <div className="card border-0 bg-info bg-opacity-10 rounded-3 p-3">
                                                         <div className="d-flex align-items-center gap-2 mb-2">
                                                             <i className="bi bi-arrow-counterclockwise text-info" />
-                                                            <span className="small fw-semibold">بازه مرور اضافی</span>
+                                                            <span className="small fw-semibold">بازه‌های مرور اضافی</span>
                                                         </div>
-                                                        <div className="fw-bold">
-                                                            صفحات {plan.extra_review_start_page} تا {plan.extra_review_end_page}
-                                                            <span className="fw-normal small ms-2">
-                                                                ({plan.extra_review_pages_per_session} صفحه در هر جلسه، حلقوی)
-                                                            </span>
-                                                        </div>
+                                                        {plan.extra_review_ranges.map((r, idx) => (
+                                                            <div className="fw-bold" key={r.id ?? idx}>
+                                                                صفحات {r.start_page} تا {r.end_page}
+                                                                <span className="fw-normal small ms-2">
+                                                                    ({r.pages_per_session} صفحه در هر جلسه، حلقوی)
+                                                                </span>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </motion.div>
                                             )}

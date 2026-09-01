@@ -144,3 +144,6 @@ deploy/backups/
 
 # Pycharm
 .idea/
+
+# graphify is local only for claude
+graphify-out/

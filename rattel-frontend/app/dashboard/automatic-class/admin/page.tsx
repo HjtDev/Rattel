@@ -6,7 +6,7 @@ import DashboardBase from "@/src/components/dashboard/DashboardBase";
 import { useAdminClassPanel } from "@/src/core/hooks/useAdminClassPanel";
 import { toast } from "react-toastify";
 import { fadeInUp, staggerContainer } from "@/src/core/motionVariants";
-import type { ACResult, AdminCallLog, AdminClassRequest, AdminPlan, CallSessionStatus, ChainedPlanSummary, CreatePlanPayload } from "@/src/core/automatic-class/automaticClassManager";
+import type { ACResult, AdminCallLog, AdminClassRequest, AdminPlan, CallSessionStatus, ChainedPlanSummary, CreatePlanPayload, ExtraReviewRange } from "@/src/core/automatic-class/automaticClassManager";
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
@@ -97,33 +97,60 @@ const EMPTY_PLAN: CreatePlanPayload = {
     user_time_availability: "morning",
     status: "draft",
     admin_notes: "",
-    extra_review_start_page: null,
-    extra_review_end_page: null,
-    extra_review_pages_per_session: 0,
+    extra_review_ranges: [],
 };
 
-function CreatePlanModal({
+function PlanFormModal({
     onClose,
     onCreate,
+    onSave,
     prefillRequest,
     chainParent,
+    editPlan,
+    minStartDateFrom,
 }: {
     onClose: () => void;
-    onCreate: (p: CreatePlanPayload) => Promise<void>;
+    onCreate?: (p: CreatePlanPayload) => Promise<void>;
+    onSave?: (id: string, data: Partial<CreatePlanPayload>) => Promise<void>;
     prefillRequest?: AdminClassRequest | null;
     chainParent?: AdminPlan | null;
+    editPlan?: (AdminPlan | ChainedPlanSummary) | null;
+    minStartDateFrom?: AdminPlan | null;
 }) {
     const shouldReduceMotion = useReducedMotion();
-    const minStartDate = chainParent?.last_step_date
-        ? addDaysToGregorian(chainParent.last_step_date, 1)
+    const isEditing = !!editPlan;
+    // Chaining onto a brand-new plan and editing an already-chained plan both
+    // need the same floor: the parent plan's last scheduled step.
+    const minStartDateSource = chainParent ?? minStartDateFrom ?? null;
+    const minStartDate = minStartDateSource?.last_step_date
+        ? addDaysToGregorian(minStartDateSource.last_step_date, 1)
         : null;
-    const [form, setForm] = useState<CreatePlanPayload>({
-        ...EMPTY_PLAN,
-        user: chainParent ? chainParent.user_display.id : prefillRequest?.user ?? "",
-        request: prefillRequest?.id ?? null,
-        parent_plan: chainParent?.id ?? null,
-        status: chainParent ? "queued" : "draft",
-        start_date: minStartDate ?? "",
+    const [form, setForm] = useState<CreatePlanPayload>(() => {
+        if (editPlan) {
+            return {
+                ...EMPTY_PLAN,
+                start_page: editPlan.start_page,
+                end_page: editPlan.end_page,
+                start_date: editPlan.start_date,
+                time_to_finish: editPlan.time_to_finish ?? null,
+                time_freq: editPlan.time_freq,
+                reading_freq: editPlan.reading_freq,
+                review_freq: editPlan.review_freq,
+                extra_review_ranges: editPlan.extra_review_ranges ?? [],
+                advance_completion_days: editPlan.advance_completion_days ?? null,
+                user_day_availability: editPlan.user_day_availability,
+                user_time_availability: editPlan.user_time_availability,
+                admin_notes: editPlan.admin_notes,
+            };
+        }
+        return {
+            ...EMPTY_PLAN,
+            user: chainParent ? chainParent.user_display.id : prefillRequest?.user ?? "",
+            request: prefillRequest?.id ?? null,
+            parent_plan: chainParent?.id ?? null,
+            status: chainParent ? "queued" : "draft",
+            start_date: minStartDate ?? "",
+        };
     });
     const [saving, setSaving] = useState(false);
 
@@ -133,6 +160,35 @@ function CreatePlanModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (saving) return;
+
+        if (isEditing) {
+            if (!form.start_date) {
+                toast.warning("لطفاً تمام فیلدهای اجباری را پر کنید");
+                return;
+            }
+            if (minStartDate && form.start_date < minStartDate) {
+                toast.warning("تاریخ شروع باید بعد از آخرین مرحله برنامه اصلی باشد");
+                return;
+            }
+            setSaving(true);
+            await onSave!(editPlan!.id, {
+                start_page: form.start_page,
+                end_page: form.end_page,
+                start_date: form.start_date,
+                time_to_finish: form.time_to_finish,
+                time_freq: form.time_freq,
+                reading_freq: form.reading_freq,
+                review_freq: form.review_freq,
+                extra_review_ranges: form.extra_review_ranges,
+                advance_completion_days: form.advance_completion_days,
+                user_day_availability: form.user_day_availability,
+                user_time_availability: form.user_time_availability,
+                admin_notes: form.admin_notes,
+            });
+            setSaving(false);
+            return;
+        }
+
         if (!form.user || !form.start_date) {
             toast.warning("لطفاً تمام فیلدهای اجباری را پر کنید");
             return;
@@ -142,7 +198,7 @@ function CreatePlanModal({
             return;
         }
         setSaving(true);
-        await onCreate(form);
+        await onCreate!(form);
         setSaving(false);
     };
 
@@ -150,7 +206,7 @@ function CreatePlanModal({
         <motion.div
             className="modal show d-block"
             tabIndex={-1}
-            style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: chainParent ? 1070 : undefined }}
+            style={{ backgroundColor: "rgba(0,0,0,0.6)", zIndex: (chainParent || isEditing) ? 1070 : undefined }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -165,19 +221,19 @@ function CreatePlanModal({
                 <div className="modal-content rounded-4 border-0 shadow-lg">
                     <div className="modal-header border-0 pb-0 px-4 pt-4">
                         <h5 className="modal-title fw-bold">
-                            <i className="bi bi-plus-circle-fill text-primary me-2" />
-                            {chainParent ? "اضافه کردن فاز بعدی" : "ایجاد برنامه جدید"}
+                            <i className={`bi ${isEditing ? "bi-pencil-square" : "bi-plus-circle-fill"} text-primary me-2`} />
+                            {isEditing ? "ویرایش برنامه" : chainParent ? "اضافه کردن فاز بعدی" : "ایجاد برنامه جدید"}
                         </h5>
                         <button type="button" className="btn-close" onClick={onClose} />
                     </div>
                     <div className="modal-body px-4">
-                        {chainParent && (
+                        {!isEditing && chainParent && (
                             <div className="alert alert-info rounded-3 small mb-4">
                                 <i className="bi bi-link-45deg me-2" />
                                 این برنامه پس از تکمیل برنامه فعلی کاربر <strong>{chainParent.user_display.username}</strong> به‌طور خودکار فعال می‌شود.
                             </div>
                         )}
-                        {!chainParent && prefillRequest && (
+                        {!isEditing && !chainParent && prefillRequest && (
                             <div className="alert alert-info rounded-3 small mb-4">
                                 <i className="bi bi-person-fill me-2" />
                                 کاربر: <strong>{prefillRequest.user_display.username}</strong>
@@ -188,7 +244,7 @@ function CreatePlanModal({
                         )}
                         <form onSubmit={handleSubmit}>
                             <div className="row g-3">
-                                {!prefillRequest && !chainParent && (
+                                {!isEditing && !prefillRequest && !chainParent && (
                                     <div className="col-12">
                                         <label className="form-label fw-semibold">شناسه کاربر *</label>
                                         <input
@@ -239,7 +295,7 @@ function CreatePlanModal({
                                     />
                                     {minStartDate && (
                                         <div className="mt-1" style={{ fontSize: "0.72rem" }}>
-                                            نمی‌تواند قبل یا برابر با آخرین مرحله برنامه اصلی ({formatDate(chainParent?.last_step_date)}) باشد.
+                                            نمی‌تواند قبل یا برابر با آخرین مرحله برنامه اصلی ({formatDate(minStartDateSource?.last_step_date)}) باشد.
                                         </div>
                                     )}
                                 </div>
@@ -296,7 +352,7 @@ function CreatePlanModal({
                                         <option className="text-rtl" value="evening">۷ شب تا ۹ شب</option>
                                     </select>
                                 </div>
-                                {!chainParent && (
+                                {!isEditing && !chainParent && (
                                     <div className="col-sm-6">
                                         <label className="form-label fw-semibold">وضعیت اولیه</label>
                                         <select className="form-select rounded-3 text-rtl" dir="rtl" value={form.status} onChange={(e) => set("status", e.target.value)}>
@@ -305,7 +361,7 @@ function CreatePlanModal({
                                         </select>
                                     </div>
                                 )}
-                                {chainParent && (
+                                {!isEditing && chainParent && (
                                     <div className="col-sm-6 d-flex align-items-end">
                                         <div className="form-check">
                                             <input
@@ -332,50 +388,86 @@ function CreatePlanModal({
                                     />
                                 </div>
 
-                                {/* Extra review range — optional */}
+                                {/* Extra review ranges — optional, unlimited, all advance in parallel */}
                                 <div className="col-12">
                                     <div className="border rounded-3 p-3 bg-light">
-                                        <div className="fw-semibold small mb-2 text-secondary">
-                                            <i className="bi bi-arrow-repeat me-2" />
-                                            بازه مرور اضافی (اختیاری)
+                                        <div className="d-flex align-items-center justify-content-between mb-2">
+                                            <div className="fw-semibold small text-secondary">
+                                                <i className="bi bi-arrow-repeat me-2" />
+                                                بازه‌های مرور اضافی (اختیاری)
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="btn btn-sm btn-outline-primary rounded-pill py-0 px-2"
+                                                onClick={() => set("extra_review_ranges", [
+                                                    ...(form.extra_review_ranges ?? []),
+                                                    { start_page: 1, end_page: 1, pages_per_session: 1 },
+                                                ])}
+                                            >
+                                                <i className="bi bi-plus-lg me-1" />افزودن بازه
+                                            </button>
                                         </div>
-                                        <div className="row g-2">
-                                            <div className="col-sm-4">
-                                                <label className="form-label small">صفحه شروع</label>
-                                                <input
-                                                    type="number"
-                                                    className="form-control form-control-sm rounded-3"
-                                                    min={1}
-                                                    value={form.extra_review_start_page ?? ""}
-                                                    onChange={(e) => set("extra_review_start_page", e.target.value ? +e.target.value : null)}
-                                                    placeholder="مثلاً ۱"
-                                                />
-                                            </div>
-                                            <div className="col-sm-4">
-                                                <label className="form-label small">صفحه پایان</label>
-                                                <input
-                                                    type="number"
-                                                    className="form-control form-control-sm rounded-3"
-                                                    min={form.extra_review_start_page ?? 1}
-                                                    value={form.extra_review_end_page ?? ""}
-                                                    onChange={(e) => set("extra_review_end_page", e.target.value ? +e.target.value : null)}
-                                                    placeholder="مثلاً ۵۰"
-                                                />
-                                            </div>
-                                            <div className="col-sm-4">
-                                                <label className="form-label small">حجم مرور(صفحه)</label>
-                                                <input
-                                                    type="number"
-                                                    className="form-control form-control-sm rounded-3"
-                                                    min={0}
-                                                    value={form.extra_review_pages_per_session ?? 0}
-                                                    onChange={(e) => set("extra_review_pages_per_session", +e.target.value)}
-                                                    placeholder="۰"
-                                                />
-                                            </div>
-                                        </div>
+                                        {(form.extra_review_ranges ?? []).length === 0 && (
+                                            <div className="small text-muted">بازه‌ای تعریف نشده است.</div>
+                                        )}
+                                        {(form.extra_review_ranges ?? []).map((range, idx) => {
+                                            const updateRange = (patch: Partial<ExtraReviewRange>) => {
+                                                const next = [...(form.extra_review_ranges ?? [])];
+                                                next[idx] = { ...next[idx], ...patch };
+                                                set("extra_review_ranges", next);
+                                            };
+                                            return (
+                                                <div className="row g-2 align-items-end mb-2" key={idx}>
+                                                    <div className="col-sm-3">
+                                                        <label className="form-label small">صفحه شروع</label>
+                                                        <input
+                                                            type="number"
+                                                            className="form-control form-control-sm rounded-3"
+                                                            min={1}
+                                                            value={range.start_page}
+                                                            onChange={(e) => updateRange({ start_page: +e.target.value })}
+                                                            placeholder="مثلاً ۱"
+                                                        />
+                                                    </div>
+                                                    <div className="col-sm-3">
+                                                        <label className="form-label small">صفحه پایان</label>
+                                                        <input
+                                                            type="number"
+                                                            className="form-control form-control-sm rounded-3"
+                                                            min={range.start_page}
+                                                            value={range.end_page}
+                                                            onChange={(e) => updateRange({ end_page: +e.target.value })}
+                                                            placeholder="مثلاً ۵۰"
+                                                        />
+                                                    </div>
+                                                    <div className="col-sm-4">
+                                                        <label className="form-label small">حجم مرور (صفحه)</label>
+                                                        <input
+                                                            type="number"
+                                                            className="form-control form-control-sm rounded-3"
+                                                            min={1}
+                                                            value={range.pages_per_session}
+                                                            onChange={(e) => updateRange({ pages_per_session: +e.target.value })}
+                                                            placeholder="۱"
+                                                        />
+                                                    </div>
+                                                    <div className="col-sm-2">
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-sm btn-outline-danger rounded-3 w-100"
+                                                            onClick={() => set(
+                                                                "extra_review_ranges",
+                                                                (form.extra_review_ranges ?? []).filter((_, i) => i !== idx),
+                                                            )}
+                                                        >
+                                                            <i className="bi bi-trash" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                         <div className="mt-1" style={{ fontSize: "0.72rem" }}>
-                                            در صورت تنظیم، هر جلسه یک بخش مرور اضافی از این بازه صفحات دریافت می‌کند (حلقوی).
+                                            هر بازه در هر جلسه یک بخش مرور اضافی جداگانه دریافت می‌کند و همه بازه‌ها هم‌زمان و طبق یک زمان‌بندی پیش می‌روند، نه پشت‌سرهم.
                                         </div>
                                     </div>
                                 </div>
@@ -385,7 +477,7 @@ function CreatePlanModal({
                                     لغو
                                 </button>
                                 <button type="submit" className="btn btn-primary rounded-pill px-4" disabled={saving}>
-                                    {saving ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-check-lg me-1" />{chainParent ? "زنجیره کردن" : "ایجاد برنامه"}</>}
+                                    {saving ? <span className="spinner-border spinner-border-sm" /> : <><i className="bi bi-check-lg me-1" />{isEditing ? "ذخیره تغییرات" : chainParent ? "زنجیره کردن" : "ایجاد برنامه"}</>}
                                 </button>
                             </div>
                         </form>
@@ -576,6 +668,7 @@ function PlanDetailDrawer({
     onUpdateCallSession,
     onChain,
     onDeleteChainedPlan,
+    onEditPlan,
 }: {
     plan: AdminPlan;
     callLogs: AdminCallLog[];
@@ -586,6 +679,7 @@ function PlanDetailDrawer({
     onUpdateCallSession: (sessionId: string, status: CallSessionStatus) => void;
     onChain: (plan: AdminPlan) => void;
     onDeleteChainedPlan: (chained: ChainedPlanSummary) => void;
+    onEditPlan: (target: AdminPlan | ChainedPlanSummary, minStartDateFrom: AdminPlan | null) => void;
 }) {
     const shouldReduceMotion = useReducedMotion();
     const [callNotes, setCallNotes] = useState("");
@@ -656,6 +750,11 @@ function PlanDetailDrawer({
                                 <div className="d-flex align-items-center justify-content-between mb-3">
                                     <h6 className="fw-bold mb-0">مراحل ({plan.steps?.length ?? 0})</h6>
                                     <div className="d-flex gap-2">
+                                        {!plan._steps_generated && (
+                                            <button className="btn btn-outline-secondary btn-sm rounded-pill" onClick={() => onEditPlan(plan, null)}>
+                                                <i className="bi bi-pencil-square me-1" />ویرایش
+                                            </button>
+                                        )}
                                         {plan.status === "draft" && (
                                             <button className="btn btn-success btn-sm rounded-pill" onClick={() => onStatusChange("active")}>
                                                 <i className="bi bi-play-fill me-1" />فعال‌سازی
@@ -769,13 +868,15 @@ function PlanDetailDrawer({
                                             </div>
                                         ))}
                                     </div>
-                                    {plan.extra_review_pages_per_session > 0 && plan.extra_review_start_page != null && plan.extra_review_end_page != null && (
+                                    {plan.extra_review_ranges && plan.extra_review_ranges.length > 0 && (
                                         <div className="mt-2 bg-white rounded-3 p-2 text-center">
                                             <div className="small">مرور اضافی</div>
-                                            <div className="fw-semibold small">
-                                                ص {plan.extra_review_start_page}–{plan.extra_review_end_page}
-                                                <span className="fw-normal ms-1">({plan.extra_review_pages_per_session} صفحه/جلسه)</span>
-                                            </div>
+                                            {plan.extra_review_ranges.map((r, idx) => (
+                                                <div className="fw-semibold small" key={r.id ?? idx}>
+                                                    ص {r.start_page}–{r.end_page}
+                                                    <span className="fw-normal ms-1">({r.pages_per_session} صفحه/جلسه)</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                     {/* Progress bar */}
@@ -813,10 +914,15 @@ function PlanDetailDrawer({
                                             {" · "}
                                             شروع از {formatDate(plan.chained_plan.start_date)}
                                         </div>
-                                        <div className="mt-1" style={{ fontSize: "0.72rem" }}>
-                                            برای ویرایش پارامترها از پنل ادمین جنگو استفاده کنید.
-                                        </div>
                                         <div className="d-flex gap-2 mt-2">
+                                            {!plan.chained_plan._steps_generated && (
+                                                <button
+                                                    className="btn btn-sm btn-outline-secondary rounded-pill"
+                                                    onClick={() => onEditPlan(plan.chained_plan!, plan)}
+                                                >
+                                                    <i className="bi bi-pencil-square me-1" />ویرایش
+                                                </button>
+                                            )}
                                             <button className="btn btn-sm btn-outline-danger rounded-pill" onClick={() => setShowDeleteChainedConfirm(true)}>
                                                 <i className="bi bi-trash me-1" />حذف
                                             </button>
@@ -1002,6 +1108,8 @@ function AdminClassContent() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createFromRequest, setCreateFromRequest] = useState<AdminClassRequest | null>(null);
     const [chainParent, setChainParent] = useState<AdminPlan | null>(null);
+    const [editPlan, setEditPlan] = useState<AdminPlan | ChainedPlanSummary | null>(null);
+    const [editMinStartDateFrom, setEditMinStartDateFrom] = useState<AdminPlan | null>(null);
     const hasFetched = useRef(false);
 
     // Distinct students across every plan the teacher currently has loaded —
@@ -1059,6 +1167,27 @@ function AdminClassContent() {
     const handleOpenChain = (plan: AdminPlan) => {
         setChainParent(plan);
         setShowCreateModal(true);
+    };
+
+    const handleOpenEditPlan = (target: AdminPlan | ChainedPlanSummary, minStartDateFrom: AdminPlan | null) => {
+        setEditPlan(target);
+        setEditMinStartDateFrom(minStartDateFrom);
+    };
+
+    const handleCloseEditPlan = () => {
+        setEditPlan(null);
+        setEditMinStartDateFrom(null);
+    };
+
+    const handleSaveEditPlan = async (id: string, data: Partial<CreatePlanPayload>) => {
+        const result = await updatePlan(id, data);
+        if (result.success) {
+            toast.success("برنامه به‌روز شد");
+            handleCloseEditPlan();
+            if (activePlan) fetchAdminPlanDetail(activePlan.id);
+        } else {
+            toast.error(result.message || "خطا در به‌روزرسانی برنامه");
+        }
     };
 
     const handleSelectHistoryUser = (userId: string) => {
@@ -1439,11 +1568,19 @@ function AdminClassContent() {
             {/* Modals */}
             <AnimatePresence>
                 {showCreateModal && (
-                    <CreatePlanModal
+                    <PlanFormModal
                         onClose={() => { setShowCreateModal(false); setCreateFromRequest(null); setChainParent(null); }}
                         onCreate={handleCreatePlan}
                         prefillRequest={createFromRequest}
                         chainParent={chainParent}
+                    />
+                )}
+                {editPlan && (
+                    <PlanFormModal
+                        onClose={handleCloseEditPlan}
+                        onSave={handleSaveEditPlan}
+                        editPlan={editPlan}
+                        minStartDateFrom={editMinStartDateFrom}
                     />
                 )}
                 {activePlan && (
@@ -1457,6 +1594,7 @@ function AdminClassContent() {
                         onUpdateCallSession={handleUpdateCallSession}
                         onChain={handleOpenChain}
                         onDeleteChainedPlan={handleDeleteChainedPlan}
+                        onEditPlan={handleOpenEditPlan}
                     />
                 )}
             </AnimatePresence>

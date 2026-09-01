@@ -1,6 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
-from .models import AutomaticPlan, ClassRequest, PlanStep, AdminCallLog, OnlineCallSession
+from .models import AutomaticPlan, ClassRequest, PlanStep, AdminCallLog, OnlineCallSession, ExtraReviewRange
 
 
 class ClassRequestSerializer(serializers.ModelSerializer):
@@ -80,6 +80,23 @@ class PlanStepSerializer(serializers.ModelSerializer):
         return timezone.now().date() > obj.scheduled_date
 
 
+class ExtraReviewRangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExtraReviewRange
+        fields = ('id', 'start_page', 'end_page', 'pages_per_session', 'order')
+        read_only_fields = ('id', 'order')
+
+    def validate(self, attrs):
+        start_page = attrs.get('start_page')
+        end_page = attrs.get('end_page')
+        if start_page is not None and end_page is not None and end_page < start_page:
+            raise serializers.ValidationError({'end_page': 'End page must be greater than or equal to start page.'})
+        pages_per_session = attrs.get('pages_per_session')
+        if pages_per_session is not None and pages_per_session < 1:
+            raise serializers.ValidationError({'pages_per_session': 'Pages per session must be at least 1.'})
+        return attrs
+
+
 class AutomaticPlanSerializer(serializers.ModelSerializer):
     """Read-only plan representation for the student dashboard."""
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -97,6 +114,7 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
     progress_percent = serializers.IntegerField(read_only=True)
     call_sessions = serializers.SerializerMethodField()
     has_chained_plan = serializers.SerializerMethodField()
+    extra_review_ranges = ExtraReviewRangeSerializer(many=True, read_only=True)
 
     class Meta:
         model = AutomaticPlan
@@ -105,7 +123,7 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
             'time_freq', 'time_freq_display',
             'reading_freq', 'reading_freq_display',
             'review_freq',
-            'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'extra_review_ranges',
             'advance_completion_days',
             'user_day_availability', 'user_day_availability_display',
             'user_time_availability', 'user_time_availability_display',
@@ -147,13 +165,15 @@ class AutomaticPlanSerializer(serializers.ModelSerializer):
 class AdminPlanCreateSerializer(serializers.ModelSerializer):
     """Used by admins to create a plan for a user."""
 
+    extra_review_ranges = ExtraReviewRangeSerializer(many=True, required=False)
+
     class Meta:
         model = AutomaticPlan
         fields = (
             'id', 'request', 'user', 'parent_plan', 'generate_call_sessions',
             'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
-            'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'extra_review_ranges',
             'advance_completion_days',
             'user_day_availability', 'user_time_availability',
             'status', 'admin_notes',
@@ -182,9 +202,44 @@ class AdminPlanCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'start_date': "The chained plan must start after the parent plan's last step."})
         return attrs
 
+    def create(self, validated_data):
+        ranges = validated_data.pop('extra_review_ranges', [])
+
+        # AutomaticPlan.save() generates steps synchronously the moment a plan
+        # is first saved with status=ACTIVE, reading self.extra_review_ranges
+        # at that instant. If the caller creates directly with status=active,
+        # create as draft first so the ranges below exist before promoting —
+        # otherwise generation would run against an empty range set.
+        activating_now = validated_data.get('status') == AutomaticPlan.Status.ACTIVE
+        if activating_now:
+            validated_data['status'] = AutomaticPlan.Status.DRAFT
+
+        plan = super().create(validated_data)
+        ExtraReviewRange.objects.bulk_create([
+            ExtraReviewRange(plan=plan, order=i, **r) for i, r in enumerate(ranges)
+        ])
+
+        if activating_now:
+            plan.status = AutomaticPlan.Status.ACTIVE
+            plan.save()
+        return plan
+
 
 class AdminPlanUpdateSerializer(serializers.ModelSerializer):
     """Partial update serializer for admins — cannot change user once set."""
+
+    # Fields that shape step generation. Once a plan's steps exist
+    # (`_steps_generated`), changing any of these would silently desync the
+    # plan record from the already-generated PlanStep rows, so they're locked.
+    # Everything else (status, admin_notes, availability, advance_completion_days,
+    # generate_call_sessions, time_to_finish, parent_plan) stays editable always —
+    # `status` in particular must remain open so draft → active activation works.
+    LOCKED_AFTER_GENERATION = (
+        'start_page', 'end_page', 'start_date',
+        'time_freq', 'reading_freq', 'review_freq', 'extra_review_ranges',
+    )
+
+    extra_review_ranges = ExtraReviewRangeSerializer(many=True, required=False)
 
     class Meta:
         model = AutomaticPlan
@@ -192,11 +247,19 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
             'parent_plan', 'generate_call_sessions',
             'start_page', 'end_page', 'start_date', 'time_to_finish',
             'time_freq', 'reading_freq', 'review_freq',
-            'extra_review_start_page', 'extra_review_end_page', 'extra_review_pages_per_session',
+            'extra_review_ranges',
             'advance_completion_days',
             'user_day_availability', 'user_time_availability',
             'status', 'admin_notes',
         )
+
+    def _ranges_changed(self, instance, new_ranges):
+        existing = list(
+            instance.extra_review_ranges.order_by('order', 'created_at')
+            .values_list('start_page', 'end_page', 'pages_per_session')
+        )
+        incoming = [(r['start_page'], r['end_page'], r['pages_per_session']) for r in new_ranges]
+        return existing != incoming
 
     def validate(self, attrs):
         instance = self.instance
@@ -206,6 +269,20 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
 
         if start_page and end_page and start_page >= end_page:
             raise serializers.ValidationError({'end_page': 'End page must be greater than start page.'})
+
+        if instance and instance._steps_generated:
+            errors = {}
+            for field in self.LOCKED_AFTER_GENERATION:
+                if field not in attrs:
+                    continue
+                if field == 'extra_review_ranges':
+                    if self._ranges_changed(instance, attrs[field]):
+                        errors[field] = "Cannot be changed after the plan's steps have been generated."
+                    continue
+                if attrs[field] != getattr(instance, field):
+                    errors[field] = "Cannot be changed after the plan's steps have been generated."
+            if errors:
+                raise serializers.ValidationError(errors)
 
         if instance and instance.status == AutomaticPlan.Status.QUEUED:
             new_status = attrs.get('status', instance.status)
@@ -217,6 +294,18 @@ class AdminPlanUpdateSerializer(serializers.ModelSerializer):
             if last_step_date and start_date and start_date <= last_step_date:
                 raise serializers.ValidationError({'start_date': "The chained plan must start after the parent plan's last step."})
         return attrs
+
+    def update(self, instance, validated_data):
+        ranges = validated_data.pop('extra_review_ranges', None)
+        if ranges is not None:
+            # Full-replace: written before super().update() saves the instance,
+            # so if this same PATCH also activates the plan, generation reads
+            # the new ranges rather than the stale (or empty) old set.
+            instance.extra_review_ranges.all().delete()
+            ExtraReviewRange.objects.bulk_create([
+                ExtraReviewRange(plan=instance, order=i, **r) for i, r in enumerate(ranges)
+            ])
+        return super().update(instance, validated_data)
 
 
 class AdminPlanListSerializer(AutomaticPlanSerializer):
@@ -293,12 +382,29 @@ class AdminPlanDetailSerializer(AutomaticPlanSerializer):
         child = obj.chained_plans.filter(status=AutomaticPlan.Status.QUEUED).order_by('created_at').first()
         if not child:
             return None
+        # Includes every field the plan-edit form needs so the frontend can
+        # open the edit modal on a chained plan straight from its summary,
+        # with no second fetch and no clobbering of the parent's activePlan.
         return {
             'id': str(child.id),
             'start_page': child.start_page,
             'end_page': child.end_page,
             'start_date': child.start_date,
+            'time_to_finish': child.time_to_finish,
+            'time_freq': child.time_freq,
+            'reading_freq': child.reading_freq,
+            'review_freq': child.review_freq,
+            'extra_review_ranges': ExtraReviewRangeSerializer(
+                child.extra_review_ranges.all(), many=True,
+            ).data,
+            'advance_completion_days': child.advance_completion_days,
+            'user_day_availability': child.user_day_availability,
+            'user_time_availability': child.user_time_availability,
             'status': child.status,
+            'admin_notes': child.admin_notes,
+            'generate_call_sessions': child.generate_call_sessions,
+            'parent_plan': str(child.parent_plan_id) if child.parent_plan_id else None,
+            '_steps_generated': child._steps_generated,
         }
 
     def get_subscription_info(self, obj):
