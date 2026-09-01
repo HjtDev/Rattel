@@ -604,6 +604,8 @@ function QuizPlayPage() {
                                                                 style={{
                                                                     minHeight: "52px",
                                                                     fontSize: "0.9rem",
+                                                                    whiteSpace: "normal",
+                                                                    wordBreak: "break-word",
                                                                     backgroundColor: isSelected
                                                                         ? "#0d6efd"
                                                                         : color
@@ -641,6 +643,8 @@ function QuizPlayPage() {
                                                                 style={{
                                                                     minHeight: "52px",
                                                                     fontSize: "0.9rem",
+                                                                    whiteSpace: "normal",
+                                                                    wordBreak: "break-word",
                                                                     backgroundColor: color
                                                                         ? color.bg
                                                                         : "transparent",
@@ -667,37 +671,34 @@ function QuizPlayPage() {
                                         </div>
                                         );
                                     })() : (
-                                        <div
-                                            style={{
-                                                display: "grid",
-                                                gridTemplateColumns: "repeat(2, 1fr)",
-                                                gap: "12px",
-                                            }}
-                                        >
+                                        <div className="row g-3">
                                             {currentQuestion.options.map((option) => {
                                                 const style = getOptionStyle(option.id);
                                                 return (
-                                                    <motion.button
-                                                        key={option.id}
-                                                        className={`btn text-start p-3 rounded-3 border-2 w-100 ${style}`}
-                                                        style={{
-                                                            cursor: confirmedOptionId ? "default" : "pointer",
-                                                            minHeight: "72px",
-                                                            fontSize: "0.95rem",
-                                                            transition: "all 0.2s",
-                                                        }}
-                                                        onClick={() => handleOptionSelect(option.id)}
-                                                        whileTap={confirmedOptionId ? {} : { scale: 0.97 }}
-                                                        animate={
-                                                            confirmedOptionId && revealResult
-                                                                ? option.id === revealResult.correct_option_id
-                                                                    ? { scale: [1, 1.03, 1] }
+                                                    <div className="col-12 col-sm-6" key={option.id}>
+                                                        <motion.button
+                                                            className={`btn text-start p-3 rounded-3 border-2 w-100 h-100 ${style}`}
+                                                            style={{
+                                                                cursor: confirmedOptionId ? "default" : "pointer",
+                                                                minHeight: "72px",
+                                                                fontSize: "0.95rem",
+                                                                whiteSpace: "normal",
+                                                                wordBreak: "break-word",
+                                                                transition: "all 0.2s",
+                                                            }}
+                                                            onClick={() => handleOptionSelect(option.id)}
+                                                            whileTap={confirmedOptionId ? {} : { scale: 0.97 }}
+                                                            animate={
+                                                                confirmedOptionId && revealResult
+                                                                    ? option.id === revealResult.correct_option_id
+                                                                        ? { scale: [1, 1.03, 1] }
+                                                                        : {}
                                                                     : {}
-                                                                : {}
-                                                        }
-                                                    >
-                                                        <span>{option.text}</span>
-                                                    </motion.button>
+                                                            }
+                                                        >
+                                                            <span>{option.text}</span>
+                                                        </motion.button>
+                                                    </div>
                                                 );
                                             })}
                                         </div>
