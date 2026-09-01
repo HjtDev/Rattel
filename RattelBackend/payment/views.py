@@ -70,7 +70,25 @@ class PaymentStartView(APIView, ResponseBuilderMixin, GetDataMixin):
                 error=-1,
                 message=result
             )
-        
+
+        from cart.models import CartItem
+
+        invalid_reasons = []
+        for cart_item in CartItem.for_user(request.user):
+            item = cart_item.item
+            if hasattr(item, 'can_be_finalized'):
+                allowed, reason = item.can_be_finalized(request.user)
+                if not allowed:
+                    invalid_reasons.append(reason)
+
+        if invalid_reasons:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False,
+                error=-4,
+                message=invalid_reasons,
+            )
+
         extra_kwargs = {
             'allowed_cards': request.data.get('allowed_cards', None),
             'national_code': request.data.get('national_code', None),

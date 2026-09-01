@@ -1,0 +1,99 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:media_cleanup_mediasweeprun_changelist' %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; {% trans 'Media Sweep' %}
+  </div>
+{% endblock %}
+
+{% block content %}
+  <p style="direction: rtl">
+    {% blocktrans count counter=orphans|length %}
+      Found {{ counter }} orphaned file, reclaiming {{ total_bytes_display }}.
+    {% plural %}
+      Found {{ counter }} orphaned files, reclaiming {{ total_bytes_display }}.
+    {% endblocktrans %}
+  </p>
+    &nbsp;
+  <p>
+    {% trans 'Files under the excluded prefixes (e.g. editor uploads) and files modified too recently are never listed here.' %}
+  </p>
+
+  {% if orphans %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="module">
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <input type="checkbox" id="select-all" checked>
+              </th>
+              <th>{% trans 'Path' %}</th>
+              <th>{% trans 'Size' %}</th>
+              <th>{% trans 'Modified' %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for orphan in orphans %}
+              <tr>
+                <td><input type="checkbox" name="path" value="{{ orphan.path }}" checked></td>
+                <td>{{ orphan.path }}</td>
+                <td>{{ orphan.size_display }}</td>
+                <td>{{ orphan.modified_jalali }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="submit-row">
+        <input type="submit"
+               value="{% trans 'Delete selected files' %}"
+               class="default"
+               onclick="return confirm('{% trans "This permanently deletes the selected files. Continue?" %}');">
+        <a href="{% url 'admin:media_cleanup_mediasweeprun_changelist' %}" class="button cancel-link">
+          {% trans 'Cancel' %}
+        </a>
+      </p>
+    </form>
+    <script>
+      document.getElementById('select-all').addEventListener('change', function (e) {
+        document.querySelectorAll('input[name="path"]').forEach(function (cb) {
+          cb.checked = e.target.checked;
+        });
+      });
+    </script>
+  {% else %}
+    <p><strong>{% trans 'No orphaned files found.' %}</strong></p>
+  {% endif %}
+
+  {% if missing %}
+    <h2>{% trans 'Referenced but missing on disk' %}</h2>
+    <p>{% trans 'These rows point at a file that no longer exists. They are informational only and nothing here is deleted automatically.' %}</p>
+    <div class="module">
+      <table>
+        <thead>
+          <tr>
+            <th>{% trans 'Model' %}</th>
+            <th>{% trans 'Object ID' %}</th>
+            <th>{% trans 'Field' %}</th>
+            <th>{% trans 'Path' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in missing %}
+            <tr>
+              <td>{{ row.model_label }}</td>
+              <td>{{ row.object_id }}</td>
+              <td>{{ row.field_name }}</td>
+              <td>{{ row.path }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% endblock %}

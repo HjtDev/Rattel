@@ -106,17 +106,29 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
         'id', '_steps_generated', 'progress_display',
         'total_steps_display', 'created_at', 'updated_at',
     )
-    list_select_related = ('user', 'teacher')
+    list_select_related = ('user', 'teacher', 'parent_plan')
     inlines = [PlanStepInline, AdminCallLogInline, OnlineCallSessionInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(teacher=request.user)
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        if not request.user.is_superuser:
+            fields.append('teacher')
+        return fields
 
     fieldsets = (
         (_('Participants'), {
-            'fields': ('id', 'request', 'user', 'teacher'),
+            'fields': ('id', 'request', 'user', 'teacher', 'parent_plan'),
         }),
         (_('Plan Parameters'), {
             'fields': (
                 'start_page', 'end_page', 'start_date', 'time_to_finish',
-                'time_freq', 'reading_freq', 'review_freq',
+                'time_freq', 'reading_freq', 'review_freq', 'advance_completion_days',
             ),
         }),
         (_('Extra Review Range'), {
@@ -130,7 +142,7 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
             'fields': ('user_day_availability', 'user_time_availability'),
         }),
         (_('Status & Notes'), {
-            'fields': ('status', 'admin_notes'),
+            'fields': ('status', 'generate_call_sessions', 'admin_notes'),
         }),
         (_('Progress'), {
             'fields': ('_steps_generated', 'total_steps_display', 'progress_display'),
@@ -146,6 +158,8 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
 
     @admin.display(description=_('Finish Date'))
     def time_to_finish_jalali(self, obj):
+        if not obj.time_to_finish:
+            return '-'
         return date2jalali(obj.time_to_finish).strftime('%Y/%m/%d')
 
     @admin.display(description=_('Created At'))
@@ -160,6 +174,7 @@ class AutomaticPlanAdmin(admin.ModelAdmin):
     def status_badge(self, obj):
         colors = {
             AutomaticPlan.Status.DRAFT: '#aaa',
+            AutomaticPlan.Status.QUEUED: '#f0ad4e',
             AutomaticPlan.Status.ACTIVE: '#5cb85c',
             AutomaticPlan.Status.COMPLETED: '#337ab7',
             AutomaticPlan.Status.CANCELLED: '#d9534f',
@@ -197,6 +212,12 @@ class PlanStepAdmin(admin.ModelAdmin):
     ordering = ('plan', 'step_number')
     readonly_fields = ('id', 'is_delayed', 'original_scheduled_date', 'completed_at', 'created_at')
     list_select_related = ('plan__user',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(plan__teacher=request.user)
 
     fieldsets = (
         (_('Step'), {
@@ -252,6 +273,12 @@ class AdminCallLogAdmin(admin.ModelAdmin):
     readonly_fields = ('id', 'created_at')
     list_select_related = ('called_by', 'plan__user')
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(plan__teacher=request.user)
+
     @admin.display(description=_('Call Date'))
     def call_date_jalali(self, obj):
         return datetime2jalali(timezone.localtime(obj.call_date)).strftime('%Y/%m/%d %H:%M')
@@ -270,6 +297,12 @@ class OnlineCallSessionAdmin(admin.ModelAdmin):
     ordering = ('plan', 'session_number')
     readonly_fields = ('id', 'completed_at', 'marked_by', 'created_at')
     list_select_related = ('plan__user', 'marked_by')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(plan__teacher=request.user)
 
     @admin.display(description=_('Completed At'))
     def completed_at_jalali(self, obj):

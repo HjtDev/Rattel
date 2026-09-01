@@ -167,7 +167,7 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                     <i className="bi bi-patch-question-fill fa-fw me-2"></i>
                                                     آزمون‌ها
                                                 </a>
-                                                {(user as any)?.is_staff && (
+                                                {user?.is_staff && (
                                                     <a className={`list-group-item ${isLinkActive("/quiz/admin", pathname, true) ? "active" : ""}`} href="/quiz/admin">
                                                         <i className="bi bi-shield-check fa-fw me-2"></i>
                                                         مدیریت آزمون‌ها
@@ -176,9 +176,9 @@ export default function DashboardBase({Content}: DashboardContent) {
                                                 <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class", pathname, true) ? "active" : ""}`} href="/dashboard/automatic-class">
                                                     <i className="bi bi-journal-bookmark-fill fa-fw me-2">
                                                     </i>
-                                                    کلاس خودکار حفظ
+                                                    سامانه حفظ مجازی
                                                 </a>
-                                                {user?.profile?.role === 'teacher' && (
+                                                {(user?.is_staff || user?.is_superuser || user?.profile?.role === 'teacher') && (
                                                     <a className={`list-group-item ${isLinkActive("/dashboard/automatic-class/admin", pathname) ? "active" : ""}`} href="/dashboard/automatic-class/admin">
                                                         <i className="bi bi-shield-check fa-fw me-2">
                                                         </i>

@@ -11,6 +11,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+      # postgres:18 images default PGDATA to /var/lib/postgresql/18/docker, NOT
+      # /var/lib/postgresql/data — without this override the volume below mounts
+      # to an unused empty path while real data lives in the container's ephemeral
+      # writable layer, so `docker compose down` silently destroys the database.
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

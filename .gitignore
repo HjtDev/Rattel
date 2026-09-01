@@ -138,5 +138,9 @@ rattel-frontend/public
 
 # Deploy
 deploy/*.*.env*
+deploy/backups/
 
 .obsidian/
+
+# Pycharm
+.idea/

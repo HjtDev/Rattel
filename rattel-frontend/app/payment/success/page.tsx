@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/src/core/api";
 import { cartManager } from "@/src/core/cart/cartManager";
+import { formatApiMessage } from "@/src/core/utils";
 
 type FinalizeState = "loading" | "success" | "error";
 
@@ -13,6 +14,7 @@ function PaymentSuccessContent() {
 
     const [state, setState] = useState<FinalizeState>("loading");
     const [errorMessage, setErrorMessage] = useState("");
+    const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
     const called = useRef(false);  // guard against React strict-mode double-invoke
 
     useEffect(() => {
@@ -33,10 +35,15 @@ function PaymentSuccessContent() {
 
                 if (response.data.success) {
                     await cartManager.refresh();
+                    setUnavailableItems(
+                        Array.isArray(response.data.unavailable_items)
+                            ? response.data.unavailable_items
+                            : []
+                    );
                     setState("success");
                 } else {
                     setState("error");
-                    setErrorMessage(response.data.message || "خطا در نهایی‌سازی خرید");
+                    setErrorMessage(formatApiMessage(response.data.message, "خطا در نهایی‌سازی خرید"));
                 }
             } catch (err: any) {
                 const status = err.response?.status;
@@ -47,7 +54,7 @@ function PaymentSuccessContent() {
                 } else {
                     setState("error");
                     setErrorMessage(
-                        err.response?.data?.message || "خطا در اتصال به سرور"
+                        formatApiMessage(err.response?.data?.message, "خطا در اتصال به سرور")
                     );
                 }
             }
@@ -82,6 +89,22 @@ function PaymentSuccessContent() {
                 <p className="mb-4">
                     اشتراک/دوره ها به داشبورد حساب کاربری اضافه شد.
                 </p>
+                {unavailableItems.length > 0 && (
+                    <div className="alert alert-warning text-start mb-4">
+                        <p className="mb-2 fw-bold">
+                            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                            برخی موارد سبد خرید دیگر در دسترس نبودند و ثبت نشدند:
+                        </p>
+                        <ul className="mb-2 ps-4">
+                            {unavailableItems.map((reason, i) => (
+                                <li key={i}>{reason}</li>
+                            ))}
+                        </ul>
+                        <p className="small mb-0">
+                            مبلغ پرداختی برای این موارد کسر شده است. لطفاً جهت بازگشت وجه با پشتیبانی تماس بگیرید.
+                        </p>
+                    </div>
+                )}
                 {transactionId && (
                     <p className="small mb-4">
                         شناسه تراکنش: <code>{transactionId}</code>

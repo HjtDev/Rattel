@@ -7,7 +7,7 @@ import { api } from "../api";
 export type StepStatus = "pending" | "delayed" | "completed" | "skipped";
 export type StepType = "memorize" | "review" | "extra_review" | "final_review";
 export type CallSessionStatus = "pending" | "completed" | "no_answer";
-export type PlanStatus = "draft" | "active" | "completed" | "cancelled";
+export type PlanStatus = "draft" | "queued" | "active" | "completed" | "cancelled";
 export type RequestStatus = "pending" | "contacted" | "plan_created" | "rejected";
 
 export interface PlanStep {
@@ -44,7 +44,7 @@ export interface AutomaticPlan {
     start_page: number;
     end_page: number;
     start_date: string;
-    time_to_finish: string;
+    time_to_finish: string | null;
     time_freq: string;
     time_freq_display: string;
     reading_freq: string;
@@ -53,6 +53,7 @@ export interface AutomaticPlan {
     extra_review_start_page: number | null;
     extra_review_end_page: number | null;
     extra_review_pages_per_session: number;
+    advance_completion_days: number | null;
     user_day_availability: string;
     user_day_availability_display: string;
     user_time_availability: string;
@@ -60,10 +61,12 @@ export interface AutomaticPlan {
     status: PlanStatus;
     status_display: string;
     teacher_display: { id: number; username: string } | null;
+    parent_plan: string | null;
     total_steps: number;
     completed_steps: number;
     progress_percent: number;
     call_sessions: UserCallSession[];
+    has_chained_plan: boolean;
     created_at: string;
 }
 
@@ -82,7 +85,9 @@ export interface TodayData {
     has_delayed: boolean;
     delayed_steps: PlanStep[];
     today_steps: PlanStep[];
+    ahead_steps: PlanStep[];
     upcoming_steps: PlanStep[];
+    advance_completion_days: number | null;
 }
 
 export interface ProgressData {
@@ -108,6 +113,14 @@ export interface AdminClassRequest extends ClassRequest {
     admin_notes: string;
 }
 
+export interface ChainedPlanSummary {
+    id: string;
+    start_page: number;
+    end_page: number;
+    start_date: string;
+    status: PlanStatus;
+}
+
 export interface AdminPlan extends AutomaticPlan {
     user_display: { id: number; username: string; phone: string | null };
     admin_notes: string;
@@ -118,6 +131,10 @@ export interface AdminPlan extends AutomaticPlan {
     extra_review_start_page: number | null;
     extra_review_end_page: number | null;
     extra_review_pages_per_session: number;
+    parent_plan: string | null;
+    generate_call_sessions: boolean;
+    last_step_date: string | null;
+    chained_plan: ChainedPlanSummary | null;
 }
 
 export interface AdminCallLog {
@@ -151,16 +168,19 @@ export interface CreatePlanPayload {
     request?: string | null;
     user: number | string;
     teacher?: number | string | null;
+    parent_plan?: string | null;
+    generate_call_sessions?: boolean;
     start_page: number;
     end_page: number;
     start_date: string;
-    time_to_finish: string;
+    time_to_finish?: string | null;
     time_freq: string;
     reading_freq: string;
     review_freq: number;
     extra_review_start_page?: number | null;
     extra_review_end_page?: number | null;
     extra_review_pages_per_session?: number;
+    advance_completion_days?: number | null;
     user_day_availability: string;
     user_time_availability: string;
     status: string;
@@ -185,6 +205,7 @@ class AutomaticClassManager {
     private plan: AutomaticPlan | null = null;
     private todayData: TodayData | null = null;
     private progressData: ProgressData | null = null;
+    private planHistory: AutomaticPlan[] = [];
 
     // Admin state
     private adminRequests: AdminClassRequest[] = [];
@@ -193,6 +214,8 @@ class AutomaticClassManager {
     private adminPlansTotal = 0;
     private activePlan: AdminPlan | null = null;
     private callLogs: AdminCallLog[] = [];
+    private adminPlanHistory: AdminPlan[] = [];
+    private adminPlanHistoryUserId: string | null = null;
 
     // Loading
     private isLoading = false;
@@ -230,12 +253,15 @@ class AutomaticClassManager {
     public getPlan() { return this.plan; }
     public getTodayData() { return this.todayData; }
     public getProgressData() { return this.progressData; }
+    public getPlanHistory() { return this.planHistory; }
     public getAdminRequests() { return this.adminRequests; }
     public getAdminRequestsTotal() { return this.adminRequestsTotal; }
     public getAdminPlans() { return this.adminPlans; }
     public getAdminPlansTotal() { return this.adminPlansTotal; }
     public getActivePlan() { return this.activePlan; }
     public getCallLogs() { return this.callLogs; }
+    public getAdminPlanHistory() { return this.adminPlanHistory; }
+    public getAdminPlanHistoryUserId() { return this.adminPlanHistoryUserId; }
     public getIsLoading() { return this.isLoading; }
     public getError() { return this.error; }
     public getNoSubscription() { return this.noSubscription; }
@@ -336,7 +362,9 @@ class AutomaticClassManager {
                     has_delayed: res.data.has_delayed,
                     delayed_steps: res.data.delayed_steps,
                     today_steps: res.data.today_steps,
+                    ahead_steps: res.data.ahead_steps,
                     upcoming_steps: res.data.upcoming_steps,
+                    advance_completion_days: res.data.advance_completion_days,
                 };
                 this.notify();
                 return { success: true };
@@ -375,6 +403,32 @@ class AutomaticClassManager {
             return { success: false, message: res.data.message };
         } catch (e: any) {
             return { success: false, message: "خطا در دریافت پیشرفت" };
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    public async fetchPlanHistory(): Promise<ACResult> {
+        this.setLoading(true);
+        try {
+            const res = await api.get("/class/automatic/plan-history/", {
+                cache: false,
+                validateStatus: (s: number) => s < 500,
+            } as any);
+            if (res.status === 403) {
+                this.noSubscription = true;
+                this.notify();
+                return { success: false, error: 403 };
+            }
+            if (res.data.success) {
+                this.noSubscription = false;
+                this.planHistory = res.data.plans;
+                this.notify();
+                return { success: true };
+            }
+            return { success: false, message: res.data.message };
+        } catch (e: any) {
+            return { success: false, message: "خطا در دریافت تاریخچه برنامه‌ها" };
         } finally {
             this.setLoading(false);
         }
@@ -420,6 +474,7 @@ class AutomaticClassManager {
                 ...this.todayData,
                 delayed_steps: this.todayData.delayed_steps.map((s) => s.id === updated.id ? updated : s),
                 today_steps: this.todayData.today_steps.map((s) => s.id === updated.id ? updated : s),
+                ahead_steps: this.todayData.ahead_steps.map((s) => s.id === updated.id ? updated : s),
             };
         }
         if (this.progressData) {
@@ -487,6 +542,29 @@ class AutomaticClassManager {
         }
     }
 
+    /**
+     * Full plan history (any status) for one student — reuses the existing
+     * admin/plans/?user= endpoint but stores into a separate field so it
+     * never collides with the Plans tab's status-filtered adminPlans list.
+     */
+    public async fetchAdminPlanHistory(userId: string): Promise<ACResult> {
+        this.setLoading(true);
+        try {
+            const res = await api.get(`/class/automatic/admin/plans/?user=${userId}`, { cache: false });
+            if (res.data.success) {
+                this.adminPlanHistory = res.data.plans;
+                this.adminPlanHistoryUserId = userId;
+                this.notify();
+                return { success: true };
+            }
+            return { success: false, message: res.data.message };
+        } catch (e: any) {
+            return { success: false, message: "خطا در دریافت تاریخچه برنامه‌ها" };
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
     public async fetchAdminPlanDetail(planId: string): Promise<ACResult> {
         this.setLoading(true);
         try {
@@ -536,6 +614,24 @@ class AutomaticClassManager {
             return { success: false, message: res.data.message };
         } catch (e: any) {
             return { success: false, message: "خطا در بروزرسانی برنامه" };
+        }
+    }
+
+    public async deletePlan(planId: string): Promise<ACResult> {
+        try {
+            const res = await api.delete(`/class/automatic/admin/plans/${planId}/`, { cache: false } as any);
+            if (res.data.success) {
+                this.adminPlans = this.adminPlans.filter((p) => p.id !== planId);
+                this.adminPlansTotal = Math.max(0, this.adminPlansTotal - 1);
+                if (this.activePlan?.id === planId) {
+                    this.activePlan = null;
+                }
+                this.notify();
+                return { success: true };
+            }
+            return { success: false, message: res.data.message };
+        } catch (e: any) {
+            return { success: false, message: e.response?.data?.message || "خطا در حذف برنامه" };
         }
     }
 

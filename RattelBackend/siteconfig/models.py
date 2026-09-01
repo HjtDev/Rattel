@@ -27,11 +27,6 @@ class Link(models.Model):
     def __str__(self):
         return self.name
 
-    def delete(self, *args, **kwargs):
-        if self.logo and self.logo.name:
-            self.logo.delete(save=False)
-        return super().delete(*args, **kwargs)
-
 
 class FooterLinkColumn(models.Model):
     """A column of links in the footer"""
@@ -215,12 +210,7 @@ class SiteNavbarImageItems(BaseNavbarItem):
     def __str__(self):
         return f"Image Items: {self.label or self.link.name} - {self.icon.name or 'no-icon'}"
 
-    def delete(self, *args, **kwargs):
-        if self.icon and self.icon.name:
-            self.icon.delete(save=False)
-        return super().delete(*args, **kwargs)
-    
-    
+
 class SiteNavbar(models.Model):
     """Singleton site navbar configuration"""
     class Meta:
@@ -515,11 +505,6 @@ class Information(models.Model):
     def __str__(self):
         return f'Information Section: {self.title}'
 
-    def delete(self, *args, **kwargs):
-        if self.image and self.image.name:
-            self.image.delete(save=False)
-        return super().delete(*args, **kwargs)
-
 
 def video_validator(file):
     """Video file validator"""
@@ -800,8 +785,6 @@ class MainPage(models.Model):
                 'stat3_description': 'Stat3 Description',
                 'stat4_title': 'Stat4 Title',
                 'stat4_description': 'Stat4 Description',
-                'courses_title': 'Courses Title',
-                'courses_description': 'Courses Description',
                 'ad_title': 'Ads Title',
                 'ad_description': 'Ads Description',
                 'choice1_title': 'Choice1 Title',
@@ -810,8 +793,6 @@ class MainPage(models.Model):
                 'choice2_title': 'Choice2 Title',
                 'choice2_description': 'Choice2 Description',
                 'choice2_image': generate_random_image(235, 200, 'DualChoice/images'),
-                'course_suggestions_title': 'Course Suggestions Title',
-                'course_suggestions_description': 'Course Suggestions Description',
                 'ux_title': 'UX Title',
                 'ux_description': 'UX Description',
                 'ux_top_users_title': 'UX Top Users Title',

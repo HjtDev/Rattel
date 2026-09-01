@@ -8,6 +8,7 @@ export function useAutomaticClass() {
     const [plan, setPlan] = useState<AutomaticPlan | null>(automaticClassManager.getPlan());
     const [todayData, setTodayData] = useState<TodayData | null>(automaticClassManager.getTodayData());
     const [progressData, setProgressData] = useState<ProgressData | null>(automaticClassManager.getProgressData());
+    const [planHistory, setPlanHistory] = useState<AutomaticPlan[]>(automaticClassManager.getPlanHistory());
     const [isLoading, setIsLoading] = useState(automaticClassManager.getIsLoading());
     const [noSubscription, setNoSubscription] = useState(automaticClassManager.getNoSubscription());
 
@@ -17,6 +18,7 @@ export function useAutomaticClass() {
             setPlan(automaticClassManager.getPlan());
             setTodayData(automaticClassManager.getTodayData());
             setProgressData(automaticClassManager.getProgressData());
+            setPlanHistory(automaticClassManager.getPlanHistory());
             setIsLoading(automaticClassManager.getIsLoading());
             setNoSubscription(automaticClassManager.getNoSubscription());
         });
@@ -28,6 +30,7 @@ export function useAutomaticClass() {
         plan,
         todayData,
         progressData,
+        planHistory,
         isLoading,
         noSubscription,
         fetchClassRequest: automaticClassManager.fetchClassRequest.bind(automaticClassManager),
@@ -35,6 +38,7 @@ export function useAutomaticClass() {
         fetchMyPlan: automaticClassManager.fetchMyPlan.bind(automaticClassManager),
         fetchTodaySteps: automaticClassManager.fetchTodaySteps.bind(automaticClassManager),
         fetchProgress: automaticClassManager.fetchProgress.bind(automaticClassManager),
+        fetchPlanHistory: automaticClassManager.fetchPlanHistory.bind(automaticClassManager),
         completeStep: automaticClassManager.completeStep.bind(automaticClassManager),
         reportDelay: automaticClassManager.reportDelay.bind(automaticClassManager),
     };

@@ -36,7 +36,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class InPersonClassListSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)
-    available_times = TimeRangeSerializer(many=True, read_only=True)
+    available_times = serializers.SerializerMethodField()
     thumbnail = serializers.SerializerMethodField()
     discount = serializers.IntegerField(read_only=True)
 
@@ -55,6 +55,7 @@ class InPersonClassListSerializer(serializers.ModelSerializer):
             'start_date',
             'end_date',
             'meeting_url',
+            'capacity',
         )
 
     def get_thumbnail(self, obj: InPersonClass):
@@ -64,11 +65,31 @@ class InPersonClassListSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(url) if request else url
         return None
 
+    def get_available_times(self, obj: InPersonClass):
+        registration_counts = self.context.get('registration_counts', {})
+        capacity = obj.capacity
+        result = []
+        for time_range in obj.available_times.all():
+            registered_count = registration_counts.get((obj.pk, time_range.pk), 0)
+            seats_remaining = None if capacity is None else max(capacity - registered_count, 0)
+            is_full = False if capacity is None else registered_count >= capacity
+            result.append({
+                'id': time_range.pk,
+                'label': time_range.label,
+                'capacity': capacity,
+                'registered_count': registered_count,
+                'seats_remaining': seats_remaining,
+                'is_full': is_full,
+            })
+        return result
+
 
 class InPersonClassRegistrationSerializer(serializers.ModelSerializer):
     in_person_class = InPersonClassListSerializer(read_only=True)
     time_range = TimeRangeSerializer(read_only=True)
     registered_count = serializers.SerializerMethodField()
+    capacity = serializers.ReadOnlyField()
+    seats_remaining = serializers.ReadOnlyField()
 
     class Meta:
         model = InPersonClassRegistration
@@ -81,6 +102,8 @@ class InPersonClassRegistrationSerializer(serializers.ModelSerializer):
             'price',
             'new_price',
             'registered_count',
+            'capacity',
+            'seats_remaining',
             'created_at',
         )
         read_only_fields = fields

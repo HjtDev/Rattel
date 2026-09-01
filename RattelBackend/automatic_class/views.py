@@ -1,12 +1,12 @@
 import logging
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from RattelBackend.mixins import ResponseBuilderMixin
 from .models import AutomaticPlan, ClassRequest, PlanStep, AdminCallLog, OnlineCallSession
-from .permissions import HasAutomaticClassAccess
+from .permissions import HasAutomaticClassAccess, IsAutomaticClassStaff
 from .serializers import (
     AdminCallLogSerializer,
     AdminCallSessionUpdateSerializer,
@@ -78,7 +78,15 @@ class ClassRequestView(APIView, ResponseBuilderMixin):
                 AutomaticPlan.Status.COMPLETED,
             ]).exists()
 
-            if pending or plan_created_blocking:
+            # Block while the user has an active plan or a chained plan queued behind it
+            # (chained plans have no linked ClassRequest, so plan_created_blocking above
+            # would miss them).
+            has_live_plan = AutomaticPlan.objects.filter(
+                user=request.user,
+                status__in=[AutomaticPlan.Status.ACTIVE, AutomaticPlan.Status.QUEUED],
+            ).exists()
+
+            if pending or plan_created_blocking or has_live_plan:
                 return self.build_response(
                     status.HTTP_400_BAD_REQUEST,
                     success=False, error=-1,
@@ -147,10 +155,13 @@ class TodayStepsView(APIView, ResponseBuilderMixin):
     Returns the user's tasks for today along with any delayed tasks from previous days.
 
     Response:
-        delayed_steps   — past-due steps not yet completed
-        today_steps     — steps scheduled for today
-        upcoming_steps  — next 3 upcoming steps (preview)
-        has_delayed     — convenience boolean
+        delayed_steps             — past-due steps not yet completed
+        today_steps                — steps scheduled for today
+        ahead_steps                 — next unlocked day's steps, completable early
+                                       (see AutomaticPlan.get_unlocked_ahead_steps)
+        upcoming_steps              — next 3 upcoming steps not yet unlocked (preview)
+        has_delayed                 — convenience boolean
+        advance_completion_days     — the plan's pre-completion window, for UI copy
 
     Permissions: IsAuthenticated + HasAutomaticClassAccess
     """
@@ -184,11 +195,13 @@ class TodayStepsView(APIView, ResponseBuilderMixin):
                 status__in=[PlanStep.Status.COMPLETED, PlanStep.Status.SKIPPED]
             ).order_by('step_number')
 
+            ahead = plan.get_unlocked_ahead_steps()
+
             upcoming = PlanStep.objects.filter(
                 plan=plan,
                 status=PlanStep.Status.PENDING,
                 scheduled_date__gt=today,
-            ).order_by('scheduled_date', 'step_number')[:3]
+            ).exclude(pk__in=ahead.values('pk')).order_by('scheduled_date', 'step_number')[:3]
 
             return self.build_response(
                 status.HTTP_200_OK,
@@ -196,7 +209,9 @@ class TodayStepsView(APIView, ResponseBuilderMixin):
                 has_delayed=delayed.exists(),
                 delayed_steps=PlanStepSerializer(delayed, many=True).data,
                 today_steps=PlanStepSerializer(today_steps, many=True).data,
+                ahead_steps=PlanStepSerializer(ahead, many=True).data,
                 upcoming_steps=PlanStepSerializer(upcoming, many=True).data,
+                advance_completion_days=plan.advance_completion_days,
             )
         except Exception as e:
             logger.error(f'TodayStepsView.get failed: {e}')
@@ -242,6 +257,15 @@ class StepCompleteView(APIView, ResponseBuilderMixin):
                 status.HTTP_400_BAD_REQUEST,
                 success=False, error=-4, message='The associated plan is not active.',
             )
+
+        today = timezone.now().date()
+        if step.scheduled_date and step.scheduled_date > today:
+            if not step.plan.get_unlocked_ahead_steps().filter(pk=step.pk).exists():
+                return self.build_response(
+                    status.HTTP_400_BAD_REQUEST,
+                    success=False, error=-6,
+                    message='This step is not yet available for completion.',
+                )
 
         serializer = StepCompleteSerializer(data=request.data)
         if not serializer.is_valid():
@@ -373,18 +397,56 @@ class MyProgressView(APIView, ResponseBuilderMixin):
             )
 
 
+class MyPlanHistoryView(APIView, ResponseBuilderMixin):
+    """
+    Returns every plan the user has ever had (any status, including draft),
+    oldest first, so the frontend can render the chain via parent_plan.
+
+    Permissions: IsAuthenticated + HasAutomaticClassAccess
+    """
+
+    permission_classes = (IsAuthenticated, HasAutomaticClassAccess)
+    throttle_scope = 'main-throttle'
+
+    def get(self, request):
+        try:
+            plans = AutomaticPlan.objects.filter(user=request.user).order_by('created_at')
+            return self.build_response(
+                status.HTTP_200_OK,
+                success=True, message='Successful',
+                plans=AutomaticPlanSerializer(plans, many=True).data,
+            )
+        except Exception as e:
+            logger.error(f'MyPlanHistoryView.get failed: {e}')
+            return self.build_response(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                success=False, error=-1, message='Something went wrong.',
+            )
+
+
 # ---------------------------------------------------------------------------
 # Admin views
 # ---------------------------------------------------------------------------
+
+def scope_plans(qs, user):
+    """
+    Restrict a plan (or plan-joined) queryset to the requester's own plans,
+    unless they're a superuser. For querysets not on AutomaticPlan itself,
+    filter on 'plan__teacher' instead of 'teacher'.
+    """
+    return qs if user.is_superuser else qs.filter(teacher=user)
+
 
 class AdminClassRequestListView(APIView, ResponseBuilderMixin):
     """
     GET — List all class requests. Filter by ?status=pending|contacted|plan_created|rejected.
 
-    Permissions: IsAdminUser
+    Class requests are shared across all teachers/staff — not scoped.
+
+    Permissions: IsAutomaticClassStaff
     """
 
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAutomaticClassStaff,)
     throttle_scope = 'main-throttle'
 
     def get(self, request):
@@ -414,10 +476,12 @@ class AdminClassRequestDetailView(APIView, ResponseBuilderMixin):
     GET   — Retrieve a single class request.
     PATCH — Update status / admin_notes.
 
-    Permissions: IsAdminUser
+    Class requests are shared across all teachers/staff — not scoped.
+
+    Permissions: IsAutomaticClassStaff
     """
 
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAutomaticClassStaff,)
     throttle_scope = 'main-throttle'
 
     def _get_object(self, request_id):
@@ -465,12 +529,15 @@ class AdminClassRequestDetailView(APIView, ResponseBuilderMixin):
 class AdminPlanListView(APIView, ResponseBuilderMixin):
     """
     GET  — List all plans. Filter by ?status= or ?user=<user_id>.
-    POST — Create a new plan for a user.
+         Scoped to the requesting teacher's own plans unless they're a superuser.
+    POST — Create a new plan for a user. The caller is always pinned as the
+         plan's teacher; chaining onto another teacher's plan is only allowed
+         for a superuser.
 
-    Permissions: IsAdminUser
+    Permissions: IsAutomaticClassStaff
     """
 
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAutomaticClassStaff,)
     throttle_scope = 'main-throttle'
 
     def get(self, request):
@@ -484,6 +551,7 @@ class AdminPlanListView(APIView, ResponseBuilderMixin):
                 qs = qs.filter(status=request.query_params['status'])
             if request.query_params.get('user'):
                 qs = qs.filter(user_id=request.query_params['user'])
+            qs = scope_plans(qs, request.user)
 
             return self.build_response(
                 status.HTTP_200_OK,
@@ -507,6 +575,15 @@ class AdminPlanListView(APIView, ResponseBuilderMixin):
                     success=False, error=-2,
                     message='Invalid data.', errors=serializer.errors,
                 )
+
+            parent_plan = serializer.validated_data.get('parent_plan')
+            if parent_plan and not request.user.is_superuser and parent_plan.teacher_id != request.user.id:
+                return self.build_response(
+                    status.HTTP_400_BAD_REQUEST,
+                    success=False, error=-4,
+                    message='You can only chain a plan onto one of your own plans.',
+                )
+
             plan = serializer.save(teacher=request.user)
 
             # Sync the linked request status
@@ -529,29 +606,34 @@ class AdminPlanListView(APIView, ResponseBuilderMixin):
 
 class AdminPlanDetailView(APIView, ResponseBuilderMixin):
     """
-    GET   — Full plan detail with all steps and call logs.
-    PATCH — Update plan fields. Changing schedule fields does NOT regenerate steps automatically
-            (delete the plan and recreate it if a full regeneration is needed).
+    GET    — Full plan detail with all steps and call logs.
+    PATCH  — Update plan fields. Changing schedule fields does NOT regenerate steps automatically
+             (delete the plan and recreate it if a full regeneration is needed).
+    DELETE — Remove a queued (not yet activated) plan. Any other status is refused.
 
-    Permissions: IsAdminUser
+    All three actions are scoped to the requesting teacher's own plans unless
+    they're a superuser — a plan belonging to another teacher looks like it
+    doesn't exist.
+
+    Permissions: IsAutomaticClassStaff
     """
 
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAutomaticClassStaff,)
     throttle_scope = 'main-throttle'
 
-    def _get_plan(self, plan_id):
+    def _get_plan(self, plan_id, user):
         try:
-            return (
+            qs = (
                 AutomaticPlan.objects
                 .prefetch_related('steps', 'call_logs__called_by', 'call_sessions__marked_by')
                 .select_related('user', 'teacher', 'request')
-                .get(id=plan_id)
             )
+            return scope_plans(qs, user).get(id=plan_id)
         except AutomaticPlan.DoesNotExist:
             return None
 
     def get(self, request, plan_id):
-        plan = self._get_plan(plan_id)
+        plan = self._get_plan(plan_id, request.user)
         if not plan:
             return self.build_response(
                 status.HTTP_404_NOT_FOUND,
@@ -565,7 +647,7 @@ class AdminPlanDetailView(APIView, ResponseBuilderMixin):
         )
 
     def patch(self, request, plan_id):
-        plan = self._get_plan(plan_id)
+        plan = self._get_plan(plan_id, request.user)
         if not plan:
             return self.build_response(
                 status.HTTP_404_NOT_FOUND,
@@ -579,6 +661,15 @@ class AdminPlanDetailView(APIView, ResponseBuilderMixin):
                 success=False, error=-2,
                 message='Invalid data.', errors=serializer.errors,
             )
+
+        parent_plan = serializer.validated_data.get('parent_plan')
+        if parent_plan and not request.user.is_superuser and parent_plan.teacher_id != request.user.id:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False, error=-4,
+                message='You can only chain a plan onto one of your own plans.',
+            )
+
         updated = serializer.save()
         return self.build_response(
             status.HTTP_200_OK,
@@ -586,22 +677,46 @@ class AdminPlanDetailView(APIView, ResponseBuilderMixin):
             plan=AdminPlanDetailSerializer(updated).data,
         )
 
+    def delete(self, request, plan_id):
+        plan = self._get_plan(plan_id, request.user)
+        if not plan:
+            return self.build_response(
+                status.HTTP_404_NOT_FOUND,
+                success=False, error=-1, message='Plan not found.',
+            )
+        if plan.status != AutomaticPlan.Status.QUEUED:
+            return self.build_response(
+                status.HTTP_400_BAD_REQUEST,
+                success=False, error=-3,
+                message='Only a queued plan that has not yet activated can be deleted.',
+            )
+        plan.delete()
+        return self.build_response(
+            status.HTTP_200_OK,
+            success=True, message='Plan deleted.',
+        )
+
 
 class AdminStepUpdateView(APIView, ResponseBuilderMixin):
     """
     PATCH — Admin override for a single step: update status, admin_note, or scheduled_date.
 
-    Permissions: IsAdminUser
+    Scoped to steps of the requesting teacher's own plans unless they're a superuser.
+
+    Permissions: IsAutomaticClassStaff
     """
 
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAutomaticClassStaff,)
     throttle_scope = 'main-throttle'
 
     ALLOWED_FIELDS = {'status', 'admin_note', 'scheduled_date'}
 
     def patch(self, request, step_id):
         try:
-            step = PlanStep.objects.select_related('plan').get(id=step_id)
+            qs = PlanStep.objects.select_related('plan')
+            if not request.user.is_superuser:
+                qs = qs.filter(plan__teacher=request.user)
+            step = qs.get(id=step_id)
         except PlanStep.DoesNotExist:
             return self.build_response(
                 status.HTTP_404_NOT_FOUND,
@@ -631,10 +746,12 @@ class AdminCallLogCreateView(APIView, ResponseBuilderMixin):
     """
     POST — Log an admin/teacher call against a plan.
 
-    Permissions: IsAdminUser
+    The referenced plan must belong to the requesting teacher unless they're a superuser.
+
+    Permissions: IsAutomaticClassStaff
     """
 
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAutomaticClassStaff,)
     throttle_scope = 'main-throttle'
 
     def post(self, request):
@@ -646,6 +763,14 @@ class AdminCallLogCreateView(APIView, ResponseBuilderMixin):
                     success=False, error=-1,
                     message='Invalid data.', errors=serializer.errors,
                 )
+
+            log_plan = serializer.validated_data.get('plan')
+            if log_plan and not request.user.is_superuser and log_plan.teacher_id != request.user.id:
+                return self.build_response(
+                    status.HTTP_404_NOT_FOUND,
+                    success=False, error=-3, message='Plan not found.',
+                )
+
             log = serializer.save(called_by=request.user)
             return self.build_response(
                 status.HTTP_201_CREATED,
@@ -664,15 +789,20 @@ class AdminCallSessionUpdateView(APIView, ResponseBuilderMixin):
     """
     PATCH — Mark an online call session as completed or no_answer.
 
-    Permissions: IsAdminUser
+    Scoped to sessions of the requesting teacher's own plans unless they're a superuser.
+
+    Permissions: IsAutomaticClassStaff
     """
 
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAutomaticClassStaff,)
     throttle_scope = 'main-throttle'
 
     def patch(self, request, session_id):
         try:
-            session = OnlineCallSession.objects.select_related('plan').get(id=session_id)
+            qs = OnlineCallSession.objects.select_related('plan')
+            if not request.user.is_superuser:
+                qs = qs.filter(plan__teacher=request.user)
+            session = qs.get(id=session_id)
         except OnlineCallSession.DoesNotExist:
             return self.build_response(
                 status.HTTP_404_NOT_FOUND,

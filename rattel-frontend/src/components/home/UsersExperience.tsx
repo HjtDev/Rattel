@@ -18,10 +18,10 @@ interface UserExperienceSection {
       list: User[];
     };
     comment1_text: string;
-    comment1_user: User;
+    comment1_user: User | null;
     comment1_rate: number;
     comment2_text: string;
-    comment2_user: User;
+    comment2_user: User | null;
     comment2_rate: number;
 }
 
@@ -106,7 +106,7 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                     )} width={192} height={20} />
                     <LoadingSkeleton isLoading={isLoading} Content={() => (
                         <h6 className="mb-0">
-                          {data?.comment1_user.name}
+                          {data?.comment1_user?.name}
                         </h6>
                     )} width={192} height={20} />
                   </div>
@@ -311,7 +311,7 @@ export default function UsersExperience({ data, isLoading }: UsersExperienceProp
                     )} width={192} height={20} />
                     <LoadingSkeleton isLoading={isLoading} Content={() => (
                         <h6 className="mb-0">
-                          {data?.comment2_user.name}
+                          {data?.comment2_user?.name}
                         </h6>
                     )} width={192} height={20} />
                   </div>

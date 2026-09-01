@@ -6,6 +6,12 @@ import { api } from "../api";
 export interface InPersonClassTimeRange {
     id: number;
     label: string;
+    // Only present when returned as part of InPersonClass.available_times
+    // (the my-registrations endpoint's `time_range` field omits these).
+    capacity?: number | null;
+    registered_count?: number;
+    seats_remaining?: number | null;
+    is_full?: boolean;
 }
 
 export interface InPersonClassCategory {
@@ -27,6 +33,7 @@ export interface InPersonClass {
     start_date: string;
     end_date: string;
     meeting_url?: string | null;
+    capacity: number | null;
 }
 
 export interface InPersonClassRegistration {
